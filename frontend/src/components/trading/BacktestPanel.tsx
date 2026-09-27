@@ -18,26 +18,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { type PriceableItem, useLivePrice } from '@/hooks/useLivePrice'
-import { cn } from '@/lib/utils'
-import {
-  type BacktestOutcome,
-  MAX_BARS,
-  runBacktest,
-} from '@/lib/trading/backtestRun'
-import {
-  declaredOf,
-  inputsOf,
-  settingsFromForm,
-} from '@/lib/trading/backtestInputs'
+import { declaredOf, inputsOf, settingsFromForm } from '@/lib/trading/backtestInputs'
 import { chartMarkersFrom } from '@/lib/trading/backtestMarkers'
+import { type BacktestOutcome, MAX_BARS, runBacktest } from '@/lib/trading/backtestRun'
+import { backtestLookbackDays } from '@/lib/trading/intervals'
 import {
   markToPrice,
   openCountOf,
   openPositionOf,
   type ReportTrade,
 } from '@/lib/trading/openPosition'
-import { quantityNote, quantityOf, unitsFor } from '@/lib/trading/strategyQuantity'
-import { backtestLookbackDays } from '@/lib/trading/intervals'
 import {
   compileSource,
   kindOf,
@@ -45,9 +35,11 @@ import {
   readScript,
   type StoredScript,
 } from '@/lib/trading/openscriptFiles'
+import { quantityNote, quantityOf, unitsFor } from '@/lib/trading/strategyQuantity'
+import { cn } from '@/lib/utils'
 import { BacktestChart } from './BacktestChart'
-import { StrategyInputs } from './StrategyInputs'
 import { PANEL_HEADER, PanelShell } from './panelShell'
+import { StrategyInputs } from './StrategyInputs'
 
 /** The three chart facts a run is of. */
 export interface RunTarget {
@@ -123,7 +115,10 @@ function today(): string {
 function money(value: unknown, digits = 2): string {
   const n = Number(value)
   if (!Number.isFinite(n)) return '-'
-  return n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits })
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })
 }
 
 function percent(value: unknown): string {
@@ -154,7 +149,7 @@ function Figure({
       <span
         className={cn(
           'font-mono text-[13px] leading-none tabular-nums',
-          tone === 'good' && 'text-emerald-500',
+          tone === 'good' && 'text-success',
           tone === 'bad' && 'text-destructive'
         )}
       >
@@ -394,46 +389,46 @@ export function BacktestPanel({
 
   const runNamed = useCallback(
     async (which: string) => {
-    const chart = getChartContext()
-    if (!which || !chart) return
+      const chart = getChartContext()
+      if (!which || !chart) return
 
-    inflight.current?.abort()
-    const controller = new AbortController()
-    inflight.current = controller
+      inflight.current?.abort()
+      const controller = new AbortController()
+      inflight.current = controller
 
-    setRunning(true)
-    setOutcome(null)
-    try {
-      const source = await readScript(which, controller.signal)
-      const result = await runBacktest({
-        file: which,
-        source,
-        symbol: chart.symbol,
-        exchange: chart.exchange,
-        interval: chart.interval,
-        startDate: from,
-        endDate: to,
-        apiKey,
-        inputs: settingsFromForm(declarations, edited),
-        signal: controller.signal,
-      })
-      if (controller.signal.aborted) return
-      setOutcome(result)
+      setRunning(true)
+      setOutcome(null)
+      try {
+        const source = await readScript(which, controller.signal)
+        const result = await runBacktest({
+          file: which,
+          source,
+          symbol: chart.symbol,
+          exchange: chart.exchange,
+          interval: chart.interval,
+          startDate: from,
+          endDate: to,
+          apiKey,
+          inputs: settingsFromForm(declarations, edited),
+          signal: controller.signal,
+        })
+        if (controller.signal.aborted) return
+        setOutcome(result)
 
-      // The fills go on the price as soon as they exist. A previous run's marks
-      // are replaced rather than added to, and a run that produced none clears
-      // them, so what is on the chart is always this run and only this run.
-      if (onMarkChart) {
-        const marks = result.ok ? chartMarkersFrom(result.markers ?? []) : []
-        setMarked(onMarkChart(marks) ? marks.length : null)
+        // The fills go on the price as soon as they exist. A previous run's marks
+        // are replaced rather than added to, and a run that produced none clears
+        // them, so what is on the chart is always this run and only this run.
+        if (onMarkChart) {
+          const marks = result.ok ? chartMarkersFrom(result.markers ?? []) : []
+          setMarked(onMarkChart(marks) ? marks.length : null)
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setOutcome({ ok: false, problem: 'The script could not be read.' })
+        }
+      } finally {
+        if (!controller.signal.aborted) setRunning(false)
       }
-    } catch {
-      if (!controller.signal.aborted) {
-        setOutcome({ ok: false, problem: 'The script could not be read.' })
-      }
-    } finally {
-      if (!controller.signal.aborted) setRunning(false)
-    }
     },
     [apiKey, declarations, edited, from, getChartContext, onMarkChart, to]
   )
@@ -500,7 +495,9 @@ export function BacktestPanel({
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Strategy</span>
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Strategy
+          </span>
           <select
             className="h-8 rounded border border-border bg-background px-2 text-xs"
             value={file}
@@ -603,7 +600,9 @@ export function BacktestPanel({
                       </dd>
                       <dt>Order size</dt>
                       <dd className="text-right">
-                        {sending === null ? `${declared.qty} ${declared.qtyType}` : `${sending} ${declared.qtyType}`}
+                        {sending === null
+                          ? `${declared.qty} ${declared.qtyType}`
+                          : `${sending} ${declared.qtyType}`}
                         {quantity.kind === 'input' && ' (yours)'}
                       </dd>
                       <dt>Pyramiding</dt>
@@ -618,10 +617,10 @@ export function BacktestPanel({
                       <dd className="text-right">{declared.fillOn}</dd>
                     </dl>
                     <p className="text-[10px] leading-relaxed text-muted-foreground">
-                      These are the script's own, set in its `strategy()` line, and are shown
-                      rather than offered: a commission supplied here beside a declared one
-                      describes the same money twice and is refused before the first bar. Edit
-                      the script to change them.
+                      These are the script's own, set in its `strategy()` line, and are shown rather
+                      than offered: a commission supplied here beside a declared one describes the
+                      same money twice and is refused before the first bar. Edit the script to
+                      change them.
                     </p>
                   </div>
                 )}
@@ -648,7 +647,10 @@ export function BacktestPanel({
               This script does not compile
             </span>
             {outcome.diagnostics.slice(0, 5).map((d) => (
-              <span key={`${d.code}-${d.line}-${d.column}`} className="font-mono text-[10px] text-muted-foreground">
+              <span
+                key={`${d.code}-${d.line}-${d.column}`}
+                className="font-mono text-[10px] text-muted-foreground"
+              >
                 {d.line}:{d.column} {d.code} {d.message}
               </span>
             ))}
@@ -674,7 +676,7 @@ export function BacktestPanel({
               <span
                 className={cn(
                   'ml-auto text-[9px] uppercase tracking-wide',
-                  isLive && livePrice !== null ? 'text-emerald-500' : 'text-muted-foreground'
+                  isLive && livePrice !== null ? 'text-success' : 'text-muted-foreground'
                 )}
               >
                 {livePrice === null ? 'No price yet' : isLive ? 'Live' : 'Last known'}
@@ -682,16 +684,13 @@ export function BacktestPanel({
             </div>
 
             <div className="flex items-baseline gap-2 font-mono text-[12px] tabular-nums">
-              <span className={holding.side === 'short' ? 'text-destructive' : 'text-emerald-500'}>
+              <span className={holding.side === 'short' ? 'text-destructive' : 'text-success'}>
                 {holding.side === 'short' ? 'Short' : 'Long'} {holding.units}
               </span>
               <span className="text-muted-foreground">at {holding.entryPrice.toFixed(2)}</span>
               {valued && (
                 <span
-                  className={cn(
-                    'ml-auto',
-                    valued.profit >= 0 ? 'text-emerald-500' : 'text-destructive'
-                  )}
+                  className={cn('ml-auto', valued.profit >= 0 ? 'text-profit' : 'text-destructive')}
                 >
                   {money(valued.profit)}
                   {valued.profitPercent !== null && ` (${percent(valued.profitPercent)})`}
@@ -704,8 +703,8 @@ export function BacktestPanel({
                 ? `Marked at ${valued.price.toFixed(2)}. `
                 : 'No price has arrived for this instrument yet, so it is not valued. '}
               {alsoOpen > 0 && `${alsoOpen} more open ${alsoOpen === 1 ? 'trade' : 'trades'}. `}
-              This strategy is on the chart, which draws and does not trade. Nothing is held at
-              your broker because of it. Add it under Strategies to trade it.
+              This strategy is on the chart, which draws and does not trade. Nothing is held at your
+              broker because of it. Add it under Strategies to trade it.
             </p>
           </div>
         )}
@@ -783,7 +782,7 @@ export function BacktestPanel({
                           <td
                             className={cn(
                               'px-1.5 py-1 text-right',
-                              Number(t.netProfit) >= 0 ? 'text-emerald-500' : 'text-destructive'
+                              Number(t.netProfit) >= 0 ? 'text-profit' : 'text-destructive'
                             )}
                           >
                             {money(t.netProfit)}

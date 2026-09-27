@@ -1,7 +1,7 @@
 import { BookOpen, ExternalLink, Info, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { BrokerAuthSignOut } from '@/components/auth/BrokerAuthSignOut'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -290,9 +290,9 @@ export default function BrokerSelect() {
                 </div>
 
                 {(selectedBroker === 'zerodha' || selectedBroker === 'dhan') && (
-                  <Alert className="border-amber-500/50 bg-amber-500/10">
-                    <Info className="h-4 w-4 text-amber-500" />
-                    <AlertDescription className="text-amber-700 dark:text-amber-400">
+                  <Alert className="border-warning/50 bg-warning/10">
+                    <Info className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-warning">
                       {selectedBroker === 'zerodha'
                         ? 'Zerodha requires an active Kite Connect data subscription for market data access.'
                         : 'Dhan requires an active Data API subscription for market data access.'}

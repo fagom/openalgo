@@ -87,7 +87,7 @@ export function AgentSetupGate({ compact = false, className }: AgentSetupGatePro
       <Button asChild size={compact ? 'sm' : 'default'}>
         <Link to="/agent/config">
           Configure the agent
-          <ArrowRight className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} aria-hidden />
+          <ArrowRight className={compact ? 'size-4' : 'h-4 w-4'} aria-hidden />
         </Link>
       </Button>
     </div>

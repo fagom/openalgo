@@ -20,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { isActiveRoute, mobileSheetItems, navItems } from '@/config/navigation'
 import { useProfileMenuItems } from '@/hooks/useProfileMenuItems'
 import { cn } from '@/lib/utils'
@@ -86,19 +87,25 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
   const isActive = (href: string) => isActiveRoute(location.pathname, href)
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div
-        className={cn(
-          'px-4 flex h-14 items-center',
-          fluid ? 'w-full' : 'container mx-auto'
-        )}
-      >
+    <nav
+      className={cn(
+        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+        // Analyzer mode carries a violet rule along the top so it can never be
+        // mistaken for live, even on a page with little chrome.
+        appMode === 'analyzer' && 'border-t-2 border-t-primary'
+      )}
+    >
+      <div className={cn('px-4 flex h-16 items-center', fluid ? 'w-full' : 'container mx-auto')}>
         {/* Mobile Menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="mr-2 min-h-[44px] min-w-[44px]">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2 min-h-[44px] min-w-[44px]"
+              aria-label="Toggle menu"
+            >
+              <Menu className="size-6" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 overflow-y-auto">
@@ -114,7 +121,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                 onClick={() => setMobileOpen(false)}
               >
                 <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-                <span className="font-semibold">OpenAlgo</span>
+                <span className="font-heading text-lg font-bold tracking-tight">OpenAlgo</span>
               </Link>
 
               {/* Secondary nav items (not in bottom nav) */}
@@ -127,12 +134,12 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                   const cls = cn(
                     'flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors min-h-[44px] touch-manipulation',
                     active
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-primary/10 text-primary font-medium'
                       : 'hover:bg-muted active:bg-muted'
                   )
                   const inner = (
                     <>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="size-5" />
                       {item.label}
                     </>
                   )
@@ -175,12 +182,12 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors min-h-[44px] touch-manipulation',
                         active
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-primary/10 text-primary font-medium'
                           : 'hover:bg-muted active:bg-muted'
                       )}
                       aria-current={active ? 'page' : undefined}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="size-5" />
                       {item.label}
                     </Link>
                   )
@@ -192,7 +199,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                   className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors min-h-[44px] touch-manipulation hover:bg-muted active:bg-muted"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="size-5" />
                   Docs
                 </a>
               </nav>
@@ -201,37 +208,41 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         </Sheet>
 
         {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 mr-6">
+        <Link to="/dashboard" className="flex items-center gap-2.5 mr-8">
           <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-          <span className="hidden font-semibold sm:inline-block">OpenAlgo</span>
+          <span className="hidden font-heading text-lg font-bold tracking-tight sm:inline-block">
+            OpenAlgo
+          </span>
         </Link>
 
         {/* Desktop Navigation.
             Icon-only between md and xl so all 9 items fit portrait monitors
             and small laptops (768-1280px wide) without squashing or pushing
             the profile menu off-screen; full labels from xl up (issue #1384). */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex h-16 items-center gap-0.5">
           {navItems.map((item) => {
             const active = isActive(item.href)
+            // Dropbox-style: active item is blue text with a blue rule at the
+            // bottom edge of the bar, not a filled pill.
             const className = cn(
-              'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'relative flex h-16 items-center gap-2 px-3 text-sm font-medium transition-colors',
+              'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full',
               active
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                ? 'text-primary after:bg-primary'
+                : 'text-muted-foreground hover:text-foreground after:bg-transparent'
             )
             const content = (
               <>
-                <item.icon className="h-4 w-4 shrink-0" />
+                <item.icon className="size-5 shrink-0" />
                 <span className="hidden xl:inline">{item.label}</span>
               </>
             )
             // Flask-served pages (e.g. /trading) need a full page load,
             // not client-side routing.
-            return item.external ? (
+            const link = item.external ? (
               <a
-                key={item.href}
                 href={item.href}
-                title={item.label}
+                aria-label={item.label}
                 className={className}
                 aria-current={active ? 'page' : undefined}
               >
@@ -239,14 +250,22 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
               </a>
             ) : (
               <Link
-                key={item.href}
                 to={item.href}
-                title={item.label}
+                aria-label={item.label}
                 className={className}
                 aria-current={active ? 'page' : undefined}
               >
                 {content}
               </Link>
+            )
+            // Labels are hidden below xl, so the tooltip is what names the icon.
+            return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>{link}</TooltipTrigger>
+                <TooltipContent side="bottom" className="xl:hidden">
+                  {item.label}
+                </TooltipContent>
+              </Tooltip>
             )
           })}
         </nav>
@@ -256,19 +275,13 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
           {/* Broker Badge — hidden below lg to keep the bar within narrow
               (portrait/small-laptop) widths */}
           {user?.broker && (
-            <Badge variant="outline" className="hidden lg:flex text-xs">
+            <Badge variant="muted" className="hidden lg:flex text-xs capitalize">
               {user.broker}
             </Badge>
           )}
 
           {/* Mode Badge */}
-          <Badge
-            variant={appMode === 'live' ? 'default' : 'secondary'}
-            className={cn(
-              'text-xs',
-              appMode === 'analyzer' && 'bg-purple-500 hover:bg-purple-600 text-white'
-            )}
-          >
+          <Badge variant={appMode === 'live' ? 'success' : 'default'} className="text-xs">
             <span className="hidden lg:inline">
               {appMode === 'live' ? 'Live Mode' : 'Analyze Mode'}
             </span>
@@ -279,18 +292,17 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
             onClick={handleModeToggle}
             disabled={isTogglingMode}
-            title={`Switch to ${appMode === 'live' ? 'Analyze' : 'Live'} mode`}
-            aria-label={`Switch to ${appMode === 'live' ? 'Analyze' : 'Live'} mode`}
+            tooltip={`Switch to ${appMode === 'live' ? 'Analyze' : 'Live'} mode`}
+            tooltipSide="bottom"
           >
             {isTogglingMode ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <div className="size-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
             ) : appMode === 'live' ? (
-              <Zap className="h-4 w-4" />
+              <Zap />
             ) : (
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 />
             )}
           </Button>
 
@@ -298,13 +310,12 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
             onClick={toggleMode}
             disabled={appMode !== 'live'}
-            title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            tooltip={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            tooltipSide="bottom"
           >
-            {mode === 'light' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {mode === 'light' ? <Sun /> : <Moon />}
           </Button>
 
           {/* Profile Dropdown */}
@@ -313,7 +324,9 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full bg-primary text-primary-foreground"
+                className="ml-1 size-9 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover hover:text-primary-foreground"
+                tooltip="Account menu"
+                tooltipSide="bottom"
                 aria-label="Open user menu"
               >
                 <span className="text-sm font-medium">
@@ -326,7 +339,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                 item.external ? (
                   <DropdownMenuItem key={item.href} asChild className="cursor-pointer">
                     <a href={item.href} className="flex items-center">
-                      <item.icon className="h-4 w-4 mr-2" />
+                      <item.icon className="size-[18px] mr-2" />
                       {item.label}
                     </a>
                   </DropdownMenuItem>
@@ -336,7 +349,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                     onSelect={() => navigate(item.href)}
                     className="cursor-pointer"
                   >
-                    <item.icon className="h-4 w-4 mr-2" />
+                    <item.icon className="size-[18px] mr-2" />
                     {item.label}
                   </DropdownMenuItem>
                 )
@@ -348,7 +361,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="size-5" />
                   Docs
                 </a>
               </DropdownMenuItem>
@@ -357,7 +370,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                 onClick={() => setShowLogoutDialog(true)}
                 className="text-destructive focus:text-destructive"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="size-[18px] mr-2" />
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -26,7 +26,7 @@ export const ClosePositionsNode = memo(({ data, selected }: ClosePositionsNodePr
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded bg-sell/20 text-sell">
-            <Square className="h-3 w-3" />
+            <Square className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">

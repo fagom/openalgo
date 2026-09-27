@@ -237,7 +237,7 @@ export default function WhatsAppIndex() {
           <div className="flex items-center justify-between">
             <CardTitle>Status</CardTitle>
             <Badge variant={isPaired ? 'default' : 'secondary'} className="gap-1">
-              {isPaired ? <CheckCircle2 className="h-3 w-3" /> : null}
+              {isPaired ? <CheckCircle2 className="size-4" /> : null}
               {isPaired ? 'Connected' : 'Not paired'}
             </Badge>
           </div>

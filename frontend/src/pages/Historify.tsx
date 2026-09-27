@@ -894,20 +894,20 @@ export default function Historify() {
     }
     if (schedule.is_paused) {
       return (
-        <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+        <Badge variant="outline" className="border-warning/60 text-warning">
           Paused
         </Badge>
       )
     }
     if (schedule.status === 'running') {
       return (
-        <Badge variant="default" className="bg-blue-500">
+        <Badge variant="default" className="bg-primary">
           Running
         </Badge>
       )
     }
     return (
-      <Badge variant="default" className="bg-green-500">
+      <Badge variant="default" className="bg-profit">
         Active
       </Badge>
     )
@@ -1452,19 +1452,19 @@ export default function Historify() {
   const getJobStatusColor = (status: string) => {
     switch (status) {
       case 'running':
-        return 'bg-blue-500'
+        return 'bg-primary'
       case 'paused':
-        return 'bg-yellow-500'
+        return 'bg-warning'
       case 'completed':
-        return 'bg-green-500'
+        return 'bg-profit'
       case 'completed_with_errors':
-        return 'bg-orange-500'
+        return 'bg-warning'
       case 'failed':
-        return 'bg-red-500'
+        return 'bg-loss'
       case 'cancelled':
-        return 'bg-gray-500'
+        return 'bg-muted-foreground'
       default:
-        return 'bg-gray-400'
+        return 'bg-muted-foreground'
     }
   }
 
@@ -1538,14 +1538,14 @@ export default function Historify() {
               variant={appMode === 'live' ? 'default' : 'secondary'}
               className={cn(
                 'text-xs cursor-pointer',
-                appMode === 'analyzer' && 'bg-purple-500 hover:bg-purple-600 text-white'
+                appMode === 'analyzer' && 'bg-primary hover:bg-primary/90 text-primary-foreground'
               )}
               onClick={handleModeToggle}
             >
               {appMode === 'live' ? (
-                <Zap className="h-3 w-3 mr-1" />
+                <Zap className="size-4 mr-1" />
               ) : (
-                <BarChart3 className="h-3 w-3 mr-1" />
+                <BarChart3 className="size-4 mr-1" />
               )}
               <span className="hidden sm:inline">
                 {appMode === 'live' ? 'Live Mode' : 'Analyze Mode'}
@@ -1686,7 +1686,7 @@ export default function Historify() {
                 <span className="hidden sm:inline">Scheduler</span>
                 <span className="sm:hidden">Sched</span>
                 {schedules.filter((s) => s.is_enabled && !s.is_paused).length > 0 && (
-                  <Badge variant="default" className="ml-1 h-5 min-w-5 text-xs bg-green-500">
+                  <Badge variant="default" className="ml-1 h-5 min-w-5 text-xs bg-profit">
                     {schedules.filter((s) => s.is_enabled && !s.is_paused).length}
                   </Badge>
                 )}
@@ -1696,7 +1696,7 @@ export default function Historify() {
                 <span className="hidden sm:inline">Download Jobs</span>
                 <span className="sm:hidden">Jobs</span>
                 {jobs.filter((j) => j.status === 'running' || j.status === 'paused').length > 0 && (
-                  <Badge variant="default" className="ml-1 h-5 min-w-5 text-xs bg-blue-500">
+                  <Badge variant="default" className="ml-1 h-5 min-w-5 text-xs bg-primary">
                     {jobs.filter((j) => j.status === 'running' || j.status === 'paused').length}
                   </Badge>
                 )}
@@ -1980,7 +1980,7 @@ export default function Historify() {
                                     <Link
                                       to={`/historify/charts/${item.symbol}?exchange=${item.exchange}&interval=${item.intervals[0]?.interval || 'D'}`}
                                     >
-                                      <LineChart className="h-3.5 w-3.5" />
+                                      <LineChart className="size-4" />
                                     </Link>
                                   </Button>
                                   <Button
@@ -1996,7 +1996,7 @@ export default function Historify() {
                                     }}
                                     aria-label={`Delete ${item.symbol} from watchlist`}
                                   >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <Trash2 className="size-4" />
                                   </Button>
                                 </div>
                               </TableCell>
@@ -2431,12 +2431,12 @@ export default function Historify() {
                                     </div>
                                     <div className="flex items-center gap-4 mt-2 text-sm">
                                       <span className="flex items-center gap-1">
-                                        <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                        <CheckCircle className="size-4 text-success" />
                                         {job.completed_symbols}
                                       </span>
                                       {job.failed_symbols > 0 && (
-                                        <span className="flex items-center gap-1 text-red-500">
-                                          <XCircle className="h-3.5 w-3.5" />
+                                        <span className="flex items-center gap-1 text-loss">
+                                          <XCircle className="size-4" />
                                           {job.failed_symbols}
                                         </span>
                                       )}
@@ -2721,9 +2721,9 @@ export default function Historify() {
                                               }
                                               className={
                                                 exec.status === 'completed'
-                                                  ? 'bg-green-500'
+                                                  ? 'bg-success'
                                                   : exec.status === 'running'
-                                                    ? 'bg-blue-500'
+                                                    ? 'bg-primary'
                                                     : ''
                                               }
                                             >
@@ -3270,7 +3270,7 @@ NIFTY24DEC25000CE,NFO"
                             })
                           }}
                         >
-                          {int} <X className="h-3 w-3 ml-1" />
+                          {int} <X className="size-4 ml-1" />
                         </Badge>
                       ))}
                   </div>

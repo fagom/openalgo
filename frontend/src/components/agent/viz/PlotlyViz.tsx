@@ -58,6 +58,7 @@ import {
   useState,
 } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/themeStore'
 
@@ -270,27 +271,27 @@ interface VizTheme {
 function useVizTheme(): VizTheme {
   const { mode, appMode } = useThemeStore()
   const isAnalyzer = appMode === 'analyzer'
-  // Analyzer mode is the dark purple theme, so it reads as dark regardless of
+  // Analyzer mode is the dark violet theme, so it reads as dark regardless of
   // the light and dark setting. PayoffChart and CodeArtifact do the same.
   const isDark = mode === 'dark' || isAnalyzer
 
-  return useMemo(
-    () => ({
-      text: isDark ? '#e2e8f0' : '#1e293b',
-      muted: isDark ? '#94a3b8' : '#64748b',
-      grid: isDark ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.08)',
+  return useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
+      text: p.text,
+      muted: p.textMuted,
+      grid: p.grid,
       // The paper stays transparent so the plot sits on the card colour
       // whatever the active theme token resolves to. Only the plotting area
       // is tinted, which is what separates it from the surrounding text.
-      plotBg: isDark ? 'rgba(148,163,184,0.06)' : 'rgba(15,23,42,0.03)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#0f172a') : '#ffffff',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-      shapeLine: isDark ? 'rgba(226,232,240,0.55)' : 'rgba(15,23,42,0.45)',
+      plotBg: withAlpha(p.textMuted, isDark ? 0.06 : 0.04),
+      hoverBg: p.tooltipBg,
+      hoverBorder: p.tooltipBorder,
+      shapeLine: withAlpha(p.text, isDark ? 0.55 : 0.45),
       // Matches /volsurface, which is the page this surface came from.
       colorscale: isAnalyzer ? 'Plasma' : isDark ? 'Viridis' : 'YlOrRd',
-    }),
-    [isDark, isAnalyzer]
-  )
+    }
+  }, [mode, appMode, isDark, isAnalyzer])
 }
 
 // ---------------------------------------------------------------------------
@@ -394,7 +395,7 @@ function base2dLayout(theme: VizTheme, uirevision: string): PlotlyRecord {
     uirevision,
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: theme.plotBg,
-    font: { color: theme.text, family: 'system-ui, sans-serif', size: 11 },
+    font: { color: theme.text, family: CHART_FONT, size: 11 },
     hovermode: 'x unified',
     hoverlabel: {
       bgcolor: theme.hoverBg,
@@ -429,7 +430,7 @@ function base3dLayout(theme: VizTheme, uirevision: string): PlotlyRecord {
     uirevision,
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { color: theme.text, family: 'system-ui, sans-serif', size: 11 },
+    font: { color: theme.text, family: CHART_FONT, size: 11 },
     hoverlabel: {
       bgcolor: theme.hoverBg,
       bordercolor: theme.hoverBorder,

@@ -136,9 +136,9 @@ export default function NewChartinkStrategy() {
                 placeholder="My Chartink Strategy"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? 'border-loss/60' : ''}
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-loss">{errors.name}</p>}
               <p className="text-xs text-muted-foreground">
                 3-50 characters. Letters, numbers, spaces, hyphens, and underscores only.
               </p>
@@ -210,7 +210,7 @@ export default function NewChartinkStrategy() {
                   </div>
                 </div>
 
-                {errors.time && <p className="text-sm text-red-500">{errors.time}</p>}
+                {errors.time && <p className="text-sm text-destructive">{errors.time}</p>}
                 <p className="text-xs text-muted-foreground">
                   Orders will only be placed during trading hours. Positions will be squared off at
                   the specified time.

@@ -16,9 +16,9 @@ interface LogNodeProps {
 }
 
 const levelColors: Record<string, string> = {
-  info: 'text-blue-400',
-  warn: 'text-yellow-400',
-  error: 'text-red-400',
+  info: 'text-primary',
+  warn: 'text-warning',
+  error: 'text-destructive',
 }
 
 const levelLabels: Record<string, string> = {
@@ -37,7 +37,7 @@ export const LogNode = memo(({ data, selected }: LogNodeProps) => {
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded">
-            <FileText className="h-3 w-3" />
+            <FileText className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Log</div>

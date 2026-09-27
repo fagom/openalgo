@@ -236,7 +236,7 @@ export default function TelegramIndex() {
             <div className="flex items-center gap-3">
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  bot_status.is_running ? 'bg-green-500' : 'bg-gray-400'
+                  bot_status.is_running ? 'bg-success' : 'bg-muted-foreground'
                 }`}
               >
                 <Bot className="h-6 w-6 text-white" />
@@ -252,7 +252,7 @@ export default function TelegramIndex() {
             </div>
             <Badge
               variant={bot_status.is_running ? 'default' : 'secondary'}
-              className={bot_status.is_running ? 'bg-green-500 hover:bg-green-600' : ''}
+              className={bot_status.is_running ? 'bg-success hover:bg-success/90' : ''}
             >
               {bot_status.is_running ? 'Online' : 'Offline'}
             </Badge>
@@ -285,7 +285,7 @@ export default function TelegramIndex() {
         <Link to="/telegram/config">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
             <CardHeader className="pb-2">
-              <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
                 <Settings className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -302,7 +302,7 @@ export default function TelegramIndex() {
         <Link to="/telegram/users">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
             <CardHeader className="pb-2">
-              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-profit flex items-center justify-center">
                 <Users className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -319,7 +319,7 @@ export default function TelegramIndex() {
         <Link to="/telegram/analytics">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
             <CardHeader className="pb-2">
-              <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-chart-4 flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -335,7 +335,7 @@ export default function TelegramIndex() {
 
         <Card className="h-full">
           <CardHeader className="pb-2">
-            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-warning flex items-center justify-center">
               <Send className="h-5 w-5 text-white" />
             </div>
           </CardHeader>

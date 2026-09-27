@@ -1,5 +1,6 @@
 import type * as PlotlyTypes from 'plotly.js'
 import { useId, useMemo } from 'react'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { lognormalPriceBand, type PayoffResult, type ScenarioState } from '@/lib/strategyMath'
 import { useThemeStore } from '@/stores/themeStore'
@@ -71,26 +72,27 @@ export function PayoffChart({
   const isAnalyzer = appMode === 'analyzer'
   const isDark = mode === 'dark' || isAnalyzer
 
-  const colors = useMemo(
-    () => ({
-      paper: isDark ? (isAnalyzer ? '#1a1530' : '#0f172a') : '#ffffff',
-      bg: isDark ? (isAnalyzer ? '#221a3a' : '#1e293b') : '#f8fafc',
-      text: isDark ? '#e2e8f0' : '#1e293b',
-      mutedText: isDark ? '#94a3b8' : '#64748b',
-      grid: isDark ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.08)',
-      profit: isDark ? 'rgba(34,197,94,0.22)' : 'rgba(34,197,94,0.18)',
-      loss: isDark ? 'rgba(239,68,68,0.22)' : 'rgba(239,68,68,0.18)',
-      expiryLine: isDark ? '#fb923c' : '#ea580c',
-      tplus0Line: isDark ? '#60a5fa' : '#2563eb',
-      zeroLine: isDark ? 'rgba(226,232,240,0.5)' : 'rgba(15,23,42,0.5)',
-      spotLine: isDark ? '#f472b6' : '#db2777',
+  const colors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
+      paper: p.surface,
+      bg: p.muted,
+      text: p.text,
+      mutedText: p.textMuted,
+      grid: p.grid,
+      profit: withAlpha(p.up, isDark ? 0.22 : 0.16),
+      loss: withAlpha(p.down, isDark ? 0.22 : 0.16),
+      expiryLine: p.series[1],
+      tplus0Line: p.primary,
+      zeroLine: withAlpha(p.text, 0.5),
+      spotLine: p.series[3],
       // Stepped σ bands: inner ±1σ darker, outer ±2σ lighter.
-      sigma1Band: isDark ? 'rgba(148,163,184,0.22)' : 'rgba(100,116,139,0.16)',
-      sigma2Band: isDark ? 'rgba(148,163,184,0.10)' : 'rgba(100,116,139,0.07)',
-      sigmaTick: isDark ? 'rgba(226,232,240,0.35)' : 'rgba(15,23,42,0.3)',
-    }),
-    [isDark, isAnalyzer]
-  )
+      sigma1Band: withAlpha(p.textMuted, isDark ? 0.22 : 0.16),
+      sigma2Band: withAlpha(p.textMuted, isDark ? 0.1 : 0.07),
+      sigmaTick: withAlpha(p.text, isDark ? 0.35 : 0.3),
+      tooltipBg: p.tooltipBg,
+    }
+  }, [mode, appMode, isDark])
 
   const { data, layout, config } = useMemo(() => {
     const { spot, iv, daysElapsed } = scenario
@@ -338,10 +340,10 @@ export function PayoffChart({
       },
       paper_bgcolor: colors.paper,
       plot_bgcolor: colors.bg,
-      font: { color: colors.text, family: 'system-ui, sans-serif' },
+      font: { color: colors.text, family: CHART_FONT },
       hovermode: 'x unified',
       hoverlabel: {
-        bgcolor: isDark ? '#0f172a' : '#ffffff',
+        bgcolor: colors.tooltipBg,
         font: { color: colors.text, size: 12 },
         bordercolor: colors.mutedText,
       },
@@ -408,7 +410,6 @@ export function PayoffChart({
     title,
     chartIdentity,
     colors,
-    isDark,
     formatCurrency,
     height,
   ])

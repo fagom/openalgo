@@ -160,27 +160,30 @@ export default function GoCharting() {
     setShowResults(false)
   }
 
-  const generateJson = useCallback((showError = true) => {
-    if (!symbol || !exchange) {
-      if (showError) {
-        showToast.error('Please select a symbol and exchange', 'system')
+  const generateJson = useCallback(
+    (showError = true) => {
+      if (!symbol || !exchange) {
+        if (showError) {
+          showToast.error('Please select a symbol and exchange', 'system')
+        }
+        return
       }
-      return
-    }
 
-    const json = {
-      apikey: apiKey || 'YOUR_API_KEY',
-      strategy: 'GoCharting Alert',
-      symbol: symbol,
-      exchange: exchange,
-      action: action,
-      product: product,
-      pricetype: 'MARKET',
-      quantity: quantity,
-    }
+      const json = {
+        apikey: apiKey || 'YOUR_API_KEY',
+        strategy: 'GoCharting Alert',
+        symbol: symbol,
+        exchange: exchange,
+        action: action,
+        product: product,
+        pricetype: 'MARKET',
+        quantity: quantity,
+      }
 
-    setGeneratedJson(JSON.stringify(json, null, 2))
-  }, [symbol, exchange, apiKey, action, product, quantity])
+      setGeneratedJson(JSON.stringify(json, null, 2))
+    },
+    [symbol, exchange, apiKey, action, product, quantity]
+  )
 
   // Auto-generate JSON when values change
   useEffect(() => {
@@ -416,8 +419,8 @@ export default function GoCharting() {
               </p>
 
               {/* Premium Notice */}
-              <Alert className="bg-blue-500/10 border-blue-500">
-                <Info className="h-4 w-4 text-blue-500" />
+              <Alert className="bg-primary/10 border-primary/60">
+                <Info className="h-4 w-4 text-primary" />
                 <AlertDescription className="ml-2 text-sm">
                   <strong>Premium Required:</strong> Webhook alerts require GoCharting Premium Plan.
                 </AlertDescription>

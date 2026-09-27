@@ -87,7 +87,7 @@ export function IndicatorSettingsDialog({ req, onApply, onDefaults, onClose }: P
 
   return (
     <div
-      className="absolute inset-0 z-40 flex items-center justify-center bg-black/50"
+      className="absolute inset-0 z-40 flex items-center justify-center bg-overlay"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
       role="presentation"
     >

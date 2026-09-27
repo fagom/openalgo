@@ -114,6 +114,26 @@ type TradeFeedInstance = InstanceType<typeof OpenAlgoTradeFeed>
 type DrawingControllerInstance = InstanceType<typeof DrawingController>
 
 /** The document a pane holds when it has nothing drawn. A fresh one each time, never shared. */
+
+/** The engine's settings key for the countdown row in the last-price tag. */
+const BAR_COUNTDOWN_KEY = 'axisChrome.barCountdown'
+
+/**
+ * Whether the engine's bar countdown is right at `nowSec`: an intraday interval
+ * whose last bar opened within the last two intervals. Daily and longer bars
+ * are stamped at midnight UTC, so the engine would count to the wrong moment;
+ * an older last bar means the session has closed. See `syncBarCountdown`.
+ */
+export function barCountdownValid(
+  interval: string,
+  lastBarTime: number | undefined,
+  nowSec: number
+): boolean {
+  const sec = intervalSeconds(interval)
+  if (!sec || lastBarTime === undefined) return false
+  const age = nowSec - lastBarTime
+  return age >= 0 && age < sec * 2
+}
 const emptyDrawings = (): DrawingsDocument => ({ version: 2, drawings: [] })
 
 /**
@@ -1094,6 +1114,8 @@ export class TradingTerminal {
 
   private bookTimer: ReturnType<typeof setInterval> | null = null
   private ltpPollTimer: ReturnType<typeof setInterval> | null = null
+  /** Re-checks whether the bar countdown can be trusted; see syncBarCountdown. */
+  private countdownTimer: ReturnType<typeof setInterval> | null = null
   /** Serialises agent chart commands. See {@link applyChartCommands}. */
   private chartCommandQueue: Promise<void> = Promise.resolve()
   private destroyed = false
@@ -2305,6 +2327,7 @@ export class TradingTerminal {
     // write to this chart, and an awaited snapshot would land after them.
     this.snapshotChartDefaults()
     if (!this.preparingWorkspace) void this.restoreChartSettings()
+    this.startCountdownSync()
     // A theme or chart-type switch throws the old Chart away, so membership has
     // to be re-established against the new one or the pane silently drops out
     // of the group it still believes it is in.
@@ -3866,7 +3889,13 @@ export class TradingTerminal {
       profileSettingsView(
         {
           tabs,
-          values: { ...readChartSettings(chart) },
+          values: {
+            ...readChartSettings(chart),
+            // The engine's flag is switched off whenever the countdown would be
+            // wrong (see syncBarCountdown). The form shows what the trader
+            // chose, not what this minute allows.
+            [BAR_COUNTDOWN_KEY]: this.barCountdownWanted(),
+          },
           defaults: { ...this.chartDefaults },
         },
         this.ctype,
@@ -3894,6 +3923,55 @@ export class TradingTerminal {
    * switch: `applyTheme` rebuilds the chart, so the colours here are always the
    * live theme's rather than whichever palette was on at boot.
    */
+  /** The trader's own choice for the countdown row; on unless they turned it off. */
+  private barCountdownWanted(): boolean {
+    const saved = this.chartSettingsSaved[BAR_COUNTDOWN_KEY]
+    return saved === undefined ? this.chartDefaults[BAR_COUNTDOWN_KEY] !== false : saved === true
+  }
+
+  /**
+   * Show the countdown only while it can be right.
+   *
+   * The engine derives it as `interval - (now - lastBarOpen) % interval`, from
+   * the open time of the last bar alone. That holds while the last bar is still
+   * forming, and nowhere else:
+   *
+   * - After the close (overnight, weekends, holidays) the last bar opened hours
+   *   or days ago, and the modulo keeps cycling as if bars were still printing,
+   *   so the tag showed a countdown to a bar that will never come.
+   * - A daily, weekly or monthly bar is stamped at midnight UTC (05:30 IST), so
+   *   the engine counted to 05:30 the next morning instead of the 15:30 close:
+   *   "some other day's time left", on every higher timeframe, all session.
+   *
+   * So it is on for an intraday interval whose last bar opened within the last
+   * two intervals (one to form, one of grace for an illiquid symbol between
+   * ticks), and off otherwise. Only the engine flag changes; the stored
+   * preference is untouched, and the row returns by itself when the next
+   * session's bars arrive.
+   */
+  private syncBarCountdown(): void {
+    const chart = this.chart
+    if (!chart || this.destroyed) return
+    const show = this.barCountdownWanted() && this.barCountdownTrustworthy()
+    if (chart.axisChromeOptions().barCountdown === show) return
+    chart.setAxisChromeOptions({ barCountdown: show })
+  }
+
+  private barCountdownTrustworthy(): boolean {
+    if (this.replayActive()) return false
+    return barCountdownValid(
+      this.interval,
+      this.rawBars[this.rawBars.length - 1]?.time,
+      Date.now() / 1000
+    )
+  }
+
+  private startCountdownSync(): void {
+    this.syncBarCountdown()
+    if (this.countdownTimer) return
+    this.countdownTimer = setInterval(() => this.syncBarCountdown(), 2000)
+  }
+
   private snapshotChartDefaults(): void {
     if (!this.chart) return
     this.chartDefaults = { ...readChartSettings(this.chart) }
@@ -3966,6 +4044,7 @@ export class TradingTerminal {
     }
     this.chartSettingsSaved = kept
     this.lsSet('chartsettings', JSON.stringify(kept))
+    this.syncBarCountdown()
     this.adoptGridFromPatch(patch)
     this.refreshDisplayedVolume()
     this.refreshLegend(this.replayActive() ? (this.price?.getData() ?? []) : this.shownBars)
@@ -4026,6 +4105,7 @@ export class TradingTerminal {
       this.installProfile()
       this.refreshDisplayedVolume()
       this.refreshLegend(this.replayActive() ? (this.price?.getData() ?? []) : this.shownBars)
+      this.syncBarCountdown()
     } catch (error) {
       if (strict) throw error
       /* ignore */
@@ -6578,6 +6658,8 @@ export class TradingTerminal {
     this.detachDrawing()
     if (this.bookTimer) clearInterval(this.bookTimer)
     this.bookTimer = null
+    if (this.countdownTimer) clearInterval(this.countdownTimer)
+    this.countdownTimer = null
     this.stopLtpFallback()
     this.offLtp?.()
     this.offLtp = null

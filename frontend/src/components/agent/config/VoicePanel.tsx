@@ -706,7 +706,7 @@ function TestResult({ test }: { test: TestOutcome }) {
       className={cn(
         'rounded-md border px-3 py-2 text-xs',
         test.ok
-          ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-emerald-600/60 dark:bg-emerald-950/40 dark:text-emerald-200'
+          ? 'border-success/50 bg-success/10 text-success'
           : 'border-destructive/50 bg-destructive/5 text-destructive'
       )}
     >

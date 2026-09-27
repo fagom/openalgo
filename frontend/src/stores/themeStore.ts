@@ -3,19 +3,6 @@ import { persist } from 'zustand/middleware'
 
 export type ThemeMode = 'light' | 'dark'
 export type AppMode = 'live' | 'analyzer'
-export type ThemeColor =
-  | 'zinc'
-  | 'slate'
-  | 'stone'
-  | 'gray'
-  | 'neutral'
-  | 'red'
-  | 'rose'
-  | 'orange'
-  | 'green'
-  | 'blue'
-  | 'yellow'
-  | 'violet'
 
 // Event emitter for mode changes
 type ModeChangeCallback = (newMode: AppMode) => void
@@ -34,12 +21,10 @@ const notifyModeChange = (newMode: AppMode) => {
 
 interface ThemeStore {
   mode: ThemeMode
-  color: ThemeColor
   appMode: AppMode
   isTogglingMode: boolean
 
   setMode: (mode: ThemeMode) => void
-  setColor: (color: ThemeColor) => void
   setAppMode: (appMode: AppMode) => void
   toggleMode: () => void
   toggleAppMode: () => Promise<{ success: boolean; message?: string }>
@@ -50,7 +35,6 @@ export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       mode: 'light',
-      color: 'zinc',
       appMode: 'live',
       isTogglingMode: false,
 
@@ -64,29 +48,19 @@ export const useThemeStore = create<ThemeStore>()(
         }
       },
 
-      setColor: (color) => {
-        // Only allow color change in live mode
-        if (get().appMode !== 'live') return
-
-        set({ color })
-        if (typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', color)
-        }
-      },
-
       setAppMode: (appMode) => {
         const previousMode = get().appMode
         set({ appMode })
         if (typeof document !== 'undefined') {
           // Remove all mode classes first
-          document.documentElement.classList.remove('analyzer', 'sandbox', 'dark')
+          document.documentElement.classList.remove('analyzer', 'dark')
 
           if (appMode === 'live') {
             // Restore the saved light/dark mode when returning to live
             const savedMode = get().mode
             document.documentElement.classList.toggle('dark', savedMode === 'dark')
           } else {
-            // Analyzer mode uses its own dark purple theme (like dracula)
+            // Analyzer mode uses its own violet palette, so it is never mistaken for live
             document.documentElement.classList.add('analyzer')
           }
         }
@@ -173,13 +147,15 @@ export const useThemeStore = create<ThemeStore>()(
       name: 'openalgo-theme',
       partialize: (state) => ({
         mode: state.mode,
-        color: state.color,
         appMode: state.appMode, // Persist appMode for visual continuity across logout
       }),
       onRehydrateStorage: () => (state) => {
         // Apply theme on rehydration
         if (state && typeof document !== 'undefined') {
-          document.documentElement.classList.remove('analyzer', 'sandbox', 'dark')
+          document.documentElement.classList.remove('analyzer', 'dark')
+          // Accent colour presets were removed; clear the attribute an older
+          // build may have left behind.
+          document.documentElement.removeAttribute('data-theme')
 
           // Apply persisted appMode for visual continuity
           if (state.appMode === 'analyzer') {
@@ -188,7 +164,6 @@ export const useThemeStore = create<ThemeStore>()(
             // Live mode - apply light/dark preference
             document.documentElement.classList.toggle('dark', state.mode === 'dark')
           }
-          document.documentElement.setAttribute('data-theme', state.color)
         }
       },
     }

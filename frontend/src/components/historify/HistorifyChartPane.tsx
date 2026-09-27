@@ -361,7 +361,7 @@ export function HistorifyChartPane({
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 font-semibold">
-              <Search className="h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="size-4 text-muted-foreground" />
               {state.symbol ? (
                 <>
                   <span className="truncate">{state.symbol}</span>
@@ -509,7 +509,7 @@ export function HistorifyChartPane({
           title="Indicators"
           onClick={() => setIndicatorsOpen(true)}
         >
-          <BarChart3 className="h-3.5 w-3.5" />
+          <BarChart3 className="size-4" />
           <span className="hidden sm:inline">Indicators</span>
           {activeIndicators.length > 0 ? (
             <span className="rounded bg-primary/15 px-1 font-medium text-[10px] text-primary">
@@ -533,7 +533,7 @@ export function HistorifyChartPane({
           title="Bar replay"
           onClick={() => (replay.mode === 'off' ? replay.arm() : replay.exit())}
         >
-          <Rewind className="h-3.5 w-3.5" />
+          <Rewind className="size-4" />
           <span className="hidden sm:inline">Replay</span>
         </Button>
 
@@ -547,7 +547,7 @@ export function HistorifyChartPane({
           disabled={!history.undo}
           onClick={() => widget?.draw.undo()}
         >
-          <Undo2 className="h-3.5 w-3.5" />
+          <Undo2 className="size-4" />
         </Button>
         <Button
           variant="ghost"
@@ -557,14 +557,14 @@ export function HistorifyChartPane({
           disabled={!history.redo}
           onClick={() => widget?.draw.redo()}
         >
-          <Redo2 className="h-3.5 w-3.5" />
+          <Redo2 className="size-4" />
         </Button>
 
         <div className="ml-auto flex items-center gap-0.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-7 w-7" title="Chart image">
-                <Camera className="h-3.5 w-3.5" />
+                <Camera className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent container={menuHost} align="end" className="w-48">
@@ -581,7 +581,7 @@ export function HistorifyChartPane({
             title="Objects"
             onClick={() => widgetRef.current?.openObjects()}
           >
-            <Shapes className="h-3.5 w-3.5" />
+            <Shapes className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -590,7 +590,7 @@ export function HistorifyChartPane({
             title="Chart settings"
             onClick={() => widgetRef.current?.openSettings()}
           >
-            <Settings2 className="h-3.5 w-3.5" />
+            <Settings2 className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -599,11 +599,7 @@ export function HistorifyChartPane({
             title={fullscreen ? 'Exit full screen' : 'Full screen'}
             onClick={toggleFullscreen}
           >
-            {fullscreen ? (
-              <Minimize2 className="h-3.5 w-3.5" />
-            ) : (
-              <Maximize2 className="h-3.5 w-3.5" />
-            )}
+            {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
           </Button>
         </div>
       </div>

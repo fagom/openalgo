@@ -239,7 +239,7 @@ export function StrategyBooks({ deployment, revision = 0 }: Props) {
                         className={cn(
                           'px-1.5 py-1',
                           column.align === 'right' ? 'text-right' : 'text-left',
-                          way > 0 && 'text-emerald-500',
+                          way > 0 && 'text-profit',
                           way < 0 && 'text-destructive'
                         )}
                       >

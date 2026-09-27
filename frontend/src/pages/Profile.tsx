@@ -58,7 +58,8 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type AlertCategories, type ToastPosition, useAlertStore } from '@/stores/alertStore'
 import { useAuthStore } from '@/stores/authStore'
-import { type ThemeColor, type ThemeMode, useThemeStore } from '@/stores/themeStore'
+import { type ThemeMode, useThemeStore } from '@/stores/themeStore'
+import { useTickerStore } from '@/stores/tickerStore'
 import { showToast, toast } from '@/utils/toast'
 
 // Professional themes suitable for trading terminals
@@ -75,18 +76,6 @@ const THEME_MODES: { value: ThemeMode; label: string; icon: typeof Sun; descript
     icon: Moon,
     description: 'Reduced eye strain for extended sessions',
   },
-]
-
-// Accent colors for customization
-const ACCENT_COLORS: { value: ThemeColor; label: string; color: string }[] = [
-  { value: 'zinc', label: 'Zinc', color: 'bg-zinc-500' },
-  { value: 'slate', label: 'Slate', color: 'bg-slate-500' },
-  { value: 'gray', label: 'Gray', color: 'bg-gray-500' },
-  { value: 'neutral', label: 'Neutral', color: 'bg-neutral-500' },
-  { value: 'green', label: 'Green', color: 'bg-green-500' },
-  { value: 'blue', label: 'Blue', color: 'bg-blue-500' },
-  { value: 'violet', label: 'Violet', color: 'bg-violet-500' },
-  { value: 'orange', label: 'Orange', color: 'bg-orange-500' },
 ]
 
 interface ProfileData {
@@ -264,7 +253,9 @@ const ALERT_CATEGORIES_ADMIN: {
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user)
-  const { mode, color, appMode, setMode, setColor } = useThemeStore()
+  const { mode, appMode, setMode } = useThemeStore()
+  const tickerVisible = useTickerStore((s) => s.visible)
+  const setTickerVisible = useTickerStore((s) => s.setVisible)
   const alertStore = useAlertStore()
   const [activeTab, setActiveTab] = useState('account')
   const [isLoading, setIsLoading] = useState(true)
@@ -578,11 +569,11 @@ export default function ProfilePage() {
 
   const getPasswordStrength = () => {
     const metCount = Object.values(passwordRequirements).filter(Boolean).length
-    if (metCount === 0) return { percentage: 0, label: 'None', color: 'bg-gray-400' }
-    if (metCount <= 2) return { percentage: 40, label: 'Weak', color: 'bg-red-500' }
-    if (metCount <= 3) return { percentage: 60, label: 'Fair', color: 'bg-yellow-500' }
-    if (metCount <= 4) return { percentage: 80, label: 'Good', color: 'bg-blue-500' }
-    return { percentage: 100, label: 'Strong', color: 'bg-green-500' }
+    if (metCount === 0) return { percentage: 0, label: 'None', color: 'bg-muted-foreground' }
+    if (metCount <= 2) return { percentage: 40, label: 'Weak', color: 'bg-loss' }
+    if (metCount <= 3) return { percentage: 60, label: 'Fair', color: 'bg-warning' }
+    if (metCount <= 4) return { percentage: 80, label: 'Good', color: 'bg-primary' }
+    return { percentage: 100, label: 'Strong', color: 'bg-profit' }
   }
 
   const passwordsMatch = newPassword === confirmPassword && confirmPassword !== ''
@@ -718,22 +709,12 @@ export default function ProfilePage() {
     showToast.success(`Theme changed to ${newMode}`, 'system')
   }
 
-  const handleAccentColorChange = (newColor: ThemeColor) => {
-    if (isAnalyzerMode) {
-      showToast.error('Cannot change theme while in Analyzer Mode', 'system')
-      return
-    }
-    setColor(newColor)
-    showToast.success(`Accent color changed to ${newColor}`, 'system')
-  }
-
   const handleResetTheme = () => {
     if (isAnalyzerMode) {
       showToast.error('Cannot change theme while in Analyzer Mode', 'system')
       return
     }
     setMode('light')
-    setColor('zinc')
     showToast.success('Theme reset to default', 'system')
   }
 
@@ -875,7 +856,9 @@ export default function ProfilePage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                   {confirmPassword && (
-                    <p className={`text-sm ${passwordsMatch ? 'text-green-500' : 'text-red-500'}`}>
+                    <p
+                      className={`text-sm ${passwordsMatch ? 'text-success' : 'text-destructive'}`}
+                    >
                       {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
                     </p>
                   )}
@@ -895,11 +878,11 @@ export default function ProfilePage() {
                         key={key}
                         className={`flex items-center gap-1 px-2 py-1 rounded-full border ${
                           met
-                            ? 'bg-green-500/10 border-green-500 text-green-600'
+                            ? 'bg-success/10 border-success/60 text-success'
                             : 'bg-muted border-border text-muted-foreground'
                         }`}
                       >
-                        {met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                        {met ? <Check className="size-4" /> : <X className="size-4" />}
                         <span>
                           {key === 'length' && '8+ chars'}
                           {key === 'uppercase' && 'A-Z'}
@@ -1039,7 +1022,7 @@ export default function ProfilePage() {
                   </SelectContent>
                 </Select>
                 {selectedBroker && selectedBroker !== brokerCredentials?.current_broker && (
-                  <p className="text-sm text-yellow-600 dark:text-yellow-500">
+                  <p className="text-sm text-warning">
                     Changing broker to: {selectedBroker.toUpperCase()}
                   </p>
                 )}
@@ -1107,7 +1090,7 @@ export default function ProfilePage() {
 
               {/* Broker-specific hints */}
               {selectedBroker === 'fivepaisa' && (
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200">
+                <Alert className="bg-primary/10 border-primary/30">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>5paisa API Key Format</AlertTitle>
                   <AlertDescription>
@@ -1116,7 +1099,7 @@ export default function ProfilePage() {
                 </Alert>
               )}
               {selectedBroker === 'flattrade' && (
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200">
+                <Alert className="bg-primary/10 border-primary/30">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Flattrade API Key Format</AlertTitle>
                   <AlertDescription>
@@ -1125,7 +1108,7 @@ export default function ProfilePage() {
                 </Alert>
               )}
               {selectedBroker === 'dhan' && (
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200">
+                <Alert className="bg-primary/10 border-primary/30">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Dhan API Key Format</AlertTitle>
                   <AlertDescription>
@@ -1134,7 +1117,7 @@ export default function ProfilePage() {
                 </Alert>
               )}
               {selectedBroker === 'indmoney' && (
-                <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200">
+                <Alert className="bg-primary/10 border-primary/30">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>IndMoney Credentials</AlertTitle>
                   <AlertDescription>
@@ -1182,7 +1165,7 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
-                    <Badge variant="default" className="mb-2 bg-green-600">
+                    <Badge variant="default" className="mb-2 bg-success">
                       Running
                     </Badge>
                     <span className="text-sm font-medium">Flask App</span>
@@ -1192,7 +1175,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
-                    <Badge variant="default" className="mb-2 bg-green-600">
+                    <Badge variant="default" className="mb-2 bg-success">
                       Running
                     </Badge>
                     <span className="text-sm font-medium">WebSocket</span>
@@ -1202,7 +1185,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
-                    <Badge variant="default" className="mb-2 bg-green-600">
+                    <Badge variant="default" className="mb-2 bg-success">
                       Running
                     </Badge>
                     <span className="text-sm font-medium">ZeroMQ</span>
@@ -1234,7 +1217,7 @@ export default function ProfilePage() {
                 />
                 <Label htmlFor="ngrok_enabled">Enable Ngrok Tunnel</Label>
                 {ngrokEnabled !== brokerCredentials?.ngrok_allow && (
-                  <Badge variant="outline" className="text-yellow-600">
+                  <Badge variant="outline" className="text-warning">
                     Changed
                   </Badge>
                 )}
@@ -1251,7 +1234,7 @@ export default function ProfilePage() {
                   Your ngrok domain or custom domain for receiving webhooks.
                 </p>
                 {hostServer !== brokerCredentials?.host_server && hostServer && (
-                  <Badge variant="outline" className="text-yellow-600">
+                  <Badge variant="outline" className="text-warning">
                     Changed from: {brokerCredentials?.host_server}
                   </Badge>
                 )}
@@ -1268,7 +1251,7 @@ export default function ProfilePage() {
                   WebSocket server URL for real-time market data streaming.
                 </p>
                 {websocketUrl !== brokerCredentials?.websocket_url && websocketUrl && (
-                  <Badge variant="outline" className="text-yellow-600">
+                  <Badge variant="outline" className="text-warning">
                     Changed from: {brokerCredentials?.websocket_url}
                   </Badge>
                 )}
@@ -1720,7 +1703,7 @@ export default function ProfilePage() {
                     <CardTitle className="flex items-center gap-2">
                       System Status
                       {permissionsData.all_correct ? (
-                        <Badge className="bg-green-500">All OK</Badge>
+                        <Badge className="bg-success">All OK</Badge>
                       ) : (
                         <Badge variant="destructive">Issues Found</Badge>
                       )}
@@ -1796,18 +1779,18 @@ export default function ProfilePage() {
                       key={check.path}
                       className={`flex items-start gap-3 p-3 rounded-lg border ${
                         check.is_correct
-                          ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-                          : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                          ? 'bg-success/10 border-success/30'
+                          : 'bg-destructive/10 border-destructive/30'
                       }`}
                     >
                       {/* Status Icon */}
                       <div className="mt-0.5">
                         {check.is_correct ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <CheckCircle2 className="h-5 w-5 text-success" />
                         ) : check.exists ? (
-                          <FileWarning className="h-5 w-5 text-red-600 dark:text-red-400" />
+                          <FileWarning className="h-5 w-5 text-destructive" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                          <XCircle className="h-5 w-5 text-destructive" />
                         )}
                       </div>
 
@@ -1817,7 +1800,7 @@ export default function ProfilePage() {
                           <span className="font-medium font-mono text-sm">{check.path}</span>
                           {check.is_sensitive && (
                             <Badge variant="outline" className="text-xs">
-                              <Lock className="h-3 w-3 mr-1" />
+                              <Lock className="size-4 mr-1" />
                               Sensitive
                             </Badge>
                           )}
@@ -1840,15 +1823,11 @@ export default function ProfilePage() {
                           </span>
                           {check.exists && check.actual_mode && (
                             <span
-                              className={
-                                check.is_correct
-                                  ? 'text-green-600 dark:text-green-400'
-                                  : 'text-red-600 dark:text-red-400'
-                              }
+                              className={check.is_correct ? 'text-success' : 'text-destructive'}
                             >
                               Actual:{' '}
                               <code
-                                className={`px-1 rounded ${check.is_correct ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'}`}
+                                className={`px-1 rounded ${check.is_correct ? 'bg-success/10' : 'bg-destructive/10'}`}
                               >
                                 {check.actual_mode}
                               </code>
@@ -1859,21 +1838,19 @@ export default function ProfilePage() {
 
                         {/* Issue Message */}
                         {check.issue && (
-                          <div className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-sm">
-                            <p className="text-red-700 dark:text-red-300 font-medium">
-                              {check.issue}
-                            </p>
+                          <div className="mt-2 p-2 bg-destructive/10 rounded text-sm">
+                            <p className="text-destructive font-medium">{check.issue}</p>
                             {!permissionsData.is_windows && !check.exists && (
-                              <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                              <p className="text-destructive text-xs mt-1">
                                 Fix: Create the directory or file
                               </p>
                             )}
                             {!permissionsData.is_windows &&
                               check.exists &&
                               check.actual_mode !== check.expected_mode && (
-                                <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                                <p className="text-destructive text-xs mt-1">
                                   Fix:{' '}
-                                  <code className="bg-red-200 dark:bg-red-800 px-1 rounded">
+                                  <code className="bg-destructive/20 px-1 rounded">
                                     chmod {check.expected_mode} {check.path}
                                   </code>
                                 </p>
@@ -1883,10 +1860,8 @@ export default function ProfilePage() {
 
                         {/* Warning Message (doesn't affect is_correct status) */}
                         {check.warning && !check.issue && (
-                          <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded text-sm">
-                            <p className="text-yellow-700 dark:text-yellow-300 font-medium">
-                              {check.warning}
-                            </p>
+                          <div className="mt-2 p-2 bg-warning/10 rounded text-sm">
+                            <p className="text-warning font-medium">{check.warning}</p>
                           </div>
                         )}
                       </div>
@@ -1967,8 +1942,8 @@ export default function ProfilePage() {
                   <CardTitle>Current Theme</CardTitle>
                   <CardDescription>
                     {isAnalyzerMode
-                      ? 'Analyzer Mode (Purple Theme)'
-                      : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Mode with ${color.charAt(0).toUpperCase() + color.slice(1)} accent`}
+                      ? 'Analyzer mode (violet theme)'
+                      : `${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-4">
@@ -1982,7 +1957,7 @@ export default function ProfilePage() {
                     variant="outline"
                     size="sm"
                     onClick={handleResetTheme}
-                    disabled={isAnalyzerMode || (mode === 'light' && color === 'zinc')}
+                    disabled={isAnalyzerMode || mode === 'light'}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Reset
@@ -2036,38 +2011,24 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Accent Color Selection */}
-          <Card className={isAnalyzerMode ? 'opacity-60' : ''}>
+          {/* Market Ticker */}
+          <Card>
             <CardHeader>
-              <CardTitle>Accent Color</CardTitle>
-              <CardDescription>Customize the primary accent color</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
-                {ACCENT_COLORS.map((accentColor) => {
-                  const isSelected = color === accentColor.value && !isAnalyzerMode
-                  return (
-                    <button
-                      type="button"
-                      key={accentColor.value}
-                      onClick={() => handleAccentColorChange(accentColor.value)}
-                      disabled={isAnalyzerMode}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      } ${isAnalyzerMode ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                      title={accentColor.label}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full ${accentColor.color} ring-2 ring-offset-2 ring-offset-background ${isSelected ? 'ring-primary' : 'ring-transparent'}`}
-                      />
-                      <span className="text-xs font-medium">{accentColor.label}</span>
-                    </button>
-                  )
-                })}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Market Ticker</CardTitle>
+                  <CardDescription>
+                    Scrolling strip of live prices for the NIFTY 500 companies along the bottom of
+                    every page. Hover it, or press and hold on a phone, to pause.
+                  </CardDescription>
+                </div>
+                <Switch
+                  checked={tickerVisible}
+                  onCheckedChange={setTickerVisible}
+                  aria-label="Show the market ticker"
+                />
               </div>
-            </CardContent>
+            </CardHeader>
           </Card>
 
           {/* Theme Info */}
@@ -2085,9 +2046,8 @@ export default function ProfilePage() {
                 especially in low-light environments.
               </p>
               <p>
-                <strong>Analyzer Mode:</strong> When in sandbox/analyzer mode, a distinct purple
-                theme is applied automatically to clearly indicate you are not trading with real
-                funds.
+                <strong>Analyzer mode:</strong> When analyzer mode is on, a distinct violet theme is
+                applied automatically so it is clear orders go to the Sandbox and not your broker.
               </p>
             </CardContent>
           </Card>
@@ -2258,7 +2218,7 @@ export default function ProfilePage() {
 
                   {debugResult && (
                     <Alert
-                      className={`mt-4 ${debugResult.success ? 'border-green-500' : 'border-yellow-500'}`}
+                      className={`mt-4 ${debugResult.success ? 'border-success/60' : 'border-warning/60'}`}
                     >
                       <AlertTitle>
                         {debugResult.success ? 'SMTP Debug Complete' : 'SMTP Connection Issues'}
@@ -2366,7 +2326,7 @@ export default function ProfilePage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               Restart Required
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">

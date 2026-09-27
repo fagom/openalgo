@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -54,8 +55,6 @@ export default function GammaDensity() {
     defaultToolsFnoExchange: defaultFnoExchange,
     defaultUnderlyings,
   } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -177,27 +176,23 @@ export default function GammaDensity() {
     return () => window.clearInterval(id)
   }, [autoRefresh, selectedExpiry, fetchData])
 
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.08)'
-        : 'rgba(0,0,0,0.08)',
-      density: '#f59e0b', // amber — Γ×OI line
-      densityFill: 'rgba(245,158,11,0.12)',
-      convexity: '#22c55e', // green — convexity bell
-      convexityFill: 'rgba(34,197,94,0.14)',
-      spot: isDark ? '#60a5fa' : '#2563eb',
-      band: isDark ? 'rgba(96,165,250,0.10)' : 'rgba(37,99,235,0.07)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      density: p.warning, // amber — Γ×OI line
+      densityFill: withAlpha(p.warning, 0.12),
+      convexity: p.up, // green — convexity bell
+      convexityFill: withAlpha(p.up, 0.14),
+      spot: p.primary,
+      band: withAlpha(p.primary, 0.08),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+    }
+  }, [mode, appMode])
 
   // Build one Plotly panel (Intraday or To Expiry)
   const buildPanel = useCallback(
@@ -298,7 +293,7 @@ export default function GammaDensity() {
       const layout: Partial<PlotlyTypes.Layout> = {
         paper_bgcolor: themeColors.bg,
         plot_bgcolor: themeColors.bg,
-        font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+        font: { color: themeColors.text, family: CHART_FONT },
         hovermode: 'x unified' as const,
         hoverlabel: {
           bgcolor: themeColors.hoverBg,
@@ -475,22 +470,22 @@ export default function GammaDensity() {
           <StatCard
             label="1σ Low"
             value={formatNum(data?.one_sigma_low, 0)}
-            valueClass="text-red-500"
+            valueClass="text-destructive"
           />
           <StatCard
             label="1σ High"
             value={formatNum(data?.one_sigma_high, 0)}
-            valueClass="text-green-500"
+            valueClass="text-success"
           />
           <StatCard
             label="2σ Lower Tail"
             value={formatNum(data?.two_sigma_low, 0)}
-            valueClass="text-red-500"
+            valueClass="text-destructive"
           />
           <StatCard
             label="2σ Upper Tail"
             value={formatNum(data?.two_sigma_high, 0)}
-            valueClass="text-green-500"
+            valueClass="text-success"
           />
           <StatCard label="DTE" value={formatNum(data?.dte_days, 1)} sub="days" />
         </div>

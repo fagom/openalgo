@@ -384,7 +384,7 @@ export default function ActionCenterPage() {
           {activeFilter === 'pending' && stats.total_pending > 0 && (
             <Button
               variant="default"
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-profit hover:bg-profit/90"
               onClick={handleApproveAll}
               disabled={isApprovingAll}
             >
@@ -423,7 +423,7 @@ export default function ActionCenterPage() {
           <TabsTrigger value="approved">
             Approved
             {stats.total_approved > 0 && (
-              <Badge variant="secondary" className="ml-2 bg-green-500">
+              <Badge variant="secondary" className="ml-2 bg-profit">
                 {stats.total_approved}
               </Badge>
             )}
@@ -444,31 +444,31 @@ export default function ActionCenterPage() {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-yellow-500">{stats.total_pending}</p>
+            <p className="text-2xl font-bold text-warning">{stats.total_pending}</p>
             <p className="text-sm text-muted-foreground">Pending Approval</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-500">{stats.total_buy_orders}</p>
+            <p className="text-2xl font-bold text-success">{stats.total_buy_orders}</p>
             <p className="text-sm text-muted-foreground">Buy Orders</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-red-500">{stats.total_sell_orders}</p>
+            <p className="text-2xl font-bold text-destructive">{stats.total_sell_orders}</p>
             <p className="text-sm text-muted-foreground">Sell Orders</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-500">{stats.total_approved}</p>
+            <p className="text-2xl font-bold text-success">{stats.total_approved}</p>
             <p className="text-sm text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-red-500">{stats.total_rejected}</p>
+            <p className="text-2xl font-bold text-destructive">{stats.total_rejected}</p>
             <p className="text-sm text-muted-foreground">Rejected</p>
           </CardContent>
         </Card>
@@ -531,16 +531,16 @@ export default function ActionCenterPage() {
                           <Badge
                             className={`gap-1 ${
                               order.action === 'BUY'
-                                ? 'bg-green-500 hover:bg-green-600'
+                                ? 'bg-buy hover:bg-buy/90'
                                 : order.action === 'SELL'
-                                  ? 'bg-red-500 hover:bg-red-600'
+                                  ? 'bg-sell hover:bg-sell/90'
                                   : 'bg-muted text-muted-foreground hover:bg-muted'
                             }`}
                           >
                             {order.action === 'BUY' ? (
-                              <ArrowUp className="h-3 w-3" />
+                              <ArrowUp className="size-4" />
                             ) : order.action === 'SELL' ? (
-                              <ArrowDown className="h-3 w-3" />
+                              <ArrowDown className="size-4" />
                             ) : null}
                             {order.action}
                           </Badge>
@@ -585,7 +585,7 @@ export default function ActionCenterPage() {
                               <>
                                 <Button
                                   size="sm"
-                                  className="bg-green-500 hover:bg-green-600 h-8"
+                                  className="bg-success hover:bg-success/90 h-8"
                                   onClick={() => handleApprove(order.id)}
                                   disabled={isApproving === order.id}
                                 >
@@ -656,8 +656,8 @@ export default function ActionCenterPage() {
                                                   <Badge
                                                     className={
                                                       basketOrder.action === 'BUY'
-                                                        ? 'bg-green-500'
-                                                        : 'bg-red-500'
+                                                        ? 'bg-buy'
+                                                        : 'bg-destructive'
                                                     }
                                                   >
                                                     {String(basketOrder.action || '')}

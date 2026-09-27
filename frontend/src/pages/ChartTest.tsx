@@ -22,7 +22,7 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts'
 import { X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useMarketData } from '@/hooks/useMarketData'
+import { getChartPalette } from '@/lib/chartTheme'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
 
@@ -131,8 +132,8 @@ export default function ChartTest() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">Chart Test</h1>
         <p className="text-sm text-muted-foreground">
-          History (1m=1d, 5m=3d, 15m=9d) + live forming candle. The timeframe switches all charts
-          at once. Add multiple charts. Testing only.
+          History (1m=1d, 5m=3d, 15m=9d) + live forming candle. The timeframe switches all charts at
+          once. Add multiple charts. Testing only.
         </p>
       </div>
 
@@ -245,8 +246,8 @@ function LiveChart({
   interval: string
   onRemove: () => void
 }) {
-  const { mode } = useThemeStore()
-  const isDark = mode === 'dark'
+  const { mode, appMode } = useThemeStore()
+  const pal = useMemo(() => getChartPalette(mode, appMode), [mode, appMode])
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
@@ -272,7 +273,7 @@ function LiveChart({
   // Create the chart once per symbol/exchange. Data (and timeframe changes) are
   // handled by the separate effect below, so switching timeframe reloads data
   // without destroying/recreating the chart.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: isDark used only for initial colors; theme updates handled by the applyOptions effect
+  // biome-ignore lint/correctness/useExhaustiveDependencies: palette used only for initial colors; theme updates handled by the applyOptions effect
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -282,26 +283,26 @@ function LiveChart({
       height: 340,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: isDark ? '#a6adbb' : '#333',
+        textColor: pal.textMuted,
       },
       grid: {
-        vertLines: { color: isDark ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.06)' },
-        horzLines: { color: isDark ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.06)' },
+        vertLines: { color: pal.grid },
+        horzLines: { color: pal.grid },
       },
-      rightPriceScale: { borderColor: isDark ? 'rgba(166,173,187,0.2)' : 'rgba(0,0,0,0.1)' },
+      rightPriceScale: { borderColor: pal.border },
       timeScale: {
-        borderColor: isDark ? 'rgba(166,173,187,0.2)' : 'rgba(0,0,0,0.1)',
+        borderColor: pal.border,
         timeVisible: true,
         secondsVisible: false,
       },
       crosshair: { mode: CrosshairMode.Normal },
     })
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#22c55e',
-      downColor: '#ef4444',
+      upColor: pal.up,
+      downColor: pal.down,
       borderVisible: false,
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
+      wickUpColor: pal.up,
+      wickDownColor: pal.down,
     })
     chartRef.current = chart
     seriesRef.current = series
@@ -377,7 +378,10 @@ function LiveChart({
           `/chart/test/api/history?symbol=${encodeURIComponent(symbol)}` +
           `&exchange=${encodeURIComponent(exchange)}&interval=${encodeURIComponent(interval)}` +
           `${date ? `&date=${encodeURIComponent(date)}` : ''}`
-        const res = await fetch(url, { credentials: 'include', headers: { Accept: 'application/json' } })
+        const res = await fetch(url, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        })
         const d = await res.json()
         if (disposed || d.status !== 'success') return
         const fetched: Candle[] = d.candles || []
@@ -467,14 +471,14 @@ function LiveChart({
     chart.applyOptions({
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: isDark ? '#a6adbb' : '#333',
+        textColor: pal.textMuted,
       },
       grid: {
-        vertLines: { color: isDark ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.06)' },
-        horzLines: { color: isDark ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.06)' },
+        vertLines: { color: pal.grid },
+        horzLines: { color: pal.grid },
       },
     })
-  }, [isDark])
+  }, [pal])
 
   // Update the forming candle from each live tick, bucketed at the active
   // interval. The 5h30m IST offset is a whole multiple of 60/300/900s, so a
@@ -487,7 +491,9 @@ function LiveChart({
     if (!series || !readyRef.current || ltp == null || !Number.isFinite(ltp)) return
 
     const parsed = ts ? Date.parse(ts) : Number.NaN
-    const epochUtc = Number.isNaN(parsed) ? Math.floor(Date.now() / 1000) : Math.floor(parsed / 1000)
+    const epochUtc = Number.isNaN(parsed)
+      ? Math.floor(Date.now() / 1000)
+      : Math.floor(parsed / 1000)
     const sec = intervalSecRef.current
     const bucket = Math.floor((epochUtc + IST_OFFSET) / sec) * sec
     const cur = currentBucketRef.current
@@ -529,16 +535,16 @@ function LiveChart({
     <div className="rounded-lg border bg-card">
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span
-          className={`h-2 w-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-zinc-400'}`}
+          className={`h-2 w-2 rounded-full ${isAuthenticated ? 'bg-success' : 'bg-muted-foreground'}`}
           title={isAuthenticated ? 'streaming' : 'connecting'}
         />
         <span className="font-semibold">{symbol}</span>
         <span className="text-xs text-muted-foreground">{exchange}</span>
         <span className="ml-2 text-xs text-muted-foreground">{note}</span>
-        <span
-          className={`ml-auto font-semibold tabular-nums ${up ? 'text-green-500' : 'text-red-500'}`}
-        >
-          {last != null ? last.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
+        <span className={`ml-auto font-semibold tabular-nums ${up ? 'text-profit' : 'text-loss'}`}>
+          {last != null
+            ? last.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '-'}
         </span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onRemove} title="Remove">
           <X className="h-4 w-4" />

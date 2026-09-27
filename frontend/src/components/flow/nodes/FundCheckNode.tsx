@@ -25,7 +25,7 @@ export const FundCheckNode = memo(({ data, selected }: FundCheckNodeProps) => {
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded">
-            <Wallet className="h-3 w-3" />
+            <Wallet className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Fund</div>

@@ -220,19 +220,23 @@ On mobile devices, the dashboard adapts:
 2. Choose:
    - Light mode
    - Dark mode
-   - System preference
 
-### Accent Colors
+There is one colour scheme: white and warm off-white surfaces with a single blue
+for actions, in light or dark. Accent colour choices were removed. When analyzer
+mode is on, the whole interface switches to a violet palette so it is always
+clear that orders are going to the Sandbox and not to your broker.
 
-8 accent colors available:
-- Blue (default)
-- Green
-- Purple
-- Orange
-- Red
-- Yellow
-- Pink
-- Cyan
+### Market Ticker
+
+A scrolling strip along the bottom of every page shows live
+prices for the NIFTY 500 (the 500 largest NSE-listed companies), with each one's
+change from the previous close. A full pass takes about 20 minutes. To follow indices,
+add them to the watchlist on the Trading page.
+The label on its left reads Live during NSE hours and Closed otherwise.
+
+- Hover over the strip to pause it (on a phone, press and hold).
+- Hide it with the X on its right; turn it back on under **Profile** → **Theme** → **Market Ticker**.
+- On a phone it sits just above the bottom navigation.
 
 ## Common Dashboard Questions
 

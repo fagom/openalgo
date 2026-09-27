@@ -125,7 +125,7 @@ Futures candlestick with OI profile overlay.
 - Tools subscribe to live ticks, so **keep the connected broker's WebSocket active** and stay logged in.
 - If a tool shows no data, verify the underlying index/symbol is tradeable in the current session and that your broker adapter is streaming (check the WebSocket status indicator in the dashboard).
 - Use the **Strategy Builder** + **Strategy Portfolio** pair as your end-to-end workflow: design a strategy, save it to a watchlist, then execute the full basket with one click when conditions align.
-- All tools respect your theme and accent color preferences.
+- All tools follow your light or dark preference, and switch to the violet palette in analyzer mode.
 
 ## Related Guides
 

@@ -203,9 +203,7 @@ export default function Diagnostics() {
       {info?.mode ? (
         <Card
           className={
-            isAnalyze
-              ? 'border-amber-500/60 bg-amber-50 dark:bg-amber-950/30'
-              : 'border-emerald-500/60 bg-emerald-50 dark:bg-emerald-950/30'
+            isAnalyze ? 'border-warning/60 bg-warning/10' : 'border-success/60 bg-success/10'
           }
         >
           <CardContent className="pt-6 flex items-center justify-between flex-wrap gap-3">
@@ -213,13 +211,7 @@ export default function Diagnostics() {
               <div className="text-xs uppercase tracking-wider text-muted-foreground">
                 Trading Mode
               </div>
-              <div
-                className={`text-2xl font-bold ${
-                  isAnalyze
-                    ? 'text-amber-700 dark:text-amber-300'
-                    : 'text-emerald-700 dark:text-emerald-300'
-                }`}
-              >
+              <div className={`text-2xl font-bold ${isAnalyze ? 'text-warning' : 'text-success'}`}>
                 {info.mode.label}
               </div>
             </div>
@@ -464,9 +456,9 @@ export default function Diagnostics() {
                 <TableRow key={check.name}>
                   <TableCell>
                     {check.ok ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-red-600" />
+                      <XCircle className="h-4 w-4 text-destructive" />
                     )}
                   </TableCell>
                   <TableCell className="font-medium">{check.name}</TableCell>

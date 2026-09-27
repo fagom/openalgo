@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -74,8 +75,6 @@ function formatCandleTime(candle: CandleData): string {
 export default function OIProfile() {
   const { mode, appMode } = useThemeStore()
   const { toolsFnoExchanges, defaultToolsFnoExchange, defaultUnderlyings } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultToolsFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -216,29 +215,25 @@ export default function OIProfile() {
   }, [selectedExpiry, fetchProfileData])
 
   // Theme colors
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
       paper: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      ceOI: '#22c55e',
-      peOI: '#ef4444',
-      ceChange: '#86efac',
-      peChange: '#fca5a5',
-      atmLine: '#eab308',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-      increasing: '#22c55e',
-      decreasing: '#ef4444',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      ceOI: p.up,
+      peOI: p.down,
+      ceChange: withAlpha(p.up, 0.55),
+      peChange: withAlpha(p.down, 0.55),
+      atmLine: withAlpha(p.text, 0.55),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+      increasing: p.up,
+      decreasing: p.down,
+    }
+  }, [mode, appMode])
 
   // Plotly config
   const plotConfig: Partial<PlotlyTypes.Config> = useMemo(
@@ -399,7 +394,7 @@ export default function OIProfile() {
       },
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       barmode: 'overlay' as const,
       bargap: 0.1,
       showlegend: false,

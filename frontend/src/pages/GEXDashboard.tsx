@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -51,8 +52,6 @@ export function formatNumber(num: number): string {
 export default function GEXDashboard() {
   const { mode, appMode } = useThemeStore()
   const { toolsFnoExchanges, defaultToolsFnoExchange, defaultUnderlyings } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultToolsFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -185,27 +184,23 @@ export default function GEXDashboard() {
   }, [autoRefresh, fetchGEXData, selectedExpiry])
 
   // Theme colors for Plotly
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
       paper: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      ceBar: '#22c55e',
-      peBar: '#ef4444',
-      positiveGex: '#3b82f6',
-      negativeGex: '#f97316',
-      atmLine: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      ceBar: p.up,
+      peBar: p.down,
+      positiveGex: p.primary,
+      negativeGex: p.series[1],
+      atmLine: withAlpha(p.text, 0.55),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+    }
+  }, [mode, appMode])
 
   // Plotly config
   const plotConfig: Partial<PlotlyTypes.Config> = useMemo(
@@ -305,7 +300,7 @@ export default function GEXDashboard() {
       },
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       barmode: 'group' as const,
       bargap: 0.15,
       hovermode: 'x unified' as const,
@@ -429,7 +424,7 @@ export default function GEXDashboard() {
       },
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       hovermode: 'x unified' as const,
       hoverlabel: {
         bgcolor: themeColors.hoverBg,
@@ -673,7 +668,7 @@ export default function GEXDashboard() {
                     <span className="text-muted-foreground">
                       {idx + 1}. {item.strike}
                     </span>
-                    <span className="font-medium text-red-500">{formatNumber(item.value)}</span>
+                    <span className="font-medium text-destructive">{formatNumber(item.value)}</span>
                   </div>
                 ))}
               </div>
@@ -693,7 +688,7 @@ export default function GEXDashboard() {
                     <span className="text-muted-foreground">
                       {idx + 1}. {item.strike}
                     </span>
-                    <span className="font-medium text-green-500">{formatNumber(item.value)}</span>
+                    <span className="font-medium text-success">{formatNumber(item.value)}</span>
                   </div>
                 ))}
               </div>
@@ -714,7 +709,7 @@ export default function GEXDashboard() {
                       {idx + 1}. {item.strike}
                     </span>
                     <span
-                      className={`font-medium ${item.value >= 0 ? 'text-blue-500' : 'text-orange-500'}`}
+                      className={`font-medium ${item.value >= 0 ? 'text-primary' : 'text-warning'}`}
                     >
                       {item.value >= 0 ? '+' : ''}
                       {formatNumber(item.value)}
@@ -756,20 +751,20 @@ export default function GEXDashboard() {
                     return (
                       <tr
                         key={item.strike}
-                        className={`border-b border-border/30 ${isATM ? 'bg-yellow-500/10 font-semibold' : 'hover:bg-muted/50'}`}
+                        className={`border-b border-border/30 ${isATM ? 'bg-warning/10 font-semibold' : 'hover:bg-muted/50'}`}
                       >
                         <td className="py-1.5 px-3">
                           {item.strike}
-                          {isATM && <span className="ml-2 text-xs text-yellow-500">ATM</span>}
+                          {isATM && <span className="ml-2 text-xs text-warning">ATM</span>}
                         </td>
-                        <td className="py-1.5 px-3 text-right text-red-500">
+                        <td className="py-1.5 px-3 text-right text-destructive">
                           {item.ce_gex.toFixed(2)}
                         </td>
-                        <td className="py-1.5 px-3 text-right text-green-500">
+                        <td className="py-1.5 px-3 text-right text-success">
                           {item.pe_gex.toFixed(2)}
                         </td>
                         <td
-                          className={`py-1.5 px-3 text-right font-medium ${item.net_gex >= 0 ? 'text-blue-500' : 'text-orange-500'}`}
+                          className={`py-1.5 px-3 text-right font-medium ${item.net_gex >= 0 ? 'text-primary' : 'text-warning'}`}
                         >
                           {item.net_gex >= 0 ? '+' : ''}
                           {item.net_gex.toFixed(2)}
@@ -781,14 +776,14 @@ export default function GEXDashboard() {
                 <tfoot className="sticky bottom-0 bg-background border-t-2 border-border">
                   <tr className="font-semibold">
                     <td className="py-2 px-3">Total</td>
-                    <td className="py-2 px-3 text-right text-red-500">
+                    <td className="py-2 px-3 text-right text-destructive">
                       {(gexData.total_ce_gex || 0).toFixed(2)}
                     </td>
-                    <td className="py-2 px-3 text-right text-green-500">
+                    <td className="py-2 px-3 text-right text-success">
                       {(gexData.total_pe_gex || 0).toFixed(2)}
                     </td>
                     <td
-                      className={`py-2 px-3 text-right ${(gexData.total_net_gex || 0) >= 0 ? 'text-blue-500' : 'text-orange-500'}`}
+                      className={`py-2 px-3 text-right ${(gexData.total_net_gex || 0) >= 0 ? 'text-primary' : 'text-warning'}`}
                     >
                       {(gexData.total_net_gex || 0) >= 0 ? '+' : ''}
                       {(gexData.total_net_gex || 0).toFixed(2)}

@@ -100,9 +100,9 @@ const VARIABLE_OPERATIONS = [
 ]
 
 const LOG_LEVELS = [
-  { value: 'info', label: 'Info', color: 'text-blue-400' },
-  { value: 'warn', label: 'Warning', color: 'text-yellow-400' },
-  { value: 'error', label: 'Error', color: 'text-red-400' },
+  { value: 'info', label: 'Info', color: 'text-primary' },
+  { value: 'warn', label: 'Warning', color: 'text-warning' },
+  { value: 'error', label: 'Error', color: 'text-destructive' },
 ]
 
 const TIME_OPERATORS = [
@@ -689,7 +689,7 @@ export function ConfigPanel() {
                           }
                           aria-label="Copy webhook URL"
                         >
-                          <Copy className="h-3 w-3" />
+                          <Copy className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -711,9 +711,9 @@ export function ConfigPanel() {
                             aria-label={showSecret ? 'Hide webhook secret' : 'Show webhook secret'}
                           >
                             {showSecret ? (
-                              <EyeOff className="h-3 w-3" />
+                              <EyeOff className="size-4" />
                             ) : (
-                              <Eye className="h-3 w-3" />
+                              <Eye className="size-4" />
                             )}
                           </Button>
                         </div>
@@ -726,7 +726,7 @@ export function ConfigPanel() {
                           }
                           aria-label="Copy webhook secret"
                         >
-                          <Copy className="h-3 w-3" />
+                          <Copy className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -734,15 +734,15 @@ export function ConfigPanel() {
                       className={cn(
                         'rounded-lg border p-2 text-center text-xs',
                         webhookQuery.data.webhook_enabled
-                          ? 'border-green-500/30 bg-green-500/10 text-green-600'
-                          : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-600'
+                          ? 'border-success/30 bg-success/10 text-success'
+                          : 'border-warning/30 bg-warning/10 text-warning'
                       )}
                     >
                       {webhookQuery.data.webhook_enabled ? 'Webhook enabled' : 'Webhook disabled'}
                     </div>
                   </>
                 ) : (
-                  <div className="rounded-lg border-yellow-500/30 bg-yellow-500/10 p-3 text-center text-xs text-yellow-600">
+                  <div className="rounded-lg border-warning/30 bg-warning/10 p-3 text-center text-xs text-warning">
                     Save workflow first
                   </div>
                 )}
@@ -1031,8 +1031,8 @@ export function ConfigPanel() {
                           'rounded-lg border py-2 text-sm font-semibold',
                           nodeData.optionType === o.value
                             ? o.value === 'CE'
-                              ? 'bg-green-500/20 border-green-500 text-green-600'
-                              : 'bg-red-500/20 border-red-500 text-red-600'
+                              ? 'bg-success/20 border-success/60 text-success'
+                              : 'bg-destructive/20 border-destructive/60 text-destructive'
                             : 'border-border bg-muted'
                         )}
                       >
@@ -1159,8 +1159,8 @@ export function ConfigPanel() {
                           'rounded-lg border py-2 text-sm font-semibold',
                           nodeData.action === a.value
                             ? a.value === 'BUY'
-                              ? 'bg-green-500/20 border-green-500 text-green-600'
-                              : 'bg-red-500/20 border-red-500 text-red-600'
+                              ? 'bg-buy/20 border-buy/60 text-buy'
+                              : 'bg-destructive/20 border-destructive/60 text-destructive'
                             : 'border-border bg-muted'
                         )}
                       >
@@ -1216,9 +1216,7 @@ export function ConfigPanel() {
                         <div className="flex justify-between">
                           <span>ATM CE</span>
                           <span
-                            className={
-                              nodeData.action === 'BUY' ? 'text-green-600' : 'text-red-600'
-                            }
+                            className={nodeData.action === 'BUY' ? 'text-buy' : 'text-destructive'}
                           >
                             {(nodeData.action as string) || 'SELL'}
                           </span>
@@ -1226,9 +1224,7 @@ export function ConfigPanel() {
                         <div className="flex justify-between">
                           <span>ATM PE</span>
                           <span
-                            className={
-                              nodeData.action === 'BUY' ? 'text-green-600' : 'text-red-600'
-                            }
+                            className={nodeData.action === 'BUY' ? 'text-buy' : 'text-destructive'}
                           >
                             {(nodeData.action as string) || 'SELL'}
                           </span>
@@ -1240,9 +1236,7 @@ export function ConfigPanel() {
                         <div className="flex justify-between">
                           <span>OTM2 CE</span>
                           <span
-                            className={
-                              nodeData.action === 'BUY' ? 'text-green-600' : 'text-red-600'
-                            }
+                            className={nodeData.action === 'BUY' ? 'text-buy' : 'text-destructive'}
                           >
                             {(nodeData.action as string) || 'SELL'}
                           </span>
@@ -1250,9 +1244,7 @@ export function ConfigPanel() {
                         <div className="flex justify-between">
                           <span>OTM2 PE</span>
                           <span
-                            className={
-                              nodeData.action === 'BUY' ? 'text-green-600' : 'text-red-600'
-                            }
+                            className={nodeData.action === 'BUY' ? 'text-buy' : 'text-destructive'}
                           >
                             {(nodeData.action as string) || 'SELL'}
                           </span>
@@ -1263,19 +1255,19 @@ export function ConfigPanel() {
                       <>
                         <div className="flex justify-between">
                           <span>OTM2 CE</span>
-                          <span className="text-red-600">SELL</span>
+                          <span className="text-sell">SELL</span>
                         </div>
                         <div className="flex justify-between">
                           <span>OTM4 CE</span>
-                          <span className="text-green-600">BUY</span>
+                          <span className="text-buy">BUY</span>
                         </div>
                         <div className="flex justify-between">
                           <span>OTM2 PE</span>
-                          <span className="text-red-600">SELL</span>
+                          <span className="text-sell">SELL</span>
                         </div>
                         <div className="flex justify-between">
                           <span>OTM4 PE</span>
-                          <span className="text-green-600">BUY</span>
+                          <span className="text-buy">BUY</span>
                         </div>
                       </>
                     )}
@@ -1283,11 +1275,11 @@ export function ConfigPanel() {
                       <>
                         <div className="flex justify-between">
                           <span>ATM CE</span>
-                          <span className="text-green-600">BUY</span>
+                          <span className="text-buy">BUY</span>
                         </div>
                         <div className="flex justify-between">
                           <span>OTM2 CE</span>
-                          <span className="text-red-600">SELL</span>
+                          <span className="text-sell">SELL</span>
                         </div>
                       </>
                     )}
@@ -1295,11 +1287,11 @@ export function ConfigPanel() {
                       <>
                         <div className="flex justify-between">
                           <span>ATM PE</span>
-                          <span className="text-green-600">BUY</span>
+                          <span className="text-buy">BUY</span>
                         </div>
                         <div className="flex justify-between">
                           <span>OTM2 PE</span>
-                          <span className="text-red-600">SELL</span>
+                          <span className="text-sell">SELL</span>
                         </div>
                       </>
                     )}
@@ -2289,8 +2281,8 @@ export function ConfigPanel() {
                           'rounded-lg border py-2 text-sm font-semibold',
                           nodeData.optionType === t
                             ? t === 'CE'
-                              ? 'bg-green-500/20 border-green-500 text-green-600'
-                              : 'bg-red-500/20 border-red-500 text-red-600'
+                              ? 'bg-success/20 border-success/60 text-success'
+                              : 'bg-destructive/20 border-destructive/60 text-destructive'
                             : 'border-border bg-muted'
                         )}
                       >
@@ -3075,9 +3067,9 @@ export function ConfigPanel() {
                           'rounded-lg border py-2 text-sm font-semibold',
                           nodeData.conditionType === t.value
                             ? t.value === 'entry'
-                              ? 'bg-green-500/20 border-green-500 text-green-600'
+                              ? 'bg-success/20 border-success/60 text-success'
                               : t.value === 'exit'
-                                ? 'bg-red-500/20 border-red-500 text-red-600'
+                                ? 'bg-destructive/20 border-destructive/60 text-destructive'
                                 : 'bg-primary text-primary-foreground'
                             : 'border-border bg-muted'
                         )}

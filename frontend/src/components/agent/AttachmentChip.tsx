@@ -74,7 +74,7 @@ export function AttachmentChip({
             'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
           )}
         >
-          <X className="h-3.5 w-3.5" aria-hidden />
+          <X className="size-4" aria-hidden />
         </button>
       )}
     </div>

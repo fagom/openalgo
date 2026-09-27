@@ -182,10 +182,9 @@ function FullscreenIcon({ className }: { className?: string }) {
 }
 
 function ledClass(state: string): string {
-  if (state === 'live' || state === 'open')
-    return 'bg-emerald-500 shadow-[0_0_6px] shadow-emerald-500/70'
-  if (state === 'closed' || state === 'error' || state === 'auth failed') return 'bg-rose-500'
-  return 'bg-amber-500'
+  if (state === 'live' || state === 'open') return 'bg-profit shadow-[0_0_6px] shadow-profit/70'
+  if (state === 'closed' || state === 'error' || state === 'auth failed') return 'bg-loss'
+  return 'bg-warning'
 }
 
 interface Props {
@@ -829,7 +828,7 @@ export function ChartPane({
             onClick={() => setSearchOpen(true)}
             title="Search symbol"
           >
-            <Search className="h-3.5 w-3.5 opacity-60" />
+            <Search className="size-4 opacity-60" />
             <span className="max-w-[10rem] truncate">{sym?.symbol ?? 'Search symbol'}</span>
             {sym && (
               <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -1140,7 +1139,7 @@ export function ChartPane({
                         void terminalRef.current?.screenshot()
                       }}
                     >
-                      <DownloadIcon className="h-3.5 w-3.5 opacity-70" />
+                      <DownloadIcon className="size-4 opacity-70" />
                       Download image
                     </button>
                     <button
@@ -1165,7 +1164,7 @@ export function ChartPane({
                         downloadCsv()
                       }}
                     >
-                      <DownloadIcon className="h-3.5 w-3.5 opacity-70" />
+                      <DownloadIcon className="size-4 opacity-70" />
                       Download CSV
                     </button>
                     <button
@@ -1176,7 +1175,7 @@ export function ChartPane({
                         void terminalRef.current?.copyScreenshot()
                       }}
                     >
-                      <CopyIcon className="h-3.5 w-3.5 opacity-70" />
+                      <CopyIcon className="size-4 opacity-70" />
                       Copy image
                     </button>
                   </div>
@@ -1272,7 +1271,7 @@ export function ChartPane({
         )}
 
         {!onReplayStart && confirmLeave && (
-          <div className="pointer-events-auto absolute inset-0 z-30 flex items-center justify-center bg-black/45">
+          <div className="pointer-events-auto absolute inset-0 z-30 flex items-center justify-center bg-overlay">
             <div className="w-[340px] rounded-lg border border-border bg-popover p-4 shadow-xl">
               <h4 className="mb-2 text-sm font-medium">Leave replay?</h4>
               <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
@@ -1430,9 +1429,7 @@ export function ChartPane({
                   it.enabled
                     ? 'hover:bg-accent hover:text-accent-foreground'
                     : 'cursor-not-allowed opacity-40',
-                  it.side === 'BUY'
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-rose-600 dark:text-rose-400'
+                  it.side === 'BUY' ? 'text-buy' : 'text-destructive'
                 )}
               >
                 {it.label}
@@ -1447,7 +1444,7 @@ export function ChartPane({
               className={ctxRow}
               onClick={() => run(() => terminalRef.current?.resetScale())}
             >
-              <RefreshCw className="h-3.5 w-3.5 opacity-70" />
+              <RefreshCw className="size-4 opacity-70" />
               Reset chart view
             </button>
             {/* Settings sits on the chart it configures rather than in the
@@ -1462,12 +1459,12 @@ export function ChartPane({
                 })
               }
             >
-              <Settings className="h-3.5 w-3.5 opacity-70" />
+              <Settings className="size-4 opacity-70" />
               Chart settings...
             </button>
             {onToggleRail && (
               <button type="button" className={ctxRow} onClick={() => run(onToggleRail)}>
-                <PencilIcon className="h-3.5 w-3.5 opacity-70" />
+                <PencilIcon className="size-4 opacity-70" />
                 {railVisible ? 'Hide drawing tools' : 'Show drawing tools'}
               </button>
             )}
@@ -1483,7 +1480,7 @@ export function ChartPane({
                   })
                 }
               >
-                <VolumeIcon className="h-3.5 w-3.5 opacity-70" />
+                <VolumeIcon className="size-4 opacity-70" />
                 {volumeOn ? 'Hide volume' : 'Show volume'}
               </button>
             )}
@@ -1502,9 +1499,9 @@ export function ChartPane({
                 }}
                 aria-expanded={gridSub}
               >
-                <GridIcon className="h-3.5 w-3.5 opacity-70" />
+                <GridIcon className="size-4 opacity-70" />
                 Grid
-                <ChevronDown className="ml-auto h-3.5 w-3.5 -rotate-90 opacity-60" />
+                <ChevronDown className="ml-auto size-4 -rotate-90 opacity-60" />
               </button>
               {gridSub && (
                 <div

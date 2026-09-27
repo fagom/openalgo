@@ -381,7 +381,7 @@ export function PlaceOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>Place Order -</span>
-            <span className={formAction === 'BUY' ? 'text-green-500' : 'text-red-500'}>
+            <span className={formAction === 'BUY' ? 'text-buy' : 'text-destructive'}>
               {formAction}
             </span>
             <span className="text-muted-foreground font-normal text-sm truncate">{symbol}</span>
@@ -418,7 +418,7 @@ export function PlaceOrderDialog({
               <Button
                 type="button"
                 variant={formAction === 'BUY' ? 'default' : 'outline'}
-                className={cn('flex-1', formAction === 'BUY' && 'bg-green-600 hover:bg-green-700')}
+                className={cn('flex-1', formAction === 'BUY' && 'bg-buy hover:bg-buy/90')}
                 onClick={() => setFormAction('BUY')}
               >
                 BUY
@@ -426,7 +426,7 @@ export function PlaceOrderDialog({
               <Button
                 type="button"
                 variant={formAction === 'SELL' ? 'default' : 'outline'}
-                className={cn('flex-1', formAction === 'SELL' && 'bg-red-600 hover:bg-red-700')}
+                className={cn('flex-1', formAction === 'SELL' && 'bg-sell hover:bg-sell/90')}
                 onClick={() => setFormAction('SELL')}
               >
                 SELL
@@ -627,8 +627,8 @@ export function PlaceOrderDialog({
             disabled={!isValid() || isSubmitting}
             className={cn(
               formAction === 'BUY'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-red-600 hover:bg-red-700'
+                ? 'bg-buy hover:bg-buy/90'
+                : 'bg-destructive hover:bg-destructive/90'
             )}
           >
             {isSubmitting ? 'Placing...' : `Place ${formAction} Order`}

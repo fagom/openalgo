@@ -20,8 +20,8 @@ export const WaitUntilNode = memo(({ data, selected }: WaitUntilNodeProps) => {
       <Handle type="target" position={Position.Top} className="!top-0 !-translate-y-1/2" />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="node-icon flex h-5 w-5 items-center justify-center rounded bg-amber-500/10">
-            <Hourglass className="h-3 w-3 text-amber-500" />
+          <div className="node-icon flex h-5 w-5 items-center justify-center rounded bg-warning/10">
+            <Hourglass className="size-4 text-warning" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Wait Until</div>
@@ -31,7 +31,7 @@ export const WaitUntilNode = memo(({ data, selected }: WaitUntilNodeProps) => {
         <div className="space-y-1">
           <div className="flex items-center justify-between rounded bg-muted/50 px-1.5 py-1">
             <span className="text-[10px] text-muted-foreground">Time</span>
-            <span className="mono-data text-[10px] font-medium text-amber-500">
+            <span className="mono-data text-[10px] font-medium text-warning">
               {data.targetTime || '09:30'}
             </span>
           </div>

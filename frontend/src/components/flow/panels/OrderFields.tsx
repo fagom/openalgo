@@ -97,8 +97,8 @@ export function ActionField({ value, onChange, label = 'Action', fallback = 'BUY
               'rounded-lg border py-2 text-sm font-semibold',
               value === a.value
                 ? a.value === 'BUY'
-                  ? 'bg-green-500/20 border-green-500 text-green-600'
-                  : 'bg-red-500/20 border-red-500 text-red-600'
+                  ? 'bg-buy/20 border-buy/60 text-buy'
+                  : 'bg-destructive/20 border-destructive/60 text-destructive'
                 : 'border-border bg-muted'
             )}
           >

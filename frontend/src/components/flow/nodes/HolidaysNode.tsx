@@ -16,12 +16,12 @@ interface HolidaysNodeProps {
 
 export const HolidaysNode = memo(({ data, selected }: HolidaysNodeProps) => {
   return (
-    <div className={cn('workflow-node min-w-[110px] border-l-purple-400', selected && 'selected')}>
+    <div className={cn('workflow-node min-w-[110px] border-l-chart-4/60', selected && 'selected')}>
       <Handle type="target" position={Position.Top} className="!top-0 !-translate-y-1/2" />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-purple-400/20 text-purple-400">
-            <CalendarX className="h-3 w-3" />
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-chart-4/20 text-chart-4">
+            <CalendarX className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Holidays</div>

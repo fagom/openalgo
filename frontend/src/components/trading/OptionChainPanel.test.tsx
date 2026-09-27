@@ -247,12 +247,12 @@ describe('OptionChainPanel', () => {
     expect(spot.className).toContain('text-foreground')
   })
 
-  it('colours a rising spot with the theme-aware pair, not a bare green', async () => {
+  it('colours a rising spot with the theme-aware profit token, not a bare green', async () => {
     renderPanel()
     const spot = await screen.findByText('24175.65')
 
-    expect(spot.className).toContain('text-emerald-600')
-    expect(spot.className).toContain('dark:text-emerald-400')
+    expect(spot.className).toContain('text-profit')
+    expect(spot.className).not.toContain('emerald')
   })
 
   it('gives every leg button an accessible name, not just a title', async () => {
@@ -275,8 +275,8 @@ describe('OptionChainPanel', () => {
     await userEvent.click(await screen.findByRole('option', { name: 'OI' }))
 
     await waitFor(() => {
-      expect(container.querySelector('[class*="from-emerald-500"]')).not.toBeNull()
-      expect(container.querySelector('[class*="from-rose-500"]')).not.toBeNull()
+      expect(container.querySelector('[class*="from-success"]')).not.toBeNull()
+      expect(container.querySelector('[class*="from-destructive"]')).not.toBeNull()
     })
   })
 

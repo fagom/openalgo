@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
 import { cn, makeFormatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
@@ -141,9 +142,9 @@ function StatusOrb({
         className={cn(
           sizeClasses,
           'rounded-full transition-all duration-500',
-          status === 'success' && 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
-          status === 'warning' && 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]',
-          status === 'error' && 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]',
+          status === 'success' && 'bg-success shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+          status === 'warning' && 'bg-warning shadow-[0_0_8px_rgba(251,191,36,0.8)]',
+          status === 'error' && 'bg-destructive shadow-[0_0_8px_rgba(251,113,133,0.8)]',
           status === 'idle' && 'bg-muted'
         )}
       />
@@ -151,9 +152,9 @@ function StatusOrb({
         <div
           className={cn(
             'absolute inset-0 rounded-full animate-ping opacity-40',
-            status === 'success' && 'bg-emerald-400',
-            status === 'warning' && 'bg-amber-400',
-            status === 'error' && 'bg-rose-400'
+            status === 'success' && 'bg-success',
+            status === 'warning' && 'bg-warning',
+            status === 'error' && 'bg-destructive'
           )}
         />
       )}
@@ -177,10 +178,10 @@ function StatCard({
 }) {
   return (
     <div className="relative group">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative px-4 py-3 rounded-lg bg-card border border-border hover:border-border/60 transition-colors">
         <div className="flex items-center justify-between mb-1.5">
-          <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+          <Icon className="size-4 text-muted-foreground" />
           {status && <StatusOrb status={status} size="sm" />}
         </div>
         <div className="text-lg font-bold font-mono text-foreground tracking-tight">{value}</div>
@@ -213,8 +214,8 @@ function DepthLevel({
           className={cn(
             'absolute top-0 bottom-0 transition-all duration-300',
             side === 'buy'
-              ? 'left-0 bg-gradient-to-r from-emerald-500/20 to-transparent'
-              : 'right-0 bg-gradient-to-l from-rose-500/20 to-transparent'
+              ? 'left-0 bg-gradient-to-r from-buy/20 to-transparent'
+              : 'right-0 bg-gradient-to-l from-destructive/20 to-transparent'
           )}
           style={{ width: `${pct}%` }}
         />
@@ -225,7 +226,7 @@ function DepthLevel({
       <span
         className={cn(
           'relative z-10 font-mono text-xs font-medium',
-          side === 'buy' ? 'text-emerald-400' : 'text-rose-400'
+          side === 'buy' ? 'text-buy' : 'text-destructive'
         )}
       >
         {quantity.toLocaleString()}
@@ -763,8 +764,8 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 via-cyan-500/10 to-transparent border border-cyan-500/30 flex items-center justify-center">
-                    <Terminal className="w-6 h-6 text-cyan-400" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-chart-3/20 via-chart-3/10 to-transparent border border-chart-3/30 flex items-center justify-center">
+                    <Terminal className="w-6 h-6 text-chart-3" />
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5">
                     <StatusOrb status={connectionStatus} />
@@ -775,7 +776,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     WebSocket Console
                     <Badge
                       variant="outline"
-                      className="text-[9px] border-cyan-500/30 text-cyan-400 font-mono"
+                      className="text-[9px] border-chart-3/30 text-chart-3 font-mono"
                     >
                       {depthLevel > 5 ? `DEPTH ${depthLevel}` : 'TEST'}
                     </Badge>
@@ -800,7 +801,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     <Button
                       onClick={connectWebSocket}
                       disabled={isConnecting}
-                      className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-cyan-500/20"
+                      className="gap-2 font-semibold"
                     >
                       {isConnecting ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
@@ -813,7 +814,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     <Button
                       onClick={disconnectWebSocket}
                       variant="outline"
-                      className="gap-2 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
+                      className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
                     >
                       <Link2Off className="w-4 h-4" />
                       Disconnect
@@ -823,9 +824,9 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
 
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
                   {isAuthenticated ? (
-                    <Wifi className="w-4 h-4 text-emerald-400" />
+                    <Wifi className="w-4 h-4 text-success" />
                   ) : isConnected ? (
-                    <Cable className="w-4 h-4 text-amber-400" />
+                    <Cable className="w-4 h-4 text-warning" />
                   ) : (
                     <WifiOff className="w-4 h-4 text-muted-foreground" />
                   )}
@@ -833,9 +834,9 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     className={cn(
                       'text-sm font-medium',
                       isAuthenticated
-                        ? 'text-emerald-400'
+                        ? 'text-success'
                         : isConnected
-                          ? 'text-amber-400'
+                          ? 'text-warning'
                           : 'text-muted-foreground'
                     )}
                   >
@@ -887,7 +888,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
-                    className="pl-10 bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:border-cyan-500/50 focus:ring-cyan-500/20"
+                    className="pl-10 bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:border-chart-3/50 focus:ring-chart-3/20"
                   />
                   {isSearching && (
                     <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
@@ -899,7 +900,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     {searchResults.map((result, i) => (
                       <div
                         key={i}
-                        className="px-4 py-3 border-b border-border/50 last:border-0 hover:bg-cyan-500/5 cursor-pointer transition-colors"
+                        className="px-4 py-3 border-b border-border/50 last:border-0 hover:bg-chart-3/5 cursor-pointer transition-colors"
                         onClick={() => addSymbol(result.symbol, result.exchange)}
                       >
                         <div className="flex items-center justify-between">
@@ -947,19 +948,25 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                   className={cn(
                     'gap-1.5 py-1.5 px-3 border transition-colors',
                     data.subscriptions.size > 0
-                      ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300'
+                      ? 'bg-chart-3/10 border-chart-3/30 text-chart-3'
                       : 'bg-muted/50 border-border/50 text-muted-foreground'
                   )}
                 >
                   <span className="font-mono text-xs">{key}</span>
                   {data.subscriptions.size > 0 && <StatusOrb status="success" size="sm" />}
-                  <button
-                    type="button"
-                    onClick={() => removeSymbol(data.symbol, data.exchange)}
-                    className="ml-1 hover:text-rose-400 transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => removeSymbol(data.symbol, data.exchange)}
+                        className="ml-1 hover:text-loss transition-colors"
+                        aria-label="Remove symbol"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Remove symbol</TooltipContent>
+                  </Tooltip>
                 </Badge>
               ))}
               {activeSymbols.size === 0 && (
@@ -974,37 +981,36 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                 variant="outline"
                 disabled={!isConnected}
                 size="sm"
-                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 disabled:opacity-30"
+                className="border-warning/30 text-warning hover:bg-warning/10 disabled:opacity-30"
               >
-                <Zap className="w-3.5 h-3.5 mr-1.5" /> LTP All
+                <Zap className="size-4 mr-1.5" /> LTP All
               </Button>
               <Button
                 onClick={() => subscribeAll('Quote')}
                 variant="outline"
                 disabled={!isConnected}
                 size="sm"
-                className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 disabled:opacity-30"
+                className="border-chart-3/30 text-chart-3 hover:bg-chart-3/10 disabled:opacity-30"
               >
-                <Activity className="w-3.5 h-3.5 mr-1.5" /> Quote All
+                <Activity className="size-4 mr-1.5" /> Quote All
               </Button>
               <Button
                 onClick={() => subscribeAll('Depth')}
                 variant="outline"
                 disabled={!isConnected}
                 size="sm"
-                className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10 disabled:opacity-30"
+                className="border-chart-4/30 text-chart-4 hover:bg-chart-4/10 disabled:opacity-30"
               >
-                <Layers className="w-3.5 h-3.5 mr-1.5" /> Depth {depthLevel > 5 ? depthLevel : ''}{' '}
-                All
+                <Layers className="size-4 mr-1.5" /> Depth {depthLevel > 5 ? depthLevel : ''} All
               </Button>
               <Button
                 onClick={unsubscribeAll}
                 variant="outline"
                 disabled={!isConnected}
                 size="sm"
-                className="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 disabled:opacity-30"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 disabled:opacity-30"
               >
-                <ZapOff className="w-3.5 h-3.5 mr-1.5" /> Unsub All
+                <ZapOff className="size-4 mr-1.5" /> Unsub All
               </Button>
               <Button
                 onClick={clearAllSymbols}
@@ -1012,7 +1018,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                 size="sm"
                 className="border-border/50 text-muted-foreground hover:bg-muted/50"
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear All
+                <Trash2 className="size-4 mr-1.5" /> Clear All
               </Button>
             </div>
           </div>
@@ -1021,7 +1027,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
           <div className="rounded-xl bg-card border border-border p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-cyan-400" />
+                <Radio className="w-4 h-4 text-chart-3" />
                 <h2 className="text-sm font-semibold text-foreground">Order Updates</h2>
                 {ordersSubscribed && <StatusOrb status="success" size="sm" />}
                 <span className="text-xs text-muted-foreground">
@@ -1038,7 +1044,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     size="sm"
                     className="border-border/50 text-muted-foreground hover:bg-muted/50"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear
+                    <Trash2 className="size-4 mr-1.5" /> Clear
                   </Button>
                 )}
                 <Button
@@ -1049,17 +1055,17 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                   className={cn(
                     'disabled:opacity-30',
                     ordersSubscribed
-                      ? 'border-rose-500/30 text-rose-400 hover:bg-rose-500/10'
-                      : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+                      ? 'border-destructive/30 text-destructive hover:bg-destructive/10'
+                      : 'border-success/30 text-success hover:bg-success/10'
                   )}
                 >
                   {ordersSubscribed ? (
                     <>
-                      <ZapOff className="w-3.5 h-3.5 mr-1.5" /> Unsubscribe
+                      <ZapOff className="size-4 mr-1.5" /> Unsubscribe
                     </>
                   ) : (
                     <>
-                      <Zap className="w-3.5 h-3.5 mr-1.5" /> Subscribe
+                      <Zap className="size-4 mr-1.5" /> Subscribe
                     </>
                   )}
                 </Button>
@@ -1109,8 +1115,8 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                         <td
                           className={cn(
                             'py-2 pr-3 font-medium',
-                            u.action === 'BUY' && 'text-emerald-400',
-                            u.action === 'SELL' && 'text-rose-400'
+                            u.action === 'BUY' && 'text-buy',
+                            u.action === 'SELL' && 'text-sell'
                           )}
                         >
                           {u.action}
@@ -1124,12 +1130,11 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                             variant="outline"
                             className={cn(
                               'text-[10px] uppercase',
-                              u.order_status === 'complete' &&
-                                'border-emerald-500/30 text-emerald-400',
-                              u.order_status === 'rejected' && 'border-rose-500/30 text-rose-400',
-                              u.order_status === 'cancelled' &&
-                                'border-amber-500/30 text-amber-400',
-                              u.order_status === 'open' && 'border-cyan-500/30 text-cyan-400'
+                              u.order_status === 'complete' && 'border-success/30 text-success',
+                              u.order_status === 'rejected' &&
+                                'border-destructive/30 text-destructive',
+                              u.order_status === 'cancelled' && 'border-warning/30 text-warning',
+                              u.order_status === 'open' && 'border-chart-3/30 text-chart-3'
                             )}
                           >
                             {u.order_status}
@@ -1168,12 +1173,12 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                   key={key}
                   className={cn(
                     'rounded-xl border bg-card overflow-hidden transition-all',
-                    isLive ? 'border-cyan-500/40' : 'border-border'
+                    isLive ? 'border-chart-3/40' : 'border-border'
                   )}
                 >
                   {/* Live indicator */}
                   {isLive && (
-                    <div className="h-0.5 bg-gradient-to-r from-cyan-500 via-emerald-500 to-cyan-500" />
+                    <div className="h-0.5 bg-gradient-to-r from-chart-3 via-success to-chart-3" />
                   )}
 
                   {/* Card header */}
@@ -1182,7 +1187,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                       <button
                         type="button"
                         onClick={() => toggleCard(key)}
-                        className="hover:text-cyan-400 transition-colors"
+                        className="hover:text-chart-3 transition-colors"
                       >
                         {isExpanded ? (
                           <ChevronDown className="w-4 h-4" />
@@ -1212,7 +1217,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                             className={cn(
                               'px-2.5 py-1 text-[10px] font-bold rounded-md transition-all',
                               isActive
-                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                                ? 'bg-chart-3/20 text-chart-3 border border-chart-3/40'
                                 : 'bg-muted/50 text-muted-foreground border border-border/50 hover:text-foreground'
                             )}
                           >
@@ -1239,9 +1244,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                         <div
                           className={cn(
                             'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-semibold',
-                            isPositive
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-rose-500/10 text-rose-400'
+                            isPositive ? 'bg-profit/10 text-profit' : 'bg-loss/10 text-loss'
                           )}
                         >
                           {isPositive ? (
@@ -1260,8 +1263,8 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                       <div className="grid grid-cols-5 gap-2 mb-4">
                         {[
                           { label: 'Open', value: symbolData.data.open },
-                          { label: 'High', value: symbolData.data.high, color: 'text-emerald-400' },
-                          { label: 'Low', value: symbolData.data.low, color: 'text-rose-400' },
+                          { label: 'High', value: symbolData.data.high, color: 'text-success' },
+                          { label: 'Low', value: symbolData.data.low, color: 'text-destructive' },
                           { label: 'Close', value: symbolData.data.close },
                           { label: 'Vol', value: symbolData.data.volume, format: 'volume' },
                         ].map((item) => (
@@ -1296,7 +1299,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                         >
                           <ChevronDown
                             className={cn(
-                              'w-3 h-3 transition-transform',
+                              'size-4 transition-transform',
                               isDepthExpanded && 'rotate-180'
                             )}
                           />
@@ -1307,8 +1310,8 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                         {isDepthExpanded && (
                           <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg border border-border/40 max-h-[400px] overflow-y-auto">
                             <div>
-                              <div className="text-[9px] uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1 sticky top-0 bg-muted/30 py-1">
-                                <ArrowUp className="w-3 h-3" /> Bids
+                              <div className="text-[9px] uppercase tracking-wider text-success mb-2 flex items-center gap-1 sticky top-0 bg-muted/30 py-1">
+                                <ArrowUp className="size-4" /> Bids
                               </div>
                               {symbolData.data.depth.buy.slice(0, depthLevel).map((level, i) => (
                                 <DepthLevel
@@ -1324,8 +1327,8 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                               ))}
                             </div>
                             <div>
-                              <div className="text-[9px] uppercase tracking-wider text-rose-400 mb-2 flex items-center gap-1 sticky top-0 bg-muted/30 py-1">
-                                <ArrowDown className="w-3 h-3" /> Asks
+                              <div className="text-[9px] uppercase tracking-wider text-destructive mb-2 flex items-center gap-1 sticky top-0 bg-muted/30 py-1">
+                                <ArrowDown className="size-4" /> Asks
                               </div>
                               {symbolData.data.depth.sell.slice(0, depthLevel).map((level, i) => (
                                 <DepthLevel
@@ -1372,10 +1375,10 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                   onClick={() => setShowRawLogs(!showRawLogs)}
                   className={cn(
                     'h-7 px-2 text-xs',
-                    showRawLogs ? 'text-cyan-400' : 'text-muted-foreground'
+                    showRawLogs ? 'text-chart-3' : 'text-muted-foreground'
                   )}
                 >
-                  <Settings2 className="w-3.5 h-3.5 mr-1" />
+                  <Settings2 className="size-4 mr-1" />
                   {showRawLogs ? 'Parsed' : 'Raw'}
                 </Button>
                 <Button
@@ -1387,7 +1390,7 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                   }}
                   className="h-7 px-2 text-muted-foreground hover:text-foreground"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="size-4" />
                 </Button>
               </div>
             </div>
@@ -1414,10 +1417,10 @@ export default function WebSocketTest({ depthLevel = 5 }: WebSocketTestProps) {
                     key={i}
                     className={cn(
                       'py-0.5',
-                      log.type === 'success' && 'text-emerald-400',
-                      log.type === 'error' && 'text-rose-400',
-                      log.type === 'warn' && 'text-amber-400',
-                      log.type === 'data' && 'text-cyan-400',
+                      log.type === 'success' && 'text-success',
+                      log.type === 'error' && 'text-destructive',
+                      log.type === 'warn' && 'text-warning',
+                      log.type === 'data' && 'text-chart-3',
                       log.type === 'info' && 'text-muted-foreground'
                     )}
                   >

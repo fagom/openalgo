@@ -67,7 +67,7 @@ export function WebSocketTesterPanel({ apiKey, initialMessage }: WebSocketTester
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-xs text-red-400">
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-2 text-xs text-destructive">
             {error}
           </div>
         )}

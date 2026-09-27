@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -40,8 +41,6 @@ function convertExpiryForAPI(expiry: string): string {
 export default function MaxPain() {
   const { mode, appMode } = useThemeStore()
   const { toolsFnoExchanges, defaultToolsFnoExchange, defaultUnderlyings } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultToolsFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -161,25 +160,22 @@ export default function MaxPain() {
   }, [selectedExpiry])
 
   // Theme colors
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
       paper: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      barColor: isAnalyzer ? '#8b5cf6' : '#7c3aed',
-      maxPainBar: isAnalyzer ? '#c084fc' : '#a78bfa',
-      markerLine: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      barColor: p.primary,
+      maxPainBar: p.series[1],
+      markerLine: withAlpha(p.text, 0.55),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+      font: p.fontFamily,
+    }
+  }, [mode, appMode])
 
   // Build Plotly chart data
   const plotData = useMemo(() => {
@@ -230,7 +226,7 @@ export default function MaxPain() {
               yref: 'paper' as const,
               text: `Max Pain ${maxPainStrike}`,
               showarrow: false,
-              font: { color: themeColors.text, size: 12, family: 'system-ui, sans-serif' },
+              font: { color: themeColors.text, size: 12, family: CHART_FONT },
               yanchor: 'bottom' as const,
             },
           ]
@@ -254,7 +250,7 @@ export default function MaxPain() {
     const layout: Partial<PlotlyTypes.Layout> = {
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       bargap: 0.15,
       hoverlabel: {
         bgcolor: themeColors.hoverBg,

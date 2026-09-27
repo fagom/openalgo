@@ -225,9 +225,9 @@ export default function NewPythonStrategy() {
                 placeholder="My Trading Strategy"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? 'border-loss/60' : ''}
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-loss">{errors.name}</p>}
               <p className="text-xs text-muted-foreground">A descriptive name for your strategy</p>
             </div>
 
@@ -236,7 +236,7 @@ export default function NewPythonStrategy() {
               <Label htmlFor="file">Python Script</Label>
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors ${
-                  errors.file ? 'border-red-500' : ''
+                  errors.file ? 'border-destructive/60' : ''
                 }`}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -250,7 +250,7 @@ export default function NewPythonStrategy() {
                 />
                 {file ? (
                   <div className="flex items-center justify-center gap-2">
-                    <FileCode className="h-8 w-8 text-green-500" />
+                    <FileCode className="h-8 w-8 text-success" />
                     <div className="text-left">
                       <p className="font-medium">{file.name}</p>
                       <p className="text-sm text-muted-foreground">
@@ -268,7 +268,7 @@ export default function NewPythonStrategy() {
                   </div>
                 )}
               </div>
-              {errors.file && <p className="text-sm text-red-500">{errors.file}</p>}
+              {errors.file && <p className="text-sm text-destructive">{errors.file}</p>}
             </div>
 
             {/* Exchange Section */}
@@ -316,9 +316,9 @@ export default function NewPythonStrategy() {
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className={errors.startTime ? 'border-red-500' : ''}
+                    className={errors.startTime ? 'border-loss/60' : ''}
                   />
-                  {errors.startTime && <p className="text-sm text-red-500">{errors.startTime}</p>}
+                  {errors.startTime && <p className="text-sm text-loss">{errors.startTime}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="stopTime">Stop Time (IST)</Label>
@@ -327,9 +327,9 @@ export default function NewPythonStrategy() {
                     type="time"
                     value={stopTime}
                     onChange={(e) => setStopTime(e.target.value)}
-                    className={errors.stopTime ? 'border-red-500' : ''}
+                    className={errors.stopTime ? 'border-loss/60' : ''}
                   />
-                  {errors.stopTime && <p className="text-sm text-red-500">{errors.stopTime}</p>}
+                  {errors.stopTime && <p className="text-sm text-loss">{errors.stopTime}</p>}
                 </div>
               </div>
 
@@ -371,7 +371,7 @@ export default function NewPythonStrategy() {
                     </button>
                   ))}
                 </div>
-                {errors.days && <p className="text-sm text-red-500">{errors.days}</p>}
+                {errors.days && <p className="text-sm text-destructive">{errors.days}</p>}
                 <p className="text-xs text-muted-foreground">
                   Select the days when this strategy should run. Weekends can be enabled for special
                   trading sessions.
