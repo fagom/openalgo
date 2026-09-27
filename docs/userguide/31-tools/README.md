@@ -35,12 +35,19 @@ Your saved strategies at a glance.
 
 ### 3. Option Chain (`/optionchain`)
 
-Real-time option chain with full order capability.
+Real-time option chain with full order capability, laid out the way chains are
+conventionally read: calls on the left, strikes in the middle, puts on the right.
 
-- Live Greeks per strike (Delta, Gamma, Theta, Vega, IV)
-- OI, OI change, Volume, LTP, bid/ask — all streaming
-- Quick order placement inline from the chain (click-to-trade)
+- A line marks where spot sits between two strikes, and the chain opens centred on it
+- In-the-money strikes are shaded: calls below spot, puts above spot
+- LTP shows its change from the previous close underneath
+- The highest call OI strike is marked R (resistance) and the highest put OI strike S (support), also summarised in the OI levels card
+- Live Greeks per strike (Delta, Gamma, Theta, Vega, IV), OI, volume, bid/ask and spread, all streaming
+- The column header stays in view while you scroll long chains
+- Buy (B) and Sell (S) buttons appear beside the strike on hover or keyboard focus
 - Supports the option expiries returned for the selected underlying and broker
+
+OI change is not shown: the chain data carries no previous-day OI to compare with.
 
 ### 4. Option Greeks (`/ivchart`)
 
