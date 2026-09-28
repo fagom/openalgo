@@ -30,6 +30,12 @@ mkdir -p "$LOGS_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_FILE="$LOGS_DIR/install_${TIMESTAMP}.log"
 
+# Repository and branch to deploy. Defaults to the fagom fork's `local`
+# branch; override either at run time, e.g.
+#   OPENALGO_BRANCH=main ./install.sh
+OPENALGO_REPO="${OPENALGO_REPO:-https://github.com/fagom/openalgo.git}"
+OPENALGO_BRANCH="${OPENALGO_BRANCH:-local}"
+
 # Function to log messages to both console and log file
 log_message() {
     local message="$1"
@@ -733,7 +739,8 @@ log_message "\nCloning OpenAlgo repository..." "$BLUE"
 # branch switching working. Nearly all of that 280 MB is superseded
 # frontend/dist bundles that a server never reads. A host without filter
 # support just full-clones, so this is never worse than no flag at all.
-sudo git clone --filter=blob:none https://github.com/marketcalls/openalgo.git $OPENALGO_PATH
+log_message "Source: $OPENALGO_REPO (branch: $OPENALGO_BRANCH)" "$BLUE"
+sudo git clone --filter=blob:none --branch "$OPENALGO_BRANCH" "$OPENALGO_REPO" $OPENALGO_PATH
 check_status "Failed to clone OpenAlgo repository"
 
 # Create virtual environment using uv
