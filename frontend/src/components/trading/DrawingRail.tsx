@@ -16,7 +16,7 @@ import {
 import { DRAW_GROUPS, drawToolIcon } from '@/lib/trading/drawTools'
 import type { DrawStats } from '@/lib/trading/terminal'
 import { cn } from '@/lib/utils'
-import { RAIL_BTN, RAIL_BTN_ON, RailTip } from './railStyles'
+import { RAIL_BTN, RAIL_BTN_ON, RAIL_ICON, RAIL_WIDTH, RailTip } from './railStyles'
 
 interface Props {
   stats: DrawStats
@@ -95,7 +95,12 @@ export function DrawingRail({
   return (
     // A flush column with a divider, not a floating card: the plot starts to
     // its right, so nothing the chart draws in that corner can sit under it.
-    <div className="flex w-10 shrink-0 flex-col items-center gap-0.5 no-scrollbar overflow-y-auto border-r bg-background/40 py-1">
+    <div
+      className={cn(
+        RAIL_WIDTH,
+        'flex shrink-0 flex-col items-center gap-1 no-scrollbar overflow-y-auto border-r bg-background/40 py-1.5'
+      )}
+    >
       {/* Cursor — disarms whatever is active */}
       <div className="group relative">
         <button
@@ -104,7 +109,7 @@ export function DrawingRail({
           onClick={() => onPick(null)}
           className={cn(btn, !stats.tool && on)}
         >
-          <span className="h-[18px] w-[18px]">{drawToolIcon('cursor')}</span>
+          <span className={RAIL_ICON}>{drawToolIcon('cursor')}</span>
         </button>
         <RailTip text="Cursor" chord="Esc" />
       </div>
@@ -134,7 +139,7 @@ export function DrawingRail({
                 }}
                 className={cn(btn, activeGroup === g.key && on)}
               >
-                <span className="h-[18px] w-[18px]">{drawToolIcon(g.iconKey)}</span>
+                <span className={RAIL_ICON}>{drawToolIcon(g.iconKey)}</span>
               </button>
               {/*
                 Caret opens the flyout without changing the armed tool. A filled
@@ -229,7 +234,7 @@ export function DrawingRail({
           onClick={() => onMagnet(!stats.magnet)}
           className={cn(btn, stats.magnet && on)}
         >
-          <span className="h-[18px] w-[18px]">{drawToolIcon('magnet')}</span>
+          <span className={RAIL_ICON}>{drawToolIcon('magnet')}</span>
         </button>
         <RailTip text="Magnet: snap to O/H/L/C" />
       </div>
@@ -246,7 +251,7 @@ export function DrawingRail({
           onClick={() => onStay(!stats.stay)}
           className={cn(btn, stats.stay && on)}
         >
-          <span className="h-[18px] w-[18px]">{drawToolIcon('lock')}</span>
+          <span className={RAIL_ICON}>{drawToolIcon('lock')}</span>
         </button>
         <RailTip text="Keep the tool selected after drawing" />
       </div>
@@ -260,7 +265,7 @@ export function DrawingRail({
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-[18px] w-[18px]"
+            className={RAIL_ICON}
             fill="none"
             stroke="currentColor"
             strokeWidth={1.6}
@@ -284,7 +289,7 @@ export function DrawingRail({
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-[18px] w-[18px]"
+            className={RAIL_ICON}
             fill="none"
             stroke="currentColor"
             strokeWidth={1.6}
@@ -308,7 +313,7 @@ export function DrawingRail({
         >
           <svg
             viewBox="0 0 24 24"
-            className="h-[18px] w-[18px]"
+            className={RAIL_ICON}
             fill="none"
             stroke="currentColor"
             strokeWidth={1.6}

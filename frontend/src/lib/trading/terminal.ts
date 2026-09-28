@@ -738,6 +738,11 @@ export function usesLots(exchange: string): boolean {
 }
 const QUOTE_ONLY = new Set(['NSE_INDEX', 'BSE_INDEX', 'MCX_INDEX', 'GLOBAL_INDEX'])
 
+/** True when any bar has a positive volume: the broker supplied volume for this series. */
+export function barsCarryVolume(bars: ReadonlyArray<{ volume?: number }>): boolean {
+  return bars.some((b) => (b.volume ?? 0) > 0)
+}
+
 /**
  * The tick to format an instrument's prices with.
  *
@@ -933,6 +938,11 @@ export class TradingTerminal {
   private loadingOlder: { chart: ReturnType<typeof createChart>; ticket: number } | null = null
   private noMoreHistory = false
   private volumeOn = true
+  private volumeScan: { bars: readonly Bar[] | null; length: number; result: boolean } = {
+    bars: null,
+    length: 0,
+    result: false,
+  }
   private gridV = true
   private gridH = true
   private drawShortcuts: Record<string, string> = {}
@@ -1636,8 +1646,24 @@ export class TradingTerminal {
     }
   }
 
+  /**
+   * Whether this chart has volume to draw.
+   *
+   * A traded instrument always does. An index does not trade, but several
+   * brokers (Dhan among them) supply the exchange's index volume, the combined
+   * turnover of its constituents, on NIFTY and BANKNIFTY bars. Hiding it for
+   * every index threw that away, so an index now shows volume exactly when its
+   * bars carry some; a broker that sends zeros still gets no empty pane.
+   */
   private volumeAvailable(): boolean {
-    return this.sym?.synthetic === true || !QUOTE_ONLY.has(this.sym?.exchange ?? '')
+    if (this.sym?.synthetic === true || !QUOTE_ONLY.has(this.sym?.exchange ?? '')) return true
+    const bars = this.rawBars
+    if (this.volumeScan.bars !== bars || this.volumeScan.length !== bars.length) {
+      // Cached per array and length: the legend asks on every crosshair move,
+      // and a live tick only ever appends to or replaces the last bar.
+      this.volumeScan = { bars, length: bars.length, result: barsCarryVolume(bars) }
+    }
+    return this.volumeScan.result
   }
 
   private setVolumeData(prices: readonly Bar[], amounts?: readonly Bar[]): void {
@@ -1655,6 +1681,12 @@ export class TradingTerminal {
       )
     )
     this.volume.setData(this.displayedVolume)
+    // Re-decided with every load: an index chart is built before its bars
+    // arrive, so the build hid the series, and only the bars can say whether
+    // there is volume to show.
+    this.volume.applyOptions({
+      visible: this.volumeOn && this.volumeAvailable() && !isProfileKind(this.ctype),
+    })
     if (!this.volumeMA) {
       this.volumeMA = this.chart.addSeries('line', {
         paneIndex: 0,

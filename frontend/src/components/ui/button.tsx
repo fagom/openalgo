@@ -40,8 +40,10 @@ type ButtonProps = React.ComponentProps<'button'> &
     asChild?: boolean
     /**
      * Plain-text label shown in a tooltip on hover and keyboard focus. An
-     * icon-only button falls back to its aria-label, then its title, so every
+     * icon-only button falls back to its title, then its aria-label, so every
      * one of them explains itself without a second wrapper at the call site.
+     * Title first because it is usually the fuller text ("Undo drawing
+     * (Ctrl + Z)" against an aria-label of "Undo drawing").
      */
     tooltip?: React.ReactNode
     tooltipSide?: React.ComponentProps<typeof TooltipContent>['side']
@@ -59,7 +61,7 @@ function Button({
 }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
   const isIconOnly = typeof size === 'string' && size.startsWith('icon')
-  const label = tooltip ?? (isIconOnly ? (props['aria-label'] ?? title) : undefined)
+  const label = tooltip ?? (isIconOnly ? (title ?? props['aria-label']) : undefined)
   const ariaLabel =
     props['aria-label'] ??
     (isIconOnly && typeof label === 'string' ? label : undefined) ??

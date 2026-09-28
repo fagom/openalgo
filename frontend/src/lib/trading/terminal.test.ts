@@ -21,6 +21,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { priceDp } from './format'
 import {
   barCountdownValid,
+  barsCarryVolume,
   buildOrderTicket,
   dedupeIndicators,
   ORDER_COOLDOWN_MS,
@@ -885,5 +886,17 @@ describe('barCountdownValid', () => {
   it('hides with no bars, and for a last bar stamped in the future', () => {
     expect(barCountdownValid('1m', undefined, lastBar)).toBe(false)
     expect(barCountdownValid('1m', lastBar, lastBar - 60)).toBe(false)
+  })
+})
+
+describe('barsCarryVolume', () => {
+  it('sees volume an index feed supplies (Dhan sends constituent turnover on NIFTY)', () => {
+    expect(barsCarryVolume([{ volume: 0 }, { volume: 15_710_943 }])).toBe(true)
+  })
+
+  it('reports none for a feed that sends zeros or leaves volume out', () => {
+    expect(barsCarryVolume([{ volume: 0 }, { volume: 0 }])).toBe(false)
+    expect(barsCarryVolume([{}, {}])).toBe(false)
+    expect(barsCarryVolume([])).toBe(false)
   })
 })

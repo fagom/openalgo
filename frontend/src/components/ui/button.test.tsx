@@ -213,6 +213,20 @@ describe('Button', () => {
       expect(await screen.findByRole('tooltip')).toHaveTextContent('Close all positions')
     })
 
+    it('prefers the fuller title over the aria-label for the tooltip text', async () => {
+      const user = userEvent.setup()
+      render(
+        <Button size="icon" aria-label="Undo drawing" title="Undo drawing (Ctrl + Z)">
+          <svg />
+        </Button>
+      )
+
+      await user.tab()
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Undo drawing (Ctrl + Z)')
+      // The accessible name stays the short one.
+      expect(screen.getByRole('button', { name: 'Undo drawing' })).toBeInTheDocument()
+    })
+
     it('replaces the native title with the tooltip', () => {
       render(
         <Button size="icon" title="Copy API key">

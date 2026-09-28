@@ -880,9 +880,10 @@ export function ChartPane({
                 variant="outline"
                 size="sm"
                 className="h-8 shrink-0 gap-1"
-                title={chartTypeDef.label}
+                tooltip={`Chart type: ${chartTypeDef.label}`}
+                aria-label={`Chart type: ${chartTypeDef.label}`}
               >
-                <span className="h-4 w-4">{chartTypeIcon(chartTypeDef.iconKey)}</span>
+                <span className="size-[18px]">{chartTypeIcon(chartTypeDef.iconKey)}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent container={menuHost} align="start" className="w-60">
@@ -1054,7 +1055,7 @@ export function ChartPane({
             title="Undo drawing (Ctrl + Z)"
             aria-label="Undo drawing"
           >
-            <UndoIcon className="h-[17px] w-[17px]" />
+            <UndoIcon className="size-5" />
           </Button>
           <Button
             variant="ghost"
@@ -1065,7 +1066,7 @@ export function ChartPane({
             title="Redo drawing (Ctrl + Shift + Z)"
             aria-label="Redo drawing"
           >
-            <UndoIcon className="h-[17px] w-[17px]" flip />
+            <UndoIcon className="size-5" flip />
           </Button>
 
           {/* Right side: connection LED + actions */}
@@ -1094,7 +1095,7 @@ export function ChartPane({
               title={fullscreen ? 'Exit full screen (Esc)' : 'Full screen chart'}
               aria-label="Toggle full screen chart"
             >
-              <FullscreenIcon className="h-[17px] w-[17px]" />
+              <FullscreenIcon className="size-5" />
             </Button>
             {/* Positioned, so the menu below anchors to the camera and not to
               whatever ancestor happens to be relative. */}
@@ -1116,7 +1117,7 @@ export function ChartPane({
                 title="Chart snapshot"
                 aria-label="Chart snapshot"
               >
-                <CameraIcon className="h-[17px] w-[17px]" />
+                <CameraIcon className="size-5" />
               </Button>
               {snapOpen && (
                 <>

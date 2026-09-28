@@ -11,7 +11,14 @@
 import { Activity, Bell, Bot, FileCode2, FlaskConical, List, Shapes, Table2 } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { RAIL_BTN, RAIL_BTN_ON, RAIL_ICON_STROKE, RailTip } from './railStyles'
+import {
+  RAIL_BTN,
+  RAIL_BTN_ON,
+  RAIL_ICON,
+  RAIL_ICON_STROKE,
+  RAIL_WIDTH,
+  RailTip,
+} from './railStyles'
 
 const PANELS = [
   // Nothing here is a metaphor: the watchlist is a list of instruments, the
@@ -87,7 +94,12 @@ export function RightRail({ active, onSelect }: Props) {
   }, [active])
 
   return (
-    <div className="flex w-10 shrink-0 flex-col items-center gap-0.5 no-scrollbar overflow-y-auto border-l bg-background/40 py-1">
+    <div
+      className={cn(
+        RAIL_WIDTH,
+        'flex shrink-0 flex-col items-center gap-1 no-scrollbar overflow-y-auto border-l bg-background/40 py-1.5'
+      )}
+    >
       {PANELS.map(({ id, label, icon: Icon }) => {
         const isOpen = active === id
         return (
@@ -108,7 +120,7 @@ export function RightRail({ active, onSelect }: Props) {
               // that is not in the document is worse than omitting it.
               aria-controls={isOpen ? `oa-panel-${id}` : undefined}
             >
-              <Icon className="h-[18px] w-[18px]" strokeWidth={RAIL_ICON_STROKE} />
+              <Icon className={RAIL_ICON} strokeWidth={RAIL_ICON_STROKE} />
             </button>
             {/* Opens left: this rail is against the viewport edge, so a tip
                 opening right would be clipped. */}

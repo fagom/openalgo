@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DrawSelection } from '@/lib/trading/terminal'
 import { cn } from '@/lib/utils'
+import { RailTip } from './railStyles'
 
 interface Props {
   sel: DrawSelection | null
@@ -24,8 +25,14 @@ interface Props {
 }
 
 const SWATCHES = [
-  '#4f8cff', '#26a69a', '#ef5350', '#f5a623', '#ab47bc',
-  '#26c6da', '#9aa0b4', '#ffffff',
+  '#4f8cff',
+  '#26a69a',
+  '#ef5350',
+  '#f5a623',
+  '#ab47bc',
+  '#26c6da',
+  '#9aa0b4',
+  '#ffffff',
 ]
 const WIDTHS = [1, 1.5, 2, 3, 4]
 const DASHES: { value: 'solid' | 'dashed' | 'dotted'; label: string }[] = [
@@ -52,7 +59,7 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
   if (!sel) return null
 
   const btn =
-    'flex h-7 items-center justify-center gap-1 rounded px-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
+    'flex h-8 min-w-8 items-center justify-center gap-1 rounded-md px-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
   return (
     <div
@@ -63,15 +70,15 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
       <div className="relative">
         <button
           type="button"
-          title="Colour"
           aria-label="Colour"
           onClick={() => setOpen(open === 'color' ? null : 'color')}
           className={btn}
         >
           <span
-            className="h-4 w-4 rounded-sm border border-border"
+            className="size-[18px] rounded-sm border border-border"
             style={{ background: sel.color }}
           />
+          <RailTip text="Colour" side="bottom" />
         </button>
         {open === 'color' && (
           <div className="absolute left-0 top-9 grid w-40 grid-cols-4 gap-1 rounded-md border bg-popover p-2 shadow-lg">
@@ -99,12 +106,12 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
       <div className="relative">
         <button
           type="button"
-          title="Thickness"
           aria-label="Thickness"
           onClick={() => setOpen(open === 'width' ? null : 'width')}
           className={btn}
         >
           <span className="text-xs font-medium">{sel.lineWidth}px</span>
+          <RailTip text="Thickness" side="bottom" />
         </button>
         {open === 'width' && (
           <div className="absolute left-0 top-9 w-24 rounded-md border bg-popover p-1 shadow-lg">
@@ -133,7 +140,6 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
       <div className="relative">
         <button
           type="button"
-          title="Line style"
           aria-label="Line style"
           onClick={() => setOpen(open === 'dash' ? null : 'dash')}
           className={btn}
@@ -141,6 +147,7 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
           <span className="text-xs">
             {DASHES.find((d) => d.value === sel.lineStyle)?.label ?? '──'}
           </span>
+          <RailTip text="Line style" side="bottom" />
         </button>
         {open === 'dash' && (
           <div className="absolute left-0 top-9 w-24 rounded-md border bg-popover p-1 shadow-lg">
@@ -167,8 +174,17 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
       {sel.hasText && (
         <>
           <div className="mx-0.5 h-5 w-px bg-border" />
-          <button type="button" title="Edit text" aria-label="Edit text" onClick={onEditText} className={btn}>
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" aria-hidden="true">
+          <button type="button" aria-label="Edit text" onClick={onEditText} className={btn}>
+            <RailTip text="Edit text" side="bottom" />
+            <svg
+              viewBox="0 0 24 24"
+              className="size-[18px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.7}
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
               <path d="M5 5.5h14M12 5.5V19" />
             </svg>
           </button>
@@ -179,12 +195,20 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
 
       <button
         type="button"
-        title={sel.locked ? 'Unlock' : 'Lock'}
         aria-label={sel.locked ? 'Unlock drawing' : 'Lock drawing'}
         onClick={() => onStyle({ locked: !sel.locked })}
         className={cn(btn, sel.locked && 'text-primary')}
       >
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          className="size-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <rect x="4.5" y="10.5" width="15" height="9.5" rx="2" />
           {sel.locked ? (
             <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
@@ -192,10 +216,21 @@ export function DrawingStyleBar({ sel, onStyle, onDelete, onEditText }: Props) {
             <path d="M8 10.5V7a4 4 0 0 1 7.6-1.7" />
           )}
         </svg>
+        <RailTip text={sel.locked ? 'Unlock drawing' : 'Lock drawing'} side="bottom" />
       </button>
 
-      <button type="button" title="Delete" aria-label="Delete drawing" onClick={onDelete} className={btn}>
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <button type="button" aria-label="Delete drawing" onClick={onDelete} className={btn}>
+        <RailTip text="Delete drawing" side="bottom" />
+        <svg
+          viewBox="0 0 24 24"
+          className="size-[18px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <path d="M3.5 6.5h17M9.5 6.5v-3h5v3M6 6.5l1 14h10l1-14" />
         </svg>
       </button>
