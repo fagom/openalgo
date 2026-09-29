@@ -256,6 +256,8 @@ export default function ProfilePage() {
   const { mode, appMode, setMode } = useThemeStore()
   const tickerVisible = useTickerStore((s) => s.visible)
   const setTickerVisible = useTickerStore((s) => s.setVisible)
+  const indexTickerVisible = useTickerStore((s) => s.indexVisible)
+  const setIndexTickerVisible = useTickerStore((s) => s.setIndexVisible)
   const alertStore = useAlertStore()
   const [activeTab, setActiveTab] = useState('account')
   const [isLoading, setIsLoading] = useState(true)
@@ -2026,6 +2028,27 @@ export default function ProfilePage() {
                   checked={tickerVisible}
                   onCheckedChange={setTickerVisible}
                   aria-label="Show the market ticker"
+                />
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Index Ticker */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Index Ticker</CardTitle>
+                  <CardDescription>
+                    Scrolling strip under the navbar with NIFTY 50, SENSEX, BANK NIFTY, INDIA VIX
+                    and the other headline indices. Hover it, or press and hold on a phone, to
+                    pause.
+                  </CardDescription>
+                </div>
+                <Switch
+                  checked={indexTickerVisible}
+                  onCheckedChange={setIndexTickerVisible}
+                  aria-label="Show the index ticker"
                 />
               </div>
             </CardHeader>

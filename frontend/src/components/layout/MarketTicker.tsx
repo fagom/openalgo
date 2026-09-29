@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { TICKER_SYMBOLS, type TickerSymbol } from '@/config/tickerSymbols'
+import { INDEX_TICKER_SYMBOLS, TICKER_SYMBOLS, type TickerSymbol } from '@/config/tickerSymbols'
 import { useLivePrice } from '@/hooks/useLivePrice'
 import { useMarketStatus } from '@/hooks/useMarketStatus'
 import { cn } from '@/lib/utils'
@@ -210,12 +210,28 @@ function TickerScroller({ quotes }: { quotes: TickerQuote[] }) {
   )
 }
 
-function MarketTickerStrip({ className }: { className?: string }) {
-  const setVisible = useTickerStore((s) => s.setVisible)
+interface TickerStripProps {
+  /** Must be a module-level constant: a new array would re-subscribe every render. */
+  symbols: readonly TickerSymbol[]
+  label: string
+  hideTooltip: string
+  tooltipSide: 'top' | 'bottom'
+  onHide: () => void
+  className?: string
+}
+
+function TickerStrip({
+  symbols,
+  label,
+  hideTooltip,
+  tooltipSide,
+  onHide,
+  className,
+}: TickerStripProps) {
   // Stable identity: useLivePrice re-subscribes whenever the array changes.
   const items = useMemo<Array<TickerSymbol & { ltp?: number }>>(
-    () => TICKER_SYMBOLS.map((s) => ({ ...s })),
-    []
+    () => symbols.map((s) => ({ ...s })),
+    [symbols]
   )
   const { data, multiQuotes, isConnected, isPaused } = useLivePrice(items, {
     // The ticker is ambient: a minute-old close is fine between WS ticks, and
@@ -223,7 +239,7 @@ function MarketTickerStrip({ className }: { className?: string }) {
     multiQuotesRefreshInterval: 60_000,
   })
 
-  // Every symbol here trades on NSE hours. useLivePrice's own flag counts any
+  // Every symbol on either strip keeps NSE hours (BSE indices share them). useLivePrice's own flag counts any
   // exchange, and 24/7 crypto kept it reading Live through a Sunday.
   const { isMarketOpen } = useMarketStatus()
   const isLive = isConnected && !isPaused && isMarketOpen('NSE')
@@ -232,12 +248,12 @@ function MarketTickerStrip({ className }: { className?: string }) {
   const quotes = useMemo(() => {
     const prev = new Map<string, number | undefined>()
     for (const [key, q] of multiQuotes) prev.set(key, q.prev_close)
-    return toTickerQuotes(TICKER_SYMBOLS, shownData, prev)
-  }, [shownData, multiQuotes])
+    return toTickerQuotes(symbols, shownData, prev)
+  }, [symbols, shownData, multiQuotes])
 
   return (
     <section
-      aria-label="Market ticker"
+      aria-label={label}
       className={cn(
         'flex h-8 shrink-0 items-center border-t bg-background/95 text-xs backdrop-blur supports-[backdrop-filter]:bg-background/85',
         className
@@ -265,9 +281,9 @@ function MarketTickerStrip({ className }: { className?: string }) {
         variant="ghost"
         size="icon-sm"
         className="mx-1 size-7"
-        tooltip="Hide ticker. Turn it back on under Profile, Theme."
-        tooltipSide="top"
-        onClick={() => setVisible(false)}
+        tooltip={hideTooltip}
+        tooltipSide={tooltipSide}
+        onClick={onHide}
       >
         <X className="size-4" />
       </Button>
@@ -282,6 +298,37 @@ function MarketTickerStrip({ className }: { className?: string }) {
  */
 export function MarketTicker({ className }: { className?: string }) {
   const visible = useTickerStore((s) => s.visible)
+  const setVisible = useTickerStore((s) => s.setVisible)
   if (!visible) return null
-  return <MarketTickerStrip className={className} />
+  return (
+    <TickerStrip
+      symbols={TICKER_SYMBOLS}
+      label="Market ticker"
+      hideTooltip="Hide ticker. Turn it back on under Profile, Theme."
+      tooltipSide="top"
+      onHide={() => setVisible(false)}
+      className={className}
+    />
+  )
+}
+
+/**
+ * The headline indices and India VIX, as a second row inside the navbar (see
+ * Navbar), so it sticks with it on every page that has one, phone included.
+ * Switched off separately from the stock ticker, and subscribes to nothing while off.
+ */
+export function IndexTicker({ className }: { className?: string }) {
+  const visible = useTickerStore((s) => s.indexVisible)
+  const setVisible = useTickerStore((s) => s.setIndexVisible)
+  if (!visible) return null
+  return (
+    <TickerStrip
+      symbols={INDEX_TICKER_SYMBOLS}
+      label="Index ticker"
+      hideTooltip="Hide index ticker. Turn it back on under Profile, Theme."
+      tooltipSide="bottom"
+      onHide={() => setVisible(false)}
+      className={className}
+    />
+  )
 }

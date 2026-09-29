@@ -1,7 +1,7 @@
 /**
  * What the bottom market ticker scrolls: the NIFTY 500, the 500 largest
- * NSE-listed companies (about 95% of market value). Indices are left to the
- * /trading watchlist, where a trader picks the ones they follow.
+ * NSE-listed companies (about 95% of market value). The headline indices have
+ * their own strip under the navbar: INDEX_TICKER_SYMBOLS at the end of this file.
  *
  * Every entry is a live subscription on the one broker feed that charts, the
  * option chain and the scalping terminal also draw from. Brokers cap that feed
@@ -530,3 +530,20 @@ export const TICKER_SYMBOLS: readonly TickerSymbol[] = NIFTY_500.map((symbol) =>
   symbol,
   exchange: 'NSE',
 }))
+
+/**
+ * What the index ticker under the navbar scrolls: the headline NSE and BSE
+ * indices, with India VIX beside the two benchmarks it measures. Symbols follow
+ * the OpenAlgo index format (docs/userguide/symbol-format); a plugin that does
+ * not carry one (not every broker lists BANKEX) simply leaves it off the strip.
+ */
+export const INDEX_TICKER_SYMBOLS: readonly TickerSymbol[] = [
+  { symbol: 'NIFTY', exchange: 'NSE_INDEX', label: 'NIFTY 50' },
+  { symbol: 'SENSEX', exchange: 'BSE_INDEX', label: 'SENSEX' },
+  { symbol: 'BANKNIFTY', exchange: 'NSE_INDEX', label: 'BANK NIFTY' },
+  { symbol: 'INDIAVIX', exchange: 'NSE_INDEX', label: 'INDIA VIX' },
+  { symbol: 'FINNIFTY', exchange: 'NSE_INDEX', label: 'FIN NIFTY' },
+  { symbol: 'MIDCPNIFTY', exchange: 'NSE_INDEX', label: 'MIDCAP SELECT' },
+  { symbol: 'NIFTYNXT50', exchange: 'NSE_INDEX', label: 'NIFTY NEXT 50' },
+  { symbol: 'BANKEX', exchange: 'BSE_INDEX', label: 'BANKEX' },
+]

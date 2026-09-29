@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
+import { IndexTicker } from './MarketTicker'
 
 interface NavbarProps {
   /**
@@ -377,6 +378,10 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* A second row inside the sticky nav, so the indices stay in view while
+          the page scrolls, on desktop and phone alike. */}
+      <IndexTicker />
 
       <LogoutConfirmDialog
         open={showLogoutDialog}

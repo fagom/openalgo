@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTickerStore } from '@/stores/tickerStore'
 import { render, screen, userEvent } from '@/test/test-utils'
-import { MarketTicker, toTickerQuotes } from './MarketTicker'
+import { IndexTicker, MarketTicker, toTickerQuotes } from './MarketTicker'
 
 const useLivePrice = vi.fn()
 vi.mock('@/hooks/useLivePrice', () => ({
@@ -36,7 +36,7 @@ describe('toTickerQuotes', () => {
 
 describe('MarketTicker', () => {
   beforeEach(() => {
-    useTickerStore.setState({ visible: true })
+    useTickerStore.setState({ visible: true, indexVisible: true })
     useLivePrice.mockReset()
     useLivePrice.mockImplementation((items: Array<{ symbol: string }>) => ({
       data: items.map((i) => ({ ...i, ltp: i.symbol === 'RELIANCE' ? 2940.5 : undefined })),
@@ -84,5 +84,48 @@ describe('MarketTicker', () => {
     const calls = useLivePrice.mock.calls.length
     render(<MarketTicker />)
     expect(useLivePrice.mock.calls.length).toBe(calls)
+  })
+})
+
+describe('IndexTicker', () => {
+  beforeEach(() => {
+    useTickerStore.setState({ visible: true, indexVisible: true })
+    useLivePrice.mockReset()
+    useLivePrice.mockImplementation((items: Array<{ symbol: string }>) => ({
+      data: items.map((i) => ({
+        ...i,
+        ltp: i.symbol === 'INDIAVIX' ? 13.25 : i.symbol === 'NIFTY' ? 25100 : undefined,
+      })),
+      multiQuotes: new Map([['NSE_INDEX:INDIAVIX', { prev_close: 14 }]]),
+      isConnected: true,
+      isPaused: false,
+    }))
+  })
+
+  it('subscribes to the headline indices, India VIX included, and nothing else', () => {
+    render(<IndexTicker />)
+    const items = useLivePrice.mock.calls[0][0] as Array<{ symbol: string; exchange: string }>
+    expect(items.map((i) => `${i.exchange}:${i.symbol}`)).toEqual(
+      expect.arrayContaining(['NSE_INDEX:NIFTY', 'BSE_INDEX:SENSEX', 'NSE_INDEX:INDIAVIX'])
+    )
+    expect(items.every((i) => i.exchange.endsWith('_INDEX'))).toBe(true)
+  })
+
+  it('shows indices by the name a trader uses, with the change from the close', () => {
+    render(<IndexTicker />)
+    expect(screen.getByRole('region', { name: 'Index ticker' })).toBeInTheDocument()
+    expect(screen.getAllByText('INDIA VIX').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('NIFTY 50').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/-0\.75 \(-5\.36%\)/).length).toBeGreaterThan(0)
+  })
+
+  it('hides on its own, leaving the stock ticker on', async () => {
+    const user = userEvent.setup()
+    render(<IndexTicker />)
+    await user.click(screen.getByRole('button', { name: /Hide index ticker/ }))
+
+    expect(useTickerStore.getState().indexVisible).toBe(false)
+    expect(useTickerStore.getState().visible).toBe(true)
+    expect(screen.queryByRole('region', { name: 'Index ticker' })).not.toBeInTheDocument()
   })
 })

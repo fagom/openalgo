@@ -4,6 +4,9 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { Navbar } from './Navbar'
 
+// The index strip streams live prices; its own tests cover it (MarketTicker.test).
+vi.mock('./MarketTicker', () => ({ IndexTicker: () => null }))
+
 vi.mock('@/hooks/useProfileMenuItems', () => ({
   useProfileMenuItems: () => [
     {
