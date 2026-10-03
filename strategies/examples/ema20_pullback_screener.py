@@ -35,14 +35,26 @@ stocks at MIN_LEVERAGE or above are scanned, and the list is capped at
 MAX_UNIVERSE; the script refuses to run if the list grows past it, rather
 than silently dropping names. ETFs are left out: this is a stock setup.
 
-Schedule it in /python after the close, for example 15:45 Mon-Fri with no
-stop time. If it runs during market hours, today's unfinished candle is
-ignored so the scan only ever looks at completed sessions.
+Running it: the /python page only starts and stops a script, so the timing
+lives here. Once started, the script stays running and scans at each of
+RUN_TIMES (09:00 and 15:45 IST) on every NSE trading day, asking the platform's
+exchange calendar whether today is one, so holidays are skipped and special
+sessions are not. 15:45 scans today's close; 09:00 sends that same list again
+before the open. Every scan uses completed daily candles only, so a run before
+the close reports the previous session.
+
+Give it a /python schedule of about 08:55 to 16:00, Mon-Fri. A run time
+missed by up to RUN_GRACE_MIN minutes (the script started late) still fires.
+Each run time is recorded in RUN_LOG once it fires, so a restart never sends
+the same message twice.
 """
 
+import json
 import os
 import time
+from collections import Counter
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import numpy as np
@@ -54,8 +66,14 @@ from openalgo import api, ta
 
 TELEGRAM_USERNAME = "your_openalgo_login"  # OpenAlgo login name, not the Telegram handle
 
+RUN_TIMES = ("09:00", "15:45")  # IST, on NSE trading days
+RUN_GRACE_MIN = 30  # a run time missed by up to this many minutes still fires
+POLL_SEC = 20  # how often the idle loop checks the clock
+RUN_LOG = Path(__file__).with_name(f"{Path(__file__).stem}.runs.json")
+
 # Symbol -> MTF leverage (1 / margin %), from the broker's MTF approved list.
-# The 50 highest-leverage stocks on that list (all 4.55x, 22% margin); ETFs excluded.
+# The 100 highest-leverage stocks on that list, 4.27x and above (roughly the
+# NIFTY 100); ETFs excluded. The next names down are PFC, RECLTD and DLF at 4.26x.
 # To swap a name, replace a line here with another stock at 3x or above.
 MTF_UNIVERSE = {
     "ALKEM": 4.55,
@@ -108,9 +126,59 @@ MTF_UNIVERSE = {
     "TATAPOWER": 4.55,
     "LICI": 4.55,
     "DMART": 4.55,
+    "EICHERMOT": 4.44,
+    "HCLTECH": 4.44,
+    "HEROMOTOCO": 4.44,
+    "IOC": 4.44,
+    "LT": 4.44,
+    "SBICARD": 4.44,
+    "TCS": 4.44,
+    "TVSMOTOR": 4.44,
+    "AUROPHARMA": 4.35,
+    "BAJFINANCE": 4.35,
+    "BEL": 4.35,
+    "BOSCHLTD": 4.35,
+    "BPCL": 4.35,
+    "CONCOR": 4.35,
+    "CROMPTON": 4.35,
+    "CUMMINSIND": 4.35,
+    "GAIL": 4.35,
+    "GLENMARK": 4.35,
+    "ICICIPRULI": 4.35,
+    "INFY": 4.35,
+    "M&M": 4.35,
+    "MPHASIS": 4.35,
+    "PETRONET": 4.35,
+    "PIIND": 4.35,
+    "SRF": 4.35,
+    "TECHM": 4.35,
+    "ASTRAL": 4.35,
+    "INDHOTEL": 4.35,
+    "OBEROIRLTY": 4.35,
+    "TATASTEEL": 4.35,
+    "IDFCFIRSTB": 4.35,
+    "TMPV": 4.35,
+    "NMDC": 4.35,
+    "BANKBARODA": 4.35,
+    "PNB": 4.35,
+    "CANBK": 4.35,
+    "HINDALCO": 4.35,
+    "NHPC": 4.35,
+    "FORTIS": 4.35,
+    "VBL": 4.35,
+    "APLAPOLLO": 4.35,
+    "JINDALSTEL": 4.35,
+    "JIOFIN": 4.35,
+    "MANKIND": 4.35,
+    "MFSL": 4.35,
+    "NYKAA": 4.35,
+    "ABB": 4.33,
+    "JUBLFOOD": 4.28,
+    "NAUKRI": 4.27,
+    "LTM": 4.27,
 }
 MIN_LEVERAGE = 3.0
-MAX_UNIVERSE = 50
+MAX_UNIVERSE = 100
 EXCHANGE = "NSE"
 BENCHMARK = ("NIFTY", "NSE_INDEX")
 HISTORY_SOURCE = "api"  # "db" reads from Historify: much faster, no broker rate limits
@@ -161,8 +229,13 @@ def pct_return(close, bars):
 
 def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
     """Return a trade plan dict if the last completed bar is a setup, else None."""
+    return screen(symbol, df, bench_ret_3m, leverage)[0]
+
+
+def screen(symbol, df, bench_ret_3m=None, leverage=1.0):
+    """Return (plan, None) for a setup, or (None, reason) naming the first check it failed."""
     if df is None or len(df) < MIN_BARS:
-        return None
+        return None, "not enough history"
 
     o = df["open"].to_numpy(dtype=float)
     h = df["high"].to_numpy(dtype=float)
@@ -173,7 +246,7 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
     close = c[-1]
     turnover = float(np.mean(c[-20:] * v[-20:]))
     if close < MIN_PRICE or turnover < MIN_TURNOVER:
-        return None
+        return None, "illiquid"
 
     e20 = np.asarray(ta.ema(c, 20), dtype=float)
     e50 = np.asarray(ta.ema(c, 50), dtype=float)
@@ -183,39 +256,41 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
     adx = np.asarray(ta.adx(h, lo, c, 14)[2], dtype=float)
     atr_now, rsi_now, adx_now = atr[-1], rsi[-1], adx[-1]
     if not np.isfinite([atr_now, rsi_now, adx_now, e200[-1]]).all() or atr_now <= 0:
-        return None
+        return None, "not enough history"
 
     # Trend
     if not (close > e50[-1] > e200[-1] and e20[-1] > e50[-1]):
-        return None
+        return None, "not in an uptrend"
     if e50[-1] <= e50[-11] or e20[-1] <= e20[-6]:
-        return None
+        return None, "uptrend flattening"
     if adx_now < MIN_ADX:
-        return None
+        return None, "trend too weak (ADX)"
 
     # Prior up-leg: the 60-day high is recent, but not today
     bars_since_high = 59 - int(np.argmax(h[-60:]))
-    if not 2 <= bars_since_high <= 20:
-        return None
+    if bars_since_high < 2:
+        return None, "at a new high, not a pullback"
+    if bars_since_high > 20:
+        return None, "no recent up-move"
 
     # Pullback to EMA20 that held
     if not np.any(lo[-3:] <= e20[-3:] + TOUCH_ATR * atr[-3:]):
-        return None
+        return None, "not pulled back to 20 EMA"
     if close < e20[-1] or np.any(c[-3:] < e50[-3:]):
-        return None
+        return None, "pullback did not hold"
     dist_atr = (close - e20[-1]) / atr_now
     if dist_atr > MAX_DIST_ATR:
-        return None
+        return None, "too far above 20 EMA"
     if not RSI_MIN <= rsi_now <= RSI_MAX:
-        return None
+        return None, "RSI out of range"
 
     # Trigger candle
     rng = h[-1] - lo[-1]
     if rng <= 0:
-        return None
+        return None, "no bullish candle"
     close_pos = (close - lo[-1]) / rng
     if not (close > o[-1] and close_pos >= 0.5):
-        return None
+        return None, "no bullish candle"
 
     # Relative strength vs benchmark
     rs = None
@@ -223,7 +298,7 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
     if bench_ret_3m is not None and stock_ret is not None:
         rs = stock_ret - bench_ret_3m
         if REQUIRE_RS and rs < 0:
-            return None
+            return None, "lagging NIFTY"
 
     # Trade plan
     entry = round_up(h[-1] * (1 + ENTRY_BUFFER_PCT / 100))
@@ -231,13 +306,13 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
     sl = round_down(min(pullback_low - 0.2 * atr_now, entry - atr_now))
     risk = entry - sl
     if risk <= 0:
-        return None
+        return None, "stop too wide"
     risk_pct = risk / entry * 100
     if risk_pct > MAX_RISK_PCT:
-        return None
+        return None, "stop too wide"
     qty = int(min(RISK_PER_TRADE // risk, MAX_MARGIN_PER_TRADE * leverage // entry))
     if qty < 1:
-        return None
+        return None, "position too small"
 
     vol_dryup = float(v[-4:-1].mean() / v[-21:-1].mean()) if v[-21:-1].mean() > 0 else 1.0
 
@@ -250,7 +325,7 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
         + (float(np.clip((rs + 0.05) / 0.30, 0, 1)) * 20 if rs is not None else 10)
     )
 
-    return {
+    plan = {
         "symbol": symbol,
         "asof": df.index[-1],
         "close": round(float(close), 2),
@@ -271,6 +346,7 @@ def evaluate(symbol, df, bench_ret_3m=None, leverage=1.0):
         "rs": None if rs is None else round(float(rs) * 100, 1),
         "score": round(score),
     }
+    return plan, None
 
 
 # ---------------------------------------------------------------------------
@@ -329,12 +405,19 @@ def fmt_rs(x):
     return f"{x:,.2f}".rstrip("0").rstrip(".")
 
 
-def build_messages(picks, scanned, failed, asof, market_note):
+def format_breakdown(rejected):
+    """'not in an uptrend 41, no bullish candle 5' -- most common first."""
+    return ", ".join(f"{why} {n}" for why, n in rejected.most_common())
+
+
+def build_messages(picks, scanned, failed, asof, market_note, rejected=None):
     header = [
-        f"*EMA20 Pullback Screener*  {asof:%d %b %Y}",
+        f"*EMA20 Pullback Screener*  setups from the {asof:%d %b %Y} close",
         f"Scanned {scanned}, setups {len(picks)}" + (f", no data {failed}" if failed else ""),
         market_note,
     ]
+    if rejected:
+        header.append(f"Skipped: {md_escape(format_breakdown(rejected))}")
 
     blocks = []
     if not picks:
@@ -364,20 +447,9 @@ def build_messages(picks, scanned, failed, asof, market_note):
     return messages
 
 
-def main():
-    api_key = os.getenv("OPENALGO_API_KEY")
-    if not api_key:
-        print("OPENALGO_API_KEY is not set. Run this script from the /python page.")
-        return 1
-    client = api(api_key=api_key, host=os.getenv("HOST_SERVER", "http://127.0.0.1:5000"))
-
-    now = datetime.now(IST).replace(tzinfo=None)
+def scan(client, universe, now):
+    """One full scan, sent to Telegram. Returns True if Telegram accepted every part."""
     start, end = (now - timedelta(days=LOOKBACK_DAYS)).date(), now.date()
-    try:
-        universe = load_universe()
-    except ValueError as e:
-        print(e)
-        return 1
     print(f"[{now:%H:%M:%S}] scanning {len(universe)} MTF stocks at {MIN_LEVERAGE}x or above")
 
     bench_ret, market_note = None, "Market filter unavailable."
@@ -395,7 +467,7 @@ def main():
     else:
         print(f"benchmark unavailable: {err}")
 
-    results, failed = [], 0
+    results, failed, rejected = [], 0, Counter()
     for i, (sym, leverage) in enumerate(universe.items(), 1):
         df, err = fetch_history(client, sym, EXCHANGE, start, end)
         if df is None:
@@ -403,10 +475,13 @@ def main():
             print(f"{sym}: skipped ({err})")
         else:
             try:
-                plan = evaluate(sym, completed_bars(df, now), bench_ret, leverage)
+                plan, why = screen(sym, completed_bars(df, now), bench_ret, leverage)
             except Exception as e:
-                plan = None
+                plan, why = None, "analysis failed"
                 print(f"{sym}: analysis failed ({e})")
+            if why:
+                rejected[why] += 1
+                print(f"{sym}: {why}")
             if plan:
                 results.append(plan)
                 print(f"{sym}: SETUP score {plan['score']} entry {plan['entry']} sl {plan['sl']}")
@@ -418,14 +493,129 @@ def main():
     asof = max((r["asof"] for r in results), default=None)
     if asof is None and bdf is not None and len(bdf):
         asof = bdf.index[-1]
+    stale = [r for r in results if r["asof"] != asof]
+    if stale:
+        rejected["stale data"] += len(stale)
     results = [r for r in results if r["asof"] == asof]
     picks = sorted(results, key=lambda r: r["score"], reverse=True)[:TOP_N]
 
-    for msg in build_messages(picks, len(universe), failed, asof or now, market_note):
+    delivered = True
+    for msg in build_messages(picks, len(universe), failed, asof or now, market_note, rejected):
         resp = client.telegram(username=TELEGRAM_USERNAME, message=msg, priority=5)
         print(f"telegram: {resp}")
-    print(f"done: {len(picks)} setups sent")
-    return 0
+        delivered &= isinstance(resp, dict) and resp.get("status") == "success"
+    if rejected:
+        print(f"skipped: {format_breakdown(rejected)}")
+    print(
+        f"done: {len(picks)} setups, "
+        + (
+            "sent to Telegram"
+            if delivered
+            else "but Telegram did not accept the message (see above)"
+        )
+    )
+    return delivered
+
+
+def load_run_log():
+    try:
+        return set(json.loads(RUN_LOG.read_text()))
+    except (OSError, ValueError):
+        return set()
+
+
+def save_run_log(done):
+    # Keys start with the date, so sorting keeps the most recent; a few weeks is plenty.
+    try:
+        RUN_LOG.write_text(json.dumps(sorted(done)[-60:]))
+    except OSError as e:
+        print(f"could not record the run ({e}); a restart today may repeat it")
+
+
+def due_run(now, done):
+    """The run time that is due now and has not fired today, as 'YYYY-MM-DD HH:MM', else None."""
+    for t in RUN_TIMES:
+        hour, minute = map(int, t.split(":"))
+        slot = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        key = f"{now:%Y-%m-%d} {t}"
+        if key not in done and slot <= now < slot + timedelta(minutes=RUN_GRACE_MIN):
+            return key
+    return None
+
+
+def next_run(now):
+    """When the next run time falls, for the log. Holidays are only known on the day."""
+    for days in range(8):
+        day = now + timedelta(days=days)
+        for t in sorted(RUN_TIMES):
+            hour, minute = map(int, t.split(":"))
+            slot = day.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if slot > now and slot.weekday() < 5:
+                return slot
+    return None
+
+
+def is_trading_day(client, day):
+    """Ask the platform's exchange calendar; fall back to Mon-Fri if it cannot answer."""
+    try:
+        resp = client.timings(date=str(day))
+        if isinstance(resp, dict) and resp.get("status") == "success":
+            return any(row.get("exchange") == EXCHANGE for row in resp.get("data") or [])
+        print(f"market calendar unavailable ({resp}); assuming Mon-Fri")
+    except Exception as e:
+        print(f"market calendar unavailable ({e}); assuming Mon-Fri")
+    return day.weekday() < 5
+
+
+def main():
+    api_key = os.getenv("OPENALGO_API_KEY")
+    if not api_key:
+        print("OPENALGO_API_KEY is not set. Run this script from the /python page.")
+        return 1
+    client = api(api_key=api_key, host=os.getenv("HOST_SERVER", "http://127.0.0.1:5000"))
+    try:
+        universe = load_universe()
+    except ValueError as e:
+        print(e)
+        return 1
+
+    done = load_run_log()
+    now = datetime.now(IST).replace(tzinfo=None)
+    print(f"[{now:%H:%M:%S}] screener running; scans at {', '.join(RUN_TIMES)} IST on trading days")
+    waiting_for = None
+
+    while True:
+        now = datetime.now(IST).replace(tzinfo=None)
+        key = due_run(now, done)
+        if key:
+            if not is_trading_day(client, now.date()):
+                print(f"[{now:%H:%M:%S}] NSE is closed today; skipping the {key[-5:]} scan")
+            else:
+                try:
+                    scan(client, universe, now)
+                except Exception as e:
+                    print(f"[{now:%H:%M:%S}] scan failed: {e}")
+                    try:
+                        client.telegram(
+                            username=TELEGRAM_USERNAME,
+                            message=(
+                                f"EMA20 Pullback Screener: the {key[-5:]} scan did not finish. "
+                                "Open the strategy's log on the /python page to see why. "
+                                "The next scheduled scan will run as normal."
+                            ),
+                            priority=7,
+                        )
+                    except Exception as e2:
+                        print(f"could not send the failure notice either: {e2}")
+            # Recorded even when it failed: a retry could send a half-finished list twice.
+            done.add(key)
+            save_run_log(done)
+
+        upcoming = next_run(now)
+        if upcoming and upcoming != waiting_for:
+            waiting_for = upcoming
+            print(f"[{now:%H:%M:%S}] next scan {upcoming:%a %d %b %H:%M} IST")
+        time.sleep(POLL_SEC)
 
 
 if __name__ == "__main__":
