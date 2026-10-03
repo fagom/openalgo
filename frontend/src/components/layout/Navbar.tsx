@@ -90,13 +90,16 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
   return (
     <nav
       className={cn(
-        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
         // Analyzer mode carries a violet rule along the top so it can never be
         // mistaken for live, even on a page with little chrome.
         appMode === 'analyzer' && 'border-t-2 border-t-primary'
       )}
     >
-      <div className={cn('px-4 flex h-16 items-center', fluid ? 'w-full' : 'container mx-auto')}>
+      <div
+        data-testid="navbar-row"
+        className={cn('px-4 flex h-14 items-center', fluid ? 'w-full' : 'container mx-auto')}
+      >
         {/* Mobile Menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild className="md:hidden">
@@ -219,18 +222,32 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         {/* Desktop Navigation.
             Icon-only between md and xl so all 9 items fit portrait monitors
             and small laptops (768-1280px wide) without squashing or pushing
-            the profile menu off-screen; full labels from xl up (issue #1384). */}
-        <nav className="hidden md:flex h-16 items-center gap-0.5">
+            the profile menu off-screen; full labels from xl up (issue #1384).
+
+            From xl the labels appear but the bar does not grow to match: inside
+            Layout it shares the page `container`, which Tailwind caps at 1280px
+            for every viewport from 1280px to 1535px. Nine labelled items are
+            986px and the logo plus the right-hand controls take 394px, so the
+            row needed 1412px and had 1248px (issue #1507). Below 2xl the items
+            therefore use px-1.5 with tighter gaps, and the right-hand controls
+            keep their tighter gap and the short mode wording already used below
+            lg (203px instead of 255px). The padding is deliberately tighter
+            than it needs to be on the fonts we develop against: this row is
+            laid out with fixed spacing but rendered in whatever the OS resolves
+            for `system-ui`, and the widest common face (DejaVu Sans, a Linux
+            default) runs ~7% wider than macOS. px-2 left only 2px of slack
+            there; px-1.5 leaves ~38px. At 2xl and above nothing changes, and
+            e2e/navbar-fit.spec.ts asserts the row never overflows. */}
+        <nav className="hidden md:flex items-center gap-0.5 2xl:gap-1">
           {navItems.map((item) => {
             const active = isActive(item.href)
             // Dropbox-style: active item is blue text with a blue rule at the
             // bottom edge of the bar, not a filled pill.
             const className = cn(
-              'relative flex h-16 items-center gap-2 px-3 text-sm font-medium transition-colors',
-              'after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full',
+              'flex items-center gap-1.5 2xl:gap-2 rounded-md px-1.5 2xl:px-3 py-2 text-sm font-medium transition-colors',
               active
-                ? 'text-primary after:bg-primary'
-                : 'text-muted-foreground hover:text-foreground after:bg-transparent'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             )
             const content = (
               <>
@@ -272,7 +289,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         </nav>
 
         {/* Right Side */}
-        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <div className="ml-auto flex items-center gap-1 2xl:gap-2">
           {/* Broker Badge — hidden below lg to keep the bar within narrow
               (portrait/small-laptop) widths */}
           {user?.broker && (
@@ -283,10 +300,10 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
 
           {/* Mode Badge */}
           <Badge variant={appMode === 'live' ? 'success' : 'default'} className="text-xs">
-            <span className="hidden lg:inline">
+            <span className="hidden 2xl:inline">
               {appMode === 'live' ? 'Live Mode' : 'Analyze Mode'}
             </span>
-            <span className="lg:hidden">{appMode === 'live' ? 'Live' : 'Analyze'}</span>
+            <span className="2xl:hidden">{appMode === 'live' ? 'Live' : 'Analyze'}</span>
           </Badge>
 
           {/* Mode Toggle */}

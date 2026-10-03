@@ -13,9 +13,16 @@ export interface LogEntry {
   node?: string
 }
 
+/**
+ * 'started' is a run the server accepted and is finishing in the background
+ * (a workflow that waits, under the gthread web server only). Its result lands
+ * in the workflow's execution history, not in this panel.
+ */
+export type ExecutionStatus = 'idle' | 'running' | 'started' | 'success' | 'error'
+
 interface ExecutionLogPanelProps {
   logs: LogEntry[]
-  status: 'idle' | 'running' | 'success' | 'error'
+  status: ExecutionStatus
   onClose: () => void
 }
 
@@ -24,6 +31,8 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
     switch (status) {
       case 'running':
         return <Clock className="h-4 w-4 animate-pulse text-warning" />
+      case 'started':
+        return <Clock className="h-4 w-4 text-warning" />
       case 'success':
         return <CheckCircle2 className="h-4 w-4 text-profit" />
       case 'error':
@@ -37,6 +46,8 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
     switch (status) {
       case 'running':
         return 'Executing...'
+      case 'started':
+        return 'Running in background'
       case 'success':
         return 'Completed'
       case 'error':
@@ -83,7 +94,7 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
           <span
             className={cn(
               'text-xs px-2 py-0.5 rounded-full',
-              status === 'running' && 'bg-warning/10 text-warning',
+              (status === 'running' || status === 'started') && 'bg-warning/10 text-warning',
               status === 'success' && 'bg-success/10 text-success',
               status === 'error' && 'bg-destructive/10 text-destructive',
               status === 'idle' && 'bg-muted text-muted-foreground'

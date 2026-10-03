@@ -51,6 +51,12 @@ leaves it alone.
 No route, port or directive is added to the deployment's nginx configuration.
 Everything below is under ``location /``, which already proxies to the
 application, so a hosted install upgrades without a config migration.
+
+One route is not about sources. ``/instrument`` answers the facts the engine
+reads about the instrument a script runs on (tick size, lot size, volume, the
+zone and the trading session), which the page cannot know on its own and the
+platform already holds. ``services/openscript_instrument_service.py`` says where
+each one comes from.
 """
 
 import hashlib
@@ -62,10 +68,23 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+from services.openscript_instrument_service import get_instrument_facts
+from utils.keyed_locks import KeyedLocks
 from utils.logging import get_logger
 from utils.session import check_session_validity
 
 logger = get_logger(__name__)
+
+# One save or delete of a given script at a time. The replace sequence below
+# (backup, stage, remove the program, replace the source, replace the program)
+# only keeps a source and its program in step while nothing else runs it for
+# the same file: two saves interleaved could leave source B beside program A,
+# and a deployed strategy would run A while the editor showed B. Under the
+# eventlet worker local file operations never yield, so this is never
+# contended there; under gthread and on the development server it serialises
+# the sequence. Keyed by file name, so different scripts do not wait on each
+# other, and forgotten once no save of that file is in flight.
+_FILE_LOCKS = KeyedLocks(name="openscript-files")
 
 # A script name is matched with the default converter and never with ``path``.
 # ``path`` matches a slash, so ``/<path:filename>`` swallowed every route of
@@ -83,6 +102,15 @@ SCRIPTS_DIR = Path("strategies") / "openscript"
 # the route to plain sources and rejects anything with a path separator, a dot
 # segment, or an extension this route does not own.
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\.oscript$")
+
+# What ``/instrument`` accepts. An exchange is a code (NSE, NSE_INDEX, CRYPTO).
+# A symbol is held to length and printable text only, because the master
+# contract has symbols with spaces, a dollar sign and lower case in them
+# ("NIFTY Alpha 50"), and a stricter pattern would refuse a chart the trader
+# can already open. The lookup is a parameterised query, so nothing here needs
+# to be safe for anything else.
+_EXCHANGE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{0,19}$")
+_MAX_SYMBOL_LENGTH = 64
 
 # What a compiled program is called, appended to the source's own name.
 #
@@ -244,6 +272,59 @@ def index():
             }
         )
     return jsonify(scripts)
+
+
+@openscript_bp.route("/instrument", methods=["GET"])
+@check_session_validity
+def instrument():
+    """The instrument record the engine reads, for ``?symbol=&exchange=``.
+
+    Answers ``{"status": "success", "symbol", "contractFound", "instrument",
+    "today"}``: the facts in the engine's own field names, with every fact the
+    platform does not hold left out, and the calendar's window for today beside
+    them. A symbol the master contract does not have is not an error. It is
+    answered with what the exchange alone says (the zone, the session, whether
+    there is volume) and ``contractFound`` false, because a chart can be open on
+    an instrument whose contract has not been downloaded yet, and its session
+    facts are still worth stating.
+
+    Registered as a plain path, which Werkzeug matches ahead of ``/<filename>``
+    below, and ``_SAFE_NAME`` refuses the name in any case since it has no
+    ``.oscript`` ending.
+    """
+    symbol = (request.args.get("symbol") or "").strip()
+    exchange = (request.args.get("exchange") or "").strip().upper()
+
+    if not symbol or len(symbol) > _MAX_SYMBOL_LENGTH or not symbol.isprintable():
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Pick a symbol from the search to read its details.",
+            }
+        ), 400
+    if not _EXCHANGE_CODE.fullmatch(exchange):
+        return jsonify(
+            {
+                "status": "error",
+                "message": "Pick the symbol again from the search, so its exchange comes with it.",
+            }
+        ), 400
+
+    try:
+        facts = get_instrument_facts(symbol, exchange)
+    except Exception:
+        logger.exception("Could not read instrument facts for %s on %s", symbol, exchange)
+        return jsonify(
+            {
+                "status": "error",
+                "message": (
+                    f"The details of {symbol} could not be read just now. They will be "
+                    "fetched again in a moment."
+                ),
+            }
+        ), 500
+
+    return jsonify({"status": "success", **facts})
 
 
 @openscript_bp.route("/program/<filename>", methods=["GET"])
@@ -467,27 +548,28 @@ def save(filename: str):
     program_target = _program_path(directory, filename)
     staged: list[Path] = []
     try:
-        if target.exists():
-            backup = target.with_name(target.name + ".bak")
-            backup.write_bytes(target.read_bytes())
+        with _FILE_LOCKS.hold(filename):
+            if target.exists():
+                backup = target.with_name(target.name + ".bak")
+                backup.write_bytes(target.read_bytes())
 
-        source_temporary = _stage(directory, encoded)
-        staged.append(source_temporary)
-        program_temporary = None
-        if program_bytes is not None:
-            program_temporary = _stage(directory, program_bytes)
-            staged.append(program_temporary)
+            source_temporary = _stage(directory, encoded)
+            staged.append(source_temporary)
+            program_temporary = None
+            if program_bytes is not None:
+                program_temporary = _stage(directory, program_bytes)
+                staged.append(program_temporary)
 
-        # The order from the docstring, in four lines. Nothing here writes
-        # bytes: it is one unlink and two renames, so the window in which the
-        # pair could disagree is as narrow as a filesystem allows, and every
-        # state inside it is a source with no program.
-        program_target.unlink(missing_ok=True)
-        os.replace(source_temporary, target)
-        staged.remove(source_temporary)
-        if program_temporary is not None:
-            os.replace(program_temporary, program_target)
-            staged.remove(program_temporary)
+            # The order from the docstring, in four lines. Nothing here writes
+            # bytes: it is one unlink and two renames, so the window in which
+            # the pair could disagree is as narrow as a filesystem allows, and
+            # every state inside it is a source with no program.
+            program_target.unlink(missing_ok=True)
+            os.replace(source_temporary, target)
+            staged.remove(source_temporary)
+            if program_temporary is not None:
+                os.replace(program_temporary, program_target)
+                staged.remove(program_temporary)
     except OSError as error:
         logger.exception("Could not save OpenScript source %s", filename)
         return jsonify({"status": "error", "message": f"Could not save: {error}"}), 500
@@ -532,9 +614,12 @@ def remove(filename: str):
     directory = _script_dir()
     target = directory / filename
     try:
-        target.unlink(missing_ok=True)
-        target.with_name(target.name + ".bak").unlink(missing_ok=True)
-        _program_path(directory, filename).unlink(missing_ok=True)
+        # Under the same per-file lock as a save, so a delete cannot land in
+        # the middle of one and leave half of it behind.
+        with _FILE_LOCKS.hold(filename):
+            target.unlink(missing_ok=True)
+            target.with_name(target.name + ".bak").unlink(missing_ok=True)
+            _program_path(directory, filename).unlink(missing_ok=True)
     except OSError as error:
         logger.exception("Could not delete OpenScript source %s", filename)
         return jsonify({"status": "error", "message": f"Could not delete: {error}"}), 500

@@ -24,6 +24,7 @@ import {
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
 import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
+import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
 
@@ -146,9 +147,9 @@ export default function IVSmile() {
       } else {
         showToast.error(response.message || 'Failed to fetch IV Smile data')
       }
-    } catch {
+    } catch (error) {
       if (requestIdRef.current !== requestId) return
-      showToast.error('Failed to fetch IV Smile data')
+      showToast.error(serverSentence(error, 'Failed to fetch IV Smile data'))
     } finally {
       if (requestIdRef.current === requestId) setIsLoading(false)
     }

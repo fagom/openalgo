@@ -46,6 +46,7 @@ import {
   maxOiStrikes,
   spotMarkerIndex,
 } from '@/lib/optionChainView'
+import { serverSentence } from '@/lib/serverSentence'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import type { BarDataSource, BarStyle, ColumnKey, OptionStrike } from '@/types/option-chain'
@@ -725,9 +726,9 @@ export default function OptionChain() {
           setExpiries([])
           setSelectedExpiry('')
         }
-      } catch {
+      } catch (error) {
         if (cancelled) return
-        showToast.error('Failed to load expiry dates')
+        showToast.error(serverSentence(error, 'Failed to load expiry dates'))
       }
     }
     fetchExpiries()
