@@ -40,6 +40,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Label } from '@/components/ui/label'
 import {
   Table,
@@ -59,7 +60,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
 import type { Position } from '@/types/trading'
 import { showToast } from '@/utils/toast'
-import { EmptyState } from '@/components/ui/empty-state'
 
 const STORAGE_KEY = 'openalgo_positions_prefs'
 
@@ -126,22 +126,22 @@ function calculatePnlPercent(position: Position): number {
 }
 
 const EXCHANGE_COLORS: Record<string, string> = {
-  NSE: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  BSE: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
-  NFO: 'bg-purple-500/20 text-purple-600 border-purple-500/30',
-  BFO: 'bg-amber-500/20 text-amber-600 border-amber-500/30',
-  MCX: 'bg-blue-500/20 text-blue-600 border-blue-500/30',
-  NCO: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30',
-  CDS: 'bg-teal-500/20 text-teal-600 border-teal-500/30',
-  NSE_INDEX: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  BSE_INDEX: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
-  GLOBAL_INDEX: 'bg-indigo-500/20 text-indigo-600 border-indigo-500/30',
+  NSE: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  BSE: 'bg-muted-foreground/20 text-muted-foreground border-border',
+  NFO: 'bg-chart-4/20 text-chart-4 border-chart-4/30',
+  BFO: 'bg-warning/20 text-warning border-warning/30',
+  MCX: 'bg-primary/20 text-primary border-primary/30',
+  NCO: 'bg-success/20 text-success border-success/30',
+  CDS: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  NSE_INDEX: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  BSE_INDEX: 'bg-muted-foreground/20 text-muted-foreground border-border',
+  GLOBAL_INDEX: 'bg-info/20 text-info border-info/30',
 }
 
 const PRODUCT_COLORS: Record<string, string> = {
-  CNC: 'bg-purple-500/20 text-purple-600 border-purple-500/30',
-  MIS: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  NRML: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
+  CNC: 'bg-chart-4/20 text-chart-4 border-chart-4/30',
+  MIS: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  NRML: 'bg-muted-foreground/20 text-muted-foreground border-border',
 }
 
 export default function Positions() {
@@ -532,7 +532,7 @@ export default function Positions() {
       size="sm"
       className={cn(
         'rounded-full',
-        filters[type].includes(value) && 'bg-pink-500 hover:bg-pink-600'
+        filters[type].includes(value) && 'bg-primary hover:bg-primary/90'
       )}
       onClick={() => toggleFilter(type, value)}
     >
@@ -560,7 +560,7 @@ export default function Positions() {
         )}
       >
         {label}
-        <ArrowUpDown className="h-3 w-3 opacity-50" />
+        <ArrowUpDown className="size-4 opacity-50" />
       </div>
     </TableHead>
   )
@@ -592,9 +592,9 @@ export default function Positions() {
     <div className="space-y-6">
       {/* Stale Data Warning */}
       {showStaleWarning && (
-        <Alert variant="default" className="bg-amber-500/10 border-amber-500/30">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-700 dark:text-amber-400">
+        <Alert variant="default" className="bg-warning/10 border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
             Data is being refreshed after tab was inactive...
           </AlertDescription>
         </Alert>
@@ -608,17 +608,17 @@ export default function Positions() {
             {isPaused ? (
               <Badge
                 variant="outline"
-                className="bg-amber-500/10 text-amber-600 border-amber-500/30 gap-1"
+                className="bg-warning/10 text-warning border-warning/30 gap-1"
               >
-                <Pause className="h-3 w-3" />
+                <Pause className="size-4" />
                 Paused
               </Badge>
             ) : isLive ? (
               <Badge
                 variant="outline"
-                className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1"
+                className="bg-success/10 text-success border-success/30 gap-1"
               >
-                <Radio className="h-3 w-3 animate-pulse" />
+                <Radio className="size-4 animate-pulse" />
                 Live
               </Badge>
             ) : null}
@@ -637,7 +637,7 @@ export default function Positions() {
                 <Settings2 className="h-4 w-4 mr-2" />
                 Settings
                 {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                 )}
               </Button>
             </DialogTrigger>
@@ -663,7 +663,7 @@ export default function Positions() {
                         key={opt.value}
                         className={cn(
                           'flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-muted',
-                          grouping === opt.value && 'bg-pink-500/10 border border-pink-500/30'
+                          grouping === opt.value && 'bg-primary/10 border border-primary/30'
                         )}
                       >
                         <input
@@ -674,10 +674,10 @@ export default function Positions() {
                             setGrouping(opt.value as GroupingType)
                             setCollapsedGroups(new Set())
                           }}
-                          className="accent-pink-500"
+                          className="accent-primary"
                         />
                         <span
-                          className={cn(grouping === opt.value && 'text-pink-500 font-semibold')}
+                          className={cn(grouping === opt.value && 'text-primary font-semibold')}
                         >
                           {opt.label}
                         </span>
@@ -782,7 +782,7 @@ export default function Positions() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-muted-foreground">Active Filters:</span>
           {grouping !== 'none' && (
-            <Badge variant="secondary" className="bg-pink-500/10 text-pink-600 border-pink-500/30">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/30">
               Grouped: {grouping === 'underlying' ? 'Underlying' : 'Underlying & Expiry'}
             </Badge>
           )}
@@ -791,7 +791,7 @@ export default function Positions() {
               <Badge
                 key={v}
                 variant="secondary"
-                className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+                className="bg-primary/10 text-primary border-primary/30"
               >
                 {v}
               </Badge>
@@ -800,7 +800,7 @@ export default function Positions() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -809,7 +809,7 @@ export default function Positions() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -817,7 +817,7 @@ export default function Positions() {
           <Button
             variant="outline"
             size="sm"
-            className="text-red-500 border-red-500/50 hover:bg-red-500/10"
+            className="text-destructive border-destructive/50 hover:bg-destructive/10"
             onClick={clearFilters}
           >
             Clear All
@@ -836,23 +836,20 @@ export default function Positions() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Long</CardDescription>
-            <CardTitle className="text-2xl text-green-600">{stats.long}</CardTitle>
+            <CardTitle className="text-2xl text-buy">{stats.long}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Short</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{stats.short}</CardTitle>
+            <CardTitle className="text-2xl text-sell">{stats.short}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total P&L</CardDescription>
             <CardTitle
-              className={cn(
-                'text-2xl',
-                isProfit(stats.totalPnl) ? 'text-green-600' : 'text-red-600'
-              )}
+              className={cn('text-2xl', isProfit(stats.totalPnl) ? 'text-profit' : 'text-loss')}
             >
               {formatCurrency(stats.totalPnl)}
             </CardTitle>
@@ -874,10 +871,12 @@ export default function Positions() {
               icon={ChartCandlestick}
               title="No positions match your filters"
               description="Try adjusting or clearing your filters to see results."
-              action={hasActiveFilters ?
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear Filters
-                </Button> : undefined
+              action={
+                hasActiveFilters ? (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Clear Filters
+                  </Button>
+                ) : undefined
               }
             />
           ) : (
@@ -926,7 +925,7 @@ export default function Positions() {
                             <TableCell
                               className={cn(
                                 'text-right font-bold',
-                                isProfit(groupStats.totalPnl) ? 'text-green-600' : 'text-red-600'
+                                isProfit(groupStats.totalPnl) ? 'text-profit' : 'text-loss'
                               )}
                             >
                               {groupStats.totalPnl >= 0 ? '+' : ''}
@@ -935,7 +934,7 @@ export default function Positions() {
                             <TableCell
                               className={cn(
                                 'text-right font-semibold',
-                                isProfit(groupStats.pnlPercent) ? 'text-green-600' : 'text-red-600'
+                                isProfit(groupStats.pnlPercent) ? 'text-profit' : 'text-loss'
                               )}
                             >
                               {groupStats.pnlPercent >= 0 ? '+' : ''}
@@ -994,8 +993,8 @@ export default function Positions() {
                                     !isOpen
                                       ? 'text-muted-foreground'
                                       : quantity > 0
-                                        ? 'text-green-600'
-                                        : 'text-red-600'
+                                        ? 'text-buy'
+                                        : 'text-sell'
                                   )}
                                 >
                                   {position.quantity}
@@ -1009,7 +1008,7 @@ export default function Positions() {
                                 <TableCell
                                   className={cn(
                                     'w-[120px] text-right font-medium',
-                                    isProfit(position.pnl) ? 'text-green-600' : 'text-red-600'
+                                    isProfit(position.pnl) ? 'text-profit' : 'text-loss'
                                   )}
                                 >
                                   <div className="flex items-center justify-end gap-1">
@@ -1025,8 +1024,8 @@ export default function Positions() {
                                   className={cn(
                                     'w-[100px] text-right',
                                     isProfit(calculatePnlPercent(position))
-                                      ? 'text-green-600'
-                                      : 'text-red-600'
+                                      ? 'text-profit'
+                                      : 'text-loss'
                                   )}
                                 >
                                   {calculatePnlPercent(position) >= 0 ? '+' : ''}
@@ -1060,7 +1059,7 @@ export default function Positions() {
                     <TableCell
                       className={cn(
                         'w-[120px] text-right font-bold',
-                        isProfit(stats.totalPnl) ? 'text-green-600' : 'text-red-600'
+                        isProfit(stats.totalPnl) ? 'text-profit' : 'text-loss'
                       )}
                     >
                       {stats.totalPnl >= 0 ? '+' : ''}

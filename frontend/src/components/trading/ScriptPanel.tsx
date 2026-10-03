@@ -808,17 +808,14 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
                   className={cn(
                     'shrink-0 rounded px-1 py-px text-[9px] font-medium uppercase tracking-wide',
                     kind === 'strategy'
-                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                      ? 'bg-warning/15 text-warning'
                       : 'bg-primary/15 text-primary'
                   )}
                 >
                   {kind}
                 </span>
               )}
-              <ChevronDown
-                className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                strokeWidth={1.5}
-              />
+              <ChevronDown className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -866,7 +863,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-xs" onSelect={startNamingFromMenu}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+              <Plus className="mr-1.5 size-4" strokeWidth={1.5} />
               New script
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -889,7 +886,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
           }
           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
         >
-          <Play className="h-3.5 w-3.5" strokeWidth={1.5} />
+          <Play className="size-4" strokeWidth={1.5} />
         </button>
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
@@ -913,7 +910,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={keepNameFocus}>
               <DropdownMenuItem className="text-xs" onSelect={startNamingFromMenu}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                <Plus className="mr-1.5 size-4" strokeWidth={1.5} />
                 New script
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -930,7 +927,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
                 disabled={busy || open === null}
                 onSelect={() => void remove()}
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                <Trash2 className="mr-1.5 size-4" strokeWidth={1.5} />
                 Delete script
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -1097,7 +1094,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
             disabled={busy}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium leading-none transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
           >
-            <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+            <Plus className="size-4" strokeWidth={1.5} />
             New script
           </button>
         </div>
@@ -1235,7 +1232,7 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
                               'shrink-0 rounded px-1 py-px text-[10px] font-medium',
                               bad
                                 ? 'bg-destructive/15 text-destructive'
-                                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                : 'bg-warning/15 text-warning'
                             )}
                           >
                             {one.code}
@@ -1250,18 +1247,13 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
                           <pre className="mt-1 overflow-x-auto whitespace-pre text-foreground">
                             {one.sourceLine}
                             {'\n'}
-                            <span className={bad ? 'text-destructive' : 'text-amber-500'}>
+                            <span className={bad ? 'text-destructive' : 'text-warning'}>
                               {' '.repeat(Math.max(0, one.column - 1))}
                               {'^'.repeat(one.length)}
                             </span>
                           </pre>
                         )}
-                        <p
-                          className={cn(
-                            'mt-1',
-                            bad ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
-                          )}
-                        >
+                        <p className={cn('mt-1', bad ? 'text-destructive' : 'text-warning')}>
                           {one.message}
                         </p>
                         {one.fix && (
@@ -1302,25 +1294,25 @@ export function ScriptPanel({ onAddToChart, onBacktest, openFile = null, onOpene
                 errorCount > 0 && 'text-destructive'
               )}
             >
-              <TerminalSquare className="h-3.5 w-3.5" strokeWidth={1.5} />
+              <TerminalSquare className="size-4" strokeWidth={1.5} />
               {noteCount > 0 && <span className="tabular-nums">{noteCount}</span>}
             </button>
             <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
               {busy ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
+                  <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
                   Working
                 </span>
               ) : dirty ? (
                 'Unsaved changes'
               ) : result?.ok === false ? (
                 <span className="inline-flex items-center gap-1.5 text-destructive">
-                  <AlertTriangle className="h-3 w-3" strokeWidth={1.5} />
+                  <AlertTriangle className="size-4" strokeWidth={1.5} />
                   {errorCount === 1 ? '1 error' : `${errorCount} errors`}, so it will not run yet
                 </span>
               ) : result?.ok ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Check className="h-3 w-3" strokeWidth={1.5} />
+                  <Check className="size-4" strokeWidth={1.5} />
                   {warningCount > 0
                     ? `Ready, with ${warningCount === 1 ? '1 warning' : `${warningCount} warnings`}`
                     : 'Ready'}

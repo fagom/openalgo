@@ -571,7 +571,7 @@ function RoutingNotice({ config }: { config: WebSearchConfig }) {
       className={cn(
         'rounded-md border px-3 py-2 text-sm',
         state.warn
-          ? 'border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-600 dark:bg-amber-950/50 dark:text-amber-200'
+          ? 'border-warning/60 bg-warning/10 text-warning'
           : 'bg-muted/40 text-muted-foreground'
       )}
     >
@@ -592,7 +592,7 @@ function UsageMeter({ config }: { config: WebSearchConfig }) {
 
   if (cap === 0) {
     return (
-      <div className="rounded-md border border-amber-500 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-600 dark:bg-amber-950/50 dark:text-amber-200">
+      <div className="rounded-md border border-warning/60 bg-warning/10 px-3 py-2 text-sm text-warning">
         The daily cap is 0, so the agent will not search the web at all.
       </div>
     )
@@ -744,7 +744,7 @@ function TestResult({ provider, test }: { provider: WebSearchProvider; test: Tes
       className={cn(
         'rounded-md border px-3 py-2 text-xs',
         test.ok
-          ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-emerald-600/60 dark:bg-emerald-950/40 dark:text-emerald-200'
+          ? 'border-success/50 bg-success/10 text-success'
           : 'border-destructive/50 bg-destructive/5 text-destructive'
       )}
     >

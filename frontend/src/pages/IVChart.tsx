@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette } from '@/lib/chartTheme'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -91,8 +92,8 @@ interface ChartInstance {
 }
 
 export default function IVChart() {
-  const { mode } = useThemeStore()
-  const isDarkMode = mode === 'dark'
+  const { mode, appMode } = useThemeStore()
+  const pal = useMemo(() => getChartPalette(mode, appMode), [mode, appMode])
   const { toolsFnoExchanges, defaultToolsFnoExchange, defaultUnderlyings } = useSupportedExchanges()
 
   // Control state
@@ -150,26 +151,26 @@ export default function IVChart() {
       height: CHART_HEIGHT,
       layout: {
         background: { type: ColorType.Solid as const, color: 'transparent' },
-        textColor: isDarkMode ? '#a6adbb' : '#333',
+        textColor: pal.textMuted,
       },
       grid: {
         vertLines: {
-          color: isDarkMode ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.1)',
+          color: pal.grid,
           style: 1 as const,
           visible: true,
         },
         horzLines: {
-          color: isDarkMode ? 'rgba(166,173,187,0.1)' : 'rgba(0,0,0,0.1)',
+          color: pal.grid,
           style: 1 as const,
           visible: true,
         },
       },
       rightPriceScale: {
-        borderColor: isDarkMode ? 'rgba(166,173,187,0.2)' : 'rgba(0,0,0,0.2)',
+        borderColor: pal.border,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: isDarkMode ? 'rgba(166,173,187,0.2)' : 'rgba(0,0,0,0.2)',
+        borderColor: pal.border,
         timeVisible: true,
         secondsVisible: false,
         tickMarkFormatter: (time: number) => {
@@ -189,25 +190,25 @@ export default function IVChart() {
         mode: CrosshairMode.Normal,
         vertLine: {
           width: 1 as const,
-          color: isDarkMode ? 'rgba(166,173,187,0.5)' : 'rgba(0,0,0,0.3)',
+          color: pal.crosshair,
           style: 2 as const,
           labelVisible: false,
         },
         horzLine: {
           width: 1 as const,
-          color: isDarkMode ? 'rgba(166,173,187,0.5)' : 'rgba(0,0,0,0.3)',
+          color: pal.crosshair,
           style: 2 as const,
-          labelBackgroundColor: isDarkMode ? '#1f2937' : '#2563eb',
+          labelBackgroundColor: pal.crosshairLabel,
         },
       },
     }),
-    [isDarkMode, selectedDays]
+    [pal, selectedDays]
   )
 
   const addWatermark = useCallback(
     (container: HTMLDivElement) => {
       const el = document.createElement('div')
-      el.style.cssText = `position:absolute;z-index:2;font-family:Arial,sans-serif;font-size:28px;font-weight:bold;user-select:none;pointer-events:none;color:${isDarkMode ? 'rgba(166,173,187,0.12)' : 'rgba(0,0,0,0.06)'}`
+      el.style.cssText = `position:absolute;z-index:2;font-family:${CHART_FONT.replace(/"/g, "'")};font-size:28px;font-weight:bold;user-select:none;pointer-events:none;color:${pal.watermark}`
       el.textContent = 'OpenAlgo'
       container.appendChild(el)
       setTimeout(() => {
@@ -215,7 +216,7 @@ export default function IVChart() {
         el.style.top = `${container.offsetHeight / 2 - el.offsetHeight / 2}px`
       }, 0)
     },
-    [isDarkMode]
+    [pal]
   )
 
   // ── Data update ─────────────────────────────────────────────────
@@ -264,7 +265,7 @@ export default function IVChart() {
         if (!container) continue
 
         const w = container.offsetWidth > 0 ? container.offsetWidth : fallbackW
-        const color = type === 'ce' ? '#22c55e' : '#ef4444'
+        const color = type === 'ce' ? pal.up : pal.down
         const cfg = METRIC_CONFIG[metric]
         const title = type === 'ce' ? cfg.ceTitle : cfg.peTitle
 
@@ -289,7 +290,7 @@ export default function IVChart() {
       for (const [, inst] of chartsRef.current) inst.chart.remove()
       chartsRef.current.clear()
     }
-  }, [makeChartOptions, addWatermark, updateAllCharts])
+  }, [makeChartOptions, addWatermark, updateAllCharts, pal])
 
   // ── Window resize ───────────────────────────────────────────────
 
@@ -578,18 +579,16 @@ export default function IVChart() {
                 <span className="font-medium">{chartData.underlying_ltp?.toFixed(2)}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-profit" />
                 <span className="text-muted-foreground">CE: </span>
                 <span className="font-medium">{chartData.ce_symbol}</span>
-                <span className="text-green-600 dark:text-green-400 font-medium ml-1">
-                  {getLatestValue('CE', 'iv')}
-                </span>
+                <span className="text-success font-medium ml-1">{getLatestValue('CE', 'iv')}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-destructive" />
                 <span className="text-muted-foreground">PE: </span>
                 <span className="font-medium">{chartData.pe_symbol}</span>
-                <span className="text-red-600 dark:text-red-400 font-medium ml-1">
+                <span className="text-destructive font-medium ml-1">
                   {getLatestValue('PE', 'iv')}
                 </span>
               </div>
@@ -618,7 +617,7 @@ export default function IVChart() {
                   {/* CE chart */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      <span className="text-sm font-medium text-success">
                         {chartData?.ce_symbol || 'CE'} {METRIC_CONFIG[metric].label}
                       </span>
                       <span className="text-sm tabular-nums text-muted-foreground">
@@ -634,7 +633,7 @@ export default function IVChart() {
                   {/* PE chart */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      <span className="text-sm font-medium text-destructive">
                         {chartData?.pe_symbol || 'PE'} {METRIC_CONFIG[metric].label}
                       </span>
                       <span className="text-sm tabular-nums text-muted-foreground">

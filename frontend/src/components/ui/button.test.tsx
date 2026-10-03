@@ -185,4 +185,65 @@ describe('Button', () => {
       expect(button).toHaveAttribute('aria-haspopup', 'menu')
     })
   })
+
+  describe('tooltip', () => {
+    it('shows the tooltip prop on keyboard focus and names the icon button', async () => {
+      const user = userEvent.setup()
+      render(
+        <Button size="icon" tooltip="Refresh positions">
+          <svg />
+        </Button>
+      )
+
+      const button = screen.getByRole('button', { name: 'Refresh positions' })
+      await user.tab()
+      expect(document.activeElement).toBe(button)
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Refresh positions')
+    })
+
+    it('falls back to aria-label on an icon-only button', async () => {
+      const user = userEvent.setup()
+      render(
+        <Button size="icon" aria-label="Close all positions">
+          <svg />
+        </Button>
+      )
+
+      await user.tab()
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Close all positions')
+    })
+
+    it('prefers the fuller title over the aria-label for the tooltip text', async () => {
+      const user = userEvent.setup()
+      render(
+        <Button size="icon" aria-label="Undo drawing" title="Undo drawing (Ctrl + Z)">
+          <svg />
+        </Button>
+      )
+
+      await user.tab()
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Undo drawing (Ctrl + Z)')
+      // The accessible name stays the short one.
+      expect(screen.getByRole('button', { name: 'Undo drawing' })).toBeInTheDocument()
+    })
+
+    it('replaces the native title with the tooltip', () => {
+      render(
+        <Button size="icon" title="Copy API key">
+          <svg />
+        </Button>
+      )
+
+      const button = screen.getByRole('button', { name: 'Copy API key' })
+      expect(button).not.toHaveAttribute('title')
+    })
+
+    it('adds no tooltip to a labelled text button', () => {
+      render(<Button title="Save now">Save</Button>)
+
+      const button = screen.getByRole('button', { name: 'Save' })
+      expect(button).toHaveAttribute('title', 'Save now')
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    })
+  })
 })

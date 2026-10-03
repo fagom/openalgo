@@ -85,7 +85,7 @@ const STATE_LABEL: Record<Alert['state'], string> = {
  * four things compete for the same glance.
  */
 const STATE_DOT: Record<Alert['state'], string> = {
-  armed: 'bg-emerald-500',
+  armed: 'bg-success',
   triggered: 'bg-primary',
   expired: 'bg-muted-foreground/40',
   disabled: 'bg-muted-foreground/40',
@@ -394,7 +394,7 @@ export function AlertsPanel({ view, log, paneLabel, onEdit, onClearLog, revision
             disabled={log.length === 0}
             className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-input px-2 text-[11px] leading-none text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
           >
-            <Eraser className="h-3 w-3" strokeWidth={1.5} />
+            <Eraser className="size-4" strokeWidth={1.5} />
             Clear
           </button>
         )}
@@ -447,7 +447,7 @@ export function AlertsPanel({ view, log, paneLabel, onEdit, onClearLog, revision
                     <span
                       className={cn(
                         'shrink-0 text-[10px]',
-                        alert.state === 'armed' ? 'text-emerald-500' : 'text-muted-foreground'
+                        alert.state === 'armed' ? 'text-success' : 'text-muted-foreground'
                       )}
                     >
                       {STATE_LABEL[alert.state]}
@@ -462,9 +462,7 @@ export function AlertsPanel({ view, log, paneLabel, onEdit, onClearLog, revision
                     timeframe to go back to.
                   */}
                   {paused[alert.id] && (
-                    <p className="mt-1 text-[10px] leading-4 text-amber-600 dark:text-amber-500">
-                      {paused[alert.id]}
-                    </p>
+                    <p className="mt-1 text-[10px] leading-4 text-warning">{paused[alert.id]}</p>
                   )}
                 </div>
                 <RowAction
@@ -478,20 +476,20 @@ export function AlertsPanel({ view, log, paneLabel, onEdit, onClearLog, revision
                   }
                 >
                   {alert.state === 'disabled' ? (
-                    <Play className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    <Play className="size-4" strokeWidth={1.5} />
                   ) : (
-                    <Pause className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    <Pause className="size-4" strokeWidth={1.5} />
                   )}
                 </RowAction>
                 <RowAction label={`Edit ${alert.title}`} onClick={() => onEdit(alert.id)}>
-                  <Settings2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <Settings2 className="size-4" strokeWidth={1.5} />
                 </RowAction>
                 <RowAction
                   label={`Delete ${alert.title}`}
                   danger
                   onClick={() => view.alerts.remove(alert.id)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <Trash2 className="size-4" strokeWidth={1.5} />
                 </RowAction>
               </div>
             ))

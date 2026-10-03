@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette } from '@/lib/chartTheme'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -82,8 +83,6 @@ export default function StraddleChart() {
     defaultToolsFnoExchange: defaultFnoExchange,
     defaultUnderlyings,
   } = useSupportedExchanges()
-  const isDarkMode = mode === 'dark'
-  const isAnalyzer = appMode === 'analyzer'
 
   // Control state
   const [isLoading, setIsLoading] = useState(false)
@@ -129,56 +128,23 @@ export default function StraddleChart() {
 
   // Theme colors
   const colors = useMemo(() => {
-    if (isAnalyzer) {
-      return {
-        text: '#d4bfff',
-        grid: 'rgba(139, 92, 246, 0.1)',
-        border: 'rgba(139, 92, 246, 0.2)',
-        crosshair: 'rgba(139, 92, 246, 0.5)',
-        crosshairLabel: '#4c1d95',
-        spot: '#e2e8f0',
-        straddle: '#a78bfa',
-        synthetic: '#60a5fa',
-        watermark: 'rgba(139, 92, 246, 0.12)',
-        tooltipBg: 'rgba(30, 15, 60, 0.92)',
-        tooltipBorder: 'rgba(139, 92, 246, 0.3)',
-        tooltipText: '#d4bfff',
-        tooltipMuted: '#a78bfa',
-      }
-    }
-    if (isDarkMode) {
-      return {
-        text: '#a6adbb',
-        grid: 'rgba(166, 173, 187, 0.1)',
-        border: 'rgba(166, 173, 187, 0.2)',
-        crosshair: 'rgba(166, 173, 187, 0.5)',
-        crosshairLabel: '#1f2937',
-        spot: '#e2e8f0',
-        straddle: '#4ade80',
-        synthetic: '#60a5fa',
-        watermark: 'rgba(166, 173, 187, 0.12)',
-        tooltipBg: 'rgba(17, 24, 39, 0.92)',
-        tooltipBorder: 'rgba(166, 173, 187, 0.2)',
-        tooltipText: '#e2e8f0',
-        tooltipMuted: '#9ca3af',
-      }
-    }
+    const p = getChartPalette(mode, appMode)
     return {
-      text: '#333',
-      grid: 'rgba(0, 0, 0, 0.1)',
-      border: 'rgba(0, 0, 0, 0.2)',
-      crosshair: 'rgba(0, 0, 0, 0.3)',
-      crosshairLabel: '#2563eb',
-      spot: '#1e293b',
-      straddle: '#16a34a',
-      synthetic: '#2563eb',
-      watermark: 'rgba(0, 0, 0, 0.06)',
-      tooltipBg: 'rgba(255, 255, 255, 0.95)',
-      tooltipBorder: 'rgba(0, 0, 0, 0.15)',
-      tooltipText: '#1e293b',
-      tooltipMuted: '#6b7280',
+      text: p.textMuted,
+      grid: p.grid,
+      border: p.border,
+      crosshair: p.crosshair,
+      crosshairLabel: p.crosshairLabel,
+      spot: p.spot,
+      straddle: p.primary,
+      synthetic: p.series[1],
+      watermark: p.watermark,
+      tooltipBg: p.tooltipBg,
+      tooltipBorder: p.tooltipBorder,
+      tooltipText: p.tooltipText,
+      tooltipMuted: p.tooltipMuted,
     }
-  }, [isDarkMode, isAnalyzer])
+  }, [mode, appMode])
 
   // Keep a stable ref to colors for the crosshair callback
   const colorsRef = useRef(colors)
@@ -260,7 +226,7 @@ export default function StraddleChart() {
 
     // Watermark
     const watermark = document.createElement('div')
-    watermark.style.cssText = `position:absolute;z-index:2;font-family:Arial,sans-serif;font-size:48px;font-weight:bold;user-select:none;pointer-events:none;color:${colors.watermark}`
+    watermark.style.cssText = `position:absolute;z-index:2;font-family:${CHART_FONT.replace(/"/g, "'")};font-size:48px;font-weight:bold;user-select:none;pointer-events:none;color:${colors.watermark}`
     watermark.textContent = 'OpenAlgo'
     container.appendChild(watermark)
     watermarkRef.current = watermark

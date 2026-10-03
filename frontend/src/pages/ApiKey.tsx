@@ -248,7 +248,7 @@ export default function ApiKey() {
                 <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                   <Button
                     variant={orderMode === 'auto' ? 'default' : 'outline'}
-                    className={`flex-1 ${orderMode === 'auto' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    className={`flex-1 ${orderMode === 'auto' ? 'bg-success hover:bg-success/90' : ''}`}
                     onClick={() => orderMode !== 'auto' && handleToggleOrderMode()}
                     disabled={isTogglingMode}
                   >
@@ -258,7 +258,7 @@ export default function ApiKey() {
 
                   <Button
                     variant={orderMode === 'semi_auto' ? 'default' : 'outline'}
-                    className={`flex-1 ${orderMode === 'semi_auto' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}`}
+                    className={`flex-1 ${orderMode === 'semi_auto' ? 'bg-warning hover:bg-warning/90' : ''}`}
                     onClick={() => orderMode !== 'semi_auto' && handleToggleOrderMode()}
                     disabled={isTogglingMode}
                   >
@@ -276,8 +276,8 @@ export default function ApiKey() {
                   variant={orderMode === 'semi_auto' ? 'default' : 'default'}
                   className={
                     orderMode === 'semi_auto'
-                      ? 'border-yellow-500 bg-yellow-500/10'
-                      : 'border-green-500 bg-green-500/10'
+                      ? 'border-warning/60 bg-warning/10'
+                      : 'border-success/60 bg-success/10'
                   }
                 >
                   <Info className="h-4 w-4" />
@@ -310,7 +310,7 @@ export default function ApiKey() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-warning flex items-center justify-center">
                 <Zap className="h-4 w-4 text-white" />
               </div>
               API Playground
@@ -325,15 +325,15 @@ export default function ApiKey() {
               <h3 className="font-semibold mb-3">Features</h3>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <Check className="h-4 w-4 text-success mt-0.5 shrink-0" />
                   Send GET/POST requests to any endpoint
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <Check className="h-4 w-4 text-success mt-0.5 shrink-0" />
                   Syntax highlighted JSON responses
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                  <Check className="h-4 w-4 text-success mt-0.5 shrink-0" />
                   Copy response or cURL command
                 </li>
               </ul>

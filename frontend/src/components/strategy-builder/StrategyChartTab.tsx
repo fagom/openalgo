@@ -9,7 +9,13 @@
  * premium.
  */
 
-import { type Bar, CandleBuilder, type DataLoadingSnapshot, intervalToSeconds, type SeriesApi } from 'openalgo-charts'
+import {
+  type Bar,
+  CandleBuilder,
+  type DataLoadingSnapshot,
+  intervalToSeconds,
+  type SeriesApi,
+} from 'openalgo-charts'
 import type { Widget } from 'openalgo-charts/widget'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -19,6 +25,7 @@ import {
 } from '@/api/strategy-chart'
 import { useMarketData } from '@/hooks/useMarketData'
 import { createStrategyChartFeed, type StrategyFeedRequest } from '@/lib/chart/feeds/strategyFeed'
+import { getChartPalette } from '@/lib/chartTheme'
 import type { StrategyLeg } from '@/lib/strategyMath'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/themeStore'
@@ -130,9 +137,8 @@ export default function StrategyChartTab({
   }, [showUnderlying])
 
   const colors = useMemo(() => {
-    if (appMode === 'analyzer') return { underlying: '#fbbf24', combined: '#a78bfa' }
-    if (mode === 'dark') return { underlying: '#fbbf24', combined: '#a78bfa' }
-    return { underlying: '#d97706', combined: '#7c3aed' }
+    const p = getChartPalette(mode, appMode)
+    return { underlying: p.warning, combined: p.primary }
   }, [mode, appMode])
 
   const payloadLegs = useMemo(
@@ -458,17 +464,17 @@ export default function StrategyChartTab({
       notices={
         <>
           {loadError ? (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-700 dark:text-red-400">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-[11px] text-destructive">
               {loadError}
             </div>
           ) : null}
           {hasFuturesLeg ? (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+            <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-1.5 text-[11px] text-warning">
               Futures legs are excluded from the combined premium: price levels are not premia.
             </div>
           ) : null}
           {chartData && !chartData.underlying_available ? (
-            <div className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-[11px] text-blue-700 dark:text-blue-400">
+            <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
               Your broker does not return {interval} candles for the underlying index, so only the
               strategy premium is drawn. Try a coarser interval to see the underlying overlay.
             </div>

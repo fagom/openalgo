@@ -47,8 +47,8 @@ function formatIndianNumber(value: string | number): string {
 // Get color class based on P&L value
 function getPnLColor(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value
-  if (num > 0) return 'text-green-600 dark:text-green-400'
-  if (num < 0) return 'text-red-600 dark:text-red-400'
+  if (num > 0) return 'text-profit'
+  if (num < 0) return 'text-loss'
   return 'text-foreground'
 }
 
@@ -163,13 +163,13 @@ export default function Dashboard() {
   const getMasterContractLedColor = () => {
     switch (masterContract.status) {
       case 'success':
-        return 'bg-green-500'
+        return 'bg-profit'
       case 'downloading':
-        return 'bg-yellow-500 animate-pulse'
+        return 'bg-warning animate-pulse'
       case 'error':
-        return 'bg-red-500'
+        return 'bg-loss'
       default:
-        return 'bg-gray-400 animate-pulse'
+        return 'bg-muted-foreground animate-pulse'
     }
   }
 
@@ -191,11 +191,11 @@ export default function Dashboard() {
   const getMasterContractTextColor = () => {
     switch (masterContract.status) {
       case 'success':
-        return 'text-green-600 dark:text-green-400'
+        return 'text-profit'
       case 'downloading':
-        return 'text-yellow-600 dark:text-yellow-400'
+        return 'text-warning'
       case 'error':
-        return 'text-red-600 dark:text-red-400'
+        return 'text-loss'
       default:
         return 'text-muted-foreground'
     }
@@ -217,21 +217,20 @@ export default function Dashboard() {
       label: 'Live Logs',
       description: 'Real-time trading activity logs',
       icon: FileText,
-      gradient:
-        'from-violet-500/10 to-violet-500/5 hover:from-violet-500/20 hover:to-violet-500/10',
-      iconBg: 'bg-violet-500/20',
-      iconColor: 'text-violet-500',
-      borderColor: 'border-violet-500/20 hover:border-violet-500/40',
+      gradient: 'from-chart-4/10 to-chart-4/5 hover:from-chart-4/20 hover:to-chart-4/10',
+      iconBg: 'bg-chart-4/20',
+      iconColor: 'text-chart-4',
+      borderColor: 'border-chart-4/20 hover:border-chart-4/40',
     },
     {
       href: 'https://docs.openalgo.in',
       label: 'Documentation',
       description: 'Tutorials, API docs & features',
       icon: BookOpen,
-      gradient: 'from-cyan-500/10 to-cyan-500/5 hover:from-cyan-500/20 hover:to-cyan-500/10',
-      iconBg: 'bg-cyan-500/20',
-      iconColor: 'text-cyan-500',
-      borderColor: 'border-cyan-500/20 hover:border-cyan-500/40',
+      gradient: 'from-chart-3/10 to-chart-3/5 hover:from-chart-3/20 hover:to-chart-3/10',
+      iconBg: 'bg-chart-3/20',
+      iconColor: 'text-chart-3',
+      borderColor: 'border-chart-3/20 hover:border-chart-3/40',
       external: true,
     },
     {
@@ -239,20 +238,20 @@ export default function Dashboard() {
       label: 'P&L Tracker',
       description: 'Live intraday MTM tracker',
       icon: BarChart3,
-      gradient: 'from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10',
-      iconBg: 'bg-green-500/20',
-      iconColor: 'text-green-500',
-      borderColor: 'border-green-500/20 hover:border-green-500/40',
+      gradient: 'from-profit/10 to-profit/5 hover:from-profit/20 hover:to-profit/10',
+      iconBg: 'bg-profit/20',
+      iconColor: 'text-success',
+      borderColor: 'border-success/20 hover:border-success/40',
     },
     {
       href: 'https://www.openalgo.in/learn',
       label: 'OpenVarsity',
       description: 'Learn algo trading with OpenAlgo',
       icon: GraduationCap,
-      gradient: 'from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10',
-      iconBg: 'bg-blue-500/20',
-      iconColor: 'text-blue-500',
-      borderColor: 'border-blue-500/20 hover:border-blue-500/40',
+      gradient: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10',
+      iconBg: 'bg-primary/20',
+      iconColor: 'text-primary',
+      borderColor: 'border-primary/20 hover:border-primary/40',
       external: true,
     },
     {
@@ -260,11 +259,10 @@ export default function Dashboard() {
       label: 'Latency Monitor',
       description: 'Monitor order & API latency',
       icon: Zap,
-      gradient:
-        'from-orange-500/10 to-orange-500/5 hover:from-orange-500/20 hover:to-orange-500/10',
-      iconBg: 'bg-orange-500/20',
-      iconColor: 'text-orange-500',
-      borderColor: 'border-orange-500/20 hover:border-orange-500/40',
+      gradient: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10',
+      iconBg: 'bg-warning/20',
+      iconColor: 'text-warning',
+      borderColor: 'border-warning/20 hover:border-warning/40',
     },
   ]
 
@@ -353,7 +351,7 @@ export default function Dashboard() {
           <CardContent className="pt-6">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Collateral</p>
-              <p className="text-2xl font-bold text-violet-500 dark:text-violet-400">
+              <p className="text-2xl font-bold text-chart-4">
                 {isLoading
                   ? '...'
                   : marginData
@@ -426,17 +424,14 @@ export default function Dashboard() {
           <CardContent className="pt-6">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Utilised Margin</p>
-              <p className="text-2xl font-bold text-cyan-500 dark:text-cyan-400">
+              <p className="text-2xl font-bold text-chart-3">
                 {isLoading
                   ? '...'
                   : marginData
                     ? formatIndianNumber(marginData.utiliseddebits)
                     : '0.00'}
               </p>
-              <Badge
-                variant="outline"
-                className="mt-2 border-cyan-500/50 text-cyan-600 dark:text-cyan-400"
-              >
+              <Badge variant="outline" className="mt-2 border-chart-3/50 text-chart-3">
                 Used Margin
               </Badge>
             </div>

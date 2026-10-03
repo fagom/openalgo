@@ -829,6 +829,11 @@ def serve_assets(filename):
             content_type = mimetypes.guess_type(filename)[0]
             if content_type:
                 response.headers["Content-Type"] = content_type
+            # send_from_directory labels this "filename=<asset>.gz". Safari types
+            # a module script by that name and refuses it as application/x-gzip,
+            # which left every iPhone browser on a blank page. An inline asset
+            # needs no filename at all.
+            response.headers.pop("Content-Disposition", None)
             response.headers["Accept-Ranges"] = "none"
             break
     if response is None:

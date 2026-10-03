@@ -183,9 +183,7 @@ export function TemplateDialog({
                 <span
                   className={cn(
                     'inline-flex h-6 min-w-[2.25rem] shrink-0 items-center justify-center rounded px-1 font-semibold',
-                    leg.side === 'BUY'
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                      : 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                    leg.side === 'BUY' ? 'bg-buy/15 text-buy' : 'bg-destructive/15 text-destructive'
                   )}
                 >
                   {leg.side === 'BUY' ? '+' : '-'}
@@ -219,9 +217,8 @@ export function TemplateDialog({
                   <span
                     className={cn(
                       'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
-                      moneyness.kind === 'ATM' &&
-                        'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                      moneyness.kind === 'ITM' && 'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+                      moneyness.kind === 'ATM' && 'bg-warning/15 text-warning',
+                      moneyness.kind === 'ITM' && 'bg-info/15 text-info',
                       moneyness.kind === 'OTM' && 'bg-muted text-muted-foreground'
                     )}
                     title={
@@ -238,7 +235,7 @@ export function TemplateDialog({
                 {multiExpiry && (
                   <span
                     className={cn(
-                      'rounded bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:text-violet-400'
+                      'rounded bg-chart-4/10 px-1.5 py-0.5 text-[10px] font-semibold text-chart-4'
                     )}
                     title={`Leg expires ${leg.resolvedExpiry}`}
                   >
@@ -295,7 +292,7 @@ export function TemplateDialog({
                   onClick={() => setLots(Math.max(1, lots - 1))}
                   className="h-full px-2 text-muted-foreground hover:bg-muted"
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="size-4" />
                 </button>
                 <input
                   type="number"
@@ -311,7 +308,7 @@ export function TemplateDialog({
                   onClick={() => setLots(lots + 1)}
                   className="h-full px-2 text-muted-foreground hover:bg-muted"
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="size-4" />
                 </button>
               </div>
             </div>
@@ -338,7 +335,7 @@ export function TemplateDialog({
                 setIsConfirming(false)
               }
             }}
-            className="bg-emerald-700 text-white hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+            className="bg-success text-success-foreground hover:bg-success/90"
           >
             {isConfirming ? 'Validating...' : 'Add Strategy'}
           </Button>

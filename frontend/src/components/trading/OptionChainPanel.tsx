@@ -23,8 +23,6 @@
 
 import { Check, ChevronsUpDown, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-
-import { useOptionChainLive } from '@/hooks/useOptionChainLive'
 import { scalpingApi } from '@/api/scalping'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useMarketStatus } from '@/hooks/useMarketStatus'
+import { useOptionChainLive } from '@/hooks/useOptionChainLive'
 import { needsPreviousClose } from '@/lib/trading/previousClose'
 import type { SearchRow } from '@/lib/trading/terminal'
 import { cn } from '@/lib/utils'
@@ -208,9 +207,7 @@ function OrderPills({
           className={cn(
             'rounded px-1 py-0.5 text-[9px] font-bold leading-none text-white transition-colors',
             'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-            action === 'BUY'
-              ? 'bg-emerald-600 hover:bg-emerald-700'
-              : 'bg-amber-600 hover:bg-amber-700'
+            action === 'BUY' ? 'bg-buy hover:bg-buy/90' : 'bg-warning hover:bg-warning/90'
           )}
           aria-label={`${action === 'BUY' ? 'Buy' : 'Sell'} ${leg.symbol}`}
           title={`${action === 'BUY' ? 'Buy' : 'Sell'} ${leg.symbol}`}
@@ -349,7 +346,11 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
     prefs.exchange,
     prefs.expiry,
     STRIKE_COUNT,
-    { enabled: Boolean(prefs.underlying && prefs.expiry), oiRefreshInterval: 30000, pauseWhenHidden: true }
+    {
+      enabled: Boolean(prefs.underlying && prefs.expiry),
+      oiRefreshInterval: 30000,
+      pauseWhenHidden: true,
+    }
   )
 
   const marketOpen = isMarketOpen(prefs.exchange)
@@ -441,7 +442,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
               className="h-8 min-w-0 flex-1 justify-between px-2 text-[12px] font-medium"
             >
               <span className="truncate">{prefs.underlying || 'Select'}</span>
-              <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-50" />
+              <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[220px] p-0" align="start">
@@ -466,7 +467,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
                     >
                       <Check
                         className={cn(
-                          'mr-2 h-3.5 w-3.5',
+                          'mr-2 size-4',
                           prefs.underlying === name ? 'opacity-100' : 'opacity-0'
                         )}
                       />
@@ -487,7 +488,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
           title="Refresh"
           aria-label="Refresh option chain"
         >
-          <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+          <RefreshCw className={cn('size-4', loading && 'animate-spin')} />
         </Button>
       </div>
 
@@ -550,8 +551,8 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
             <span
               className={cn(
                 'font-medium tabular-nums',
-                spotDirection === 'up' && 'text-emerald-600 dark:text-emerald-400',
-                spotDirection === 'down' && 'text-rose-600 dark:text-rose-400',
+                spotDirection === 'up' && 'text-profit',
+                spotDirection === 'down' && 'text-loss',
                 spotDirection === 'flat' && 'text-foreground'
               )}
             >
@@ -603,7 +604,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
           <div className="flex flex-col items-center gap-2 p-6 text-center">
             <p className="text-[12px] text-muted-foreground">{chainError}</p>
             <Button variant="outline" size="sm" className="h-7 gap-1.5" onClick={retry}>
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="size-4" />
               Retry
             </Button>
           </div>
@@ -639,7 +640,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
                 <div
                   className={cn(
                     'group/leg relative flex items-center gap-1 justify-end px-2 py-1 transition-colors',
-                    ceOtm ? 'bg-amber-500/5 hover:bg-amber-500/15' : 'hover:bg-accent',
+                    ceOtm ? 'bg-warning/5 hover:bg-warning/15' : 'hover:bg-accent',
                     activeSymbol === `${prefs.exchange}:${row.ce?.symbol}` &&
                       'font-medium ring-1 ring-inset ring-primary/60'
                   )}
@@ -649,7 +650,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
                       in the same cell with nothing to tell them apart. */}
                   {metric === 'oi' && (
                     <span
-                      className="pointer-events-none absolute inset-y-0 right-0 bg-gradient-to-l from-emerald-500/25 to-transparent"
+                      className="pointer-events-none absolute inset-y-0 right-0 bg-gradient-to-l from-success/25 to-transparent"
                       style={{ width: `${Math.min(100, ((row.ce?.oi ?? 0) / peakOi) * 100)}%` }}
                       aria-hidden="true"
                     />
@@ -700,7 +701,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
                 <div
                   className={cn(
                     'group/leg relative flex items-center gap-1 justify-start px-2 py-1 transition-colors',
-                    peOtm ? 'bg-amber-500/5 hover:bg-amber-500/15' : 'hover:bg-accent',
+                    peOtm ? 'bg-warning/5 hover:bg-warning/15' : 'hover:bg-accent',
                     activeSymbol === `${prefs.exchange}:${row.pe?.symbol}` &&
                       'font-medium ring-1 ring-inset ring-primary/60'
                   )}
@@ -710,7 +711,7 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
                       in the same cell with nothing to tell them apart. */}
                   {metric === 'oi' && (
                     <span
-                      className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-rose-500/25 to-transparent"
+                      className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-destructive/25 to-transparent"
                       style={{ width: `${Math.min(100, ((row.pe?.oi ?? 0) / peakOi) * 100)}%` }}
                       aria-hidden="true"
                     />
@@ -750,14 +751,14 @@ export function OptionChainPanel({ apiKey, onPick, activeSymbol }: Props) {
           the numbers above have stopped moving. */}
       {rows.length > 0 &&
         (chainError && lastUpdate ? (
-          <p className="shrink-0 border-t px-2 py-1 text-[10px] text-amber-600 dark:text-amber-400">
+          <p className="shrink-0 border-t px-2 py-1 text-[10px] text-warning">
             Not updating. Last loaded {lastUpdate.toLocaleTimeString()}
           </p>
         ) : marketOpen && !isStreaming && lastUpdate ? (
           // Streaming is the point of this panel. If the socket is not up the
           // numbers are still refreshed by the structural poll, just far more
           // slowly, and saying so beats letting them read as live.
-          <p className="shrink-0 border-t px-2 py-1 text-[10px] text-amber-600 dark:text-amber-400">
+          <p className="shrink-0 border-t px-2 py-1 text-[10px] text-warning">
             Not streaming. Last update {lastUpdate.toLocaleTimeString()}
           </p>
         ) : !marketOpen ? (

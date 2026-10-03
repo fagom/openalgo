@@ -41,8 +41,8 @@ function DepthRow({
           className={cn(
             'absolute top-0 bottom-0 transition-all duration-300',
             side === 'buy'
-              ? 'left-0 bg-gradient-to-r from-emerald-500/20 to-transparent'
-              : 'right-0 bg-gradient-to-l from-rose-500/20 to-transparent'
+              ? 'left-0 bg-gradient-to-r from-buy/20 to-transparent'
+              : 'right-0 bg-gradient-to-l from-destructive/20 to-transparent'
           )}
           style={{ width: `${pct}%` }}
         />
@@ -50,7 +50,7 @@ function DepthRow({
       <span
         className={cn(
           'relative z-10 flex-1 font-mono text-xs',
-          side === 'buy' ? 'text-emerald-400' : 'text-rose-400'
+          side === 'buy' ? 'text-buy' : 'text-destructive'
         )}
       >
         {price.toFixed(2)}
@@ -96,8 +96,8 @@ export function MarketDepthPanel({
           <div className="mt-2 border rounded-lg overflow-hidden">
             {/* Header */}
             <div className="grid grid-cols-2 bg-muted/30">
-              <div className="px-2 py-1.5 text-xs font-medium text-emerald-500 border-r">Bids</div>
-              <div className="px-2 py-1.5 text-xs font-medium text-rose-500">Asks</div>
+              <div className="px-2 py-1.5 text-xs font-medium text-buy border-r">Bids</div>
+              <div className="px-2 py-1.5 text-xs font-medium text-destructive">Asks</div>
             </div>
 
             {/* Depth rows */}
@@ -141,12 +141,12 @@ export function MarketDepthPanel({
             <div className="grid grid-cols-2 bg-muted/30 border-t divide-x">
               <div className="px-2 py-1.5 text-xs text-muted-foreground flex justify-between">
                 <span>Total</span>
-                <span className="font-mono text-emerald-400">
+                <span className="font-mono text-success">
                   {buyLevels.reduce((sum, l) => sum + l.quantity, 0).toLocaleString()}
                 </span>
               </div>
               <div className="px-2 py-1.5 text-xs text-muted-foreground flex justify-between">
-                <span className="font-mono text-rose-400">
+                <span className="font-mono text-destructive">
                   {sellLevels.reduce((sum, l) => sum + l.quantity, 0).toLocaleString()}
                 </span>
                 <span>Total</span>

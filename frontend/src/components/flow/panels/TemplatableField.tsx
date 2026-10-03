@@ -97,7 +97,7 @@ export function TemplatableField({
           dynamic ? 'text-primary' : 'text-muted-foreground/50 hover:bg-muted hover:text-foreground'
         )}
       >
-        <Braces className="h-3 w-3" />
+        <Braces className="size-4" />
       </button>
     </div>
   )

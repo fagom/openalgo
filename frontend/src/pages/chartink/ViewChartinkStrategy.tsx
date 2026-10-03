@@ -299,7 +299,7 @@ export default function ViewChartinkStrategy() {
                   aria-label={copiedField === 'url' ? 'Webhook URL copied' : 'Copy webhook URL'}
                 >
                   {copiedField === 'url' ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
@@ -394,7 +394,7 @@ export default function ViewChartinkStrategy() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleDeleteMapping(mapping.id)}
                         aria-label="Delete symbol mapping"
                       >

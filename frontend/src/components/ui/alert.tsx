@@ -4,15 +4,16 @@ import type * as React from 'react'
 import { cn } from '@/lib/utils'
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-8 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:size-5 [&>svg]:text-foreground',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default: 'bg-card text-foreground',
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
-        warning:
-          'border-amber-500 bg-amber-50 text-amber-900 dark:border-amber-600 dark:bg-amber-950/50 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-500',
+          'border-destructive/40 bg-destructive/8 text-destructive [&>svg]:text-destructive',
+        warning: 'border-warning/40 bg-warning/10 text-foreground [&>svg]:text-warning',
+        success: 'border-success/40 bg-success/10 text-foreground [&>svg]:text-success',
+        info: 'border-info/40 bg-info/8 text-foreground [&>svg]:text-info',
       },
     },
     defaultVariants: {
@@ -40,7 +41,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<'h5'>) {
   return (
     <h5
       data-slot="alert-title"
-      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+      className={cn('mb-1 font-semibold leading-tight tracking-tight', className)}
       {...props}
     />
   )

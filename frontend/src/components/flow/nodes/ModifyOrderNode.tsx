@@ -21,7 +21,7 @@ export const ModifyOrderNode = memo(({ data, selected }: ModifyOrderNodeProps) =
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded">
-            <Pencil className="h-3 w-3" />
+            <Pencil className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Modify Order</div>

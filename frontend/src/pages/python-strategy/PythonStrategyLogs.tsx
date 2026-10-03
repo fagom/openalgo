@@ -261,7 +261,7 @@ export default function PythonStrategyLogs() {
                     >
                       <div className="font-medium text-sm truncate">{formatLogName(log.name)}</div>
                       <div className="flex items-center gap-2 mt-1 text-xs opacity-80">
-                        <Clock className="h-3 w-3" />
+                        <Clock className="size-4" />
                         {new Date(log.last_modified).toLocaleString('en-IN', {
                           day: '2-digit',
                           month: 'short',
@@ -270,7 +270,7 @@ export default function PythonStrategyLogs() {
                         })}
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-xs opacity-80">
-                        <HardDrive className="h-3 w-3" />
+                        <HardDrive className="size-4" />
                         {log.size_kb.toFixed(2)} KB
                       </div>
                     </button>
@@ -298,7 +298,7 @@ export default function PythonStrategyLogs() {
                       onClick={handleCopyLog}
                       title="Copy log content"
                     >
-                      <Copy className="h-3.5 w-3.5 mr-1.5" />
+                      <Copy className="size-4 mr-1.5" />
                       Copy
                     </Button>
                     <Button
@@ -307,13 +307,13 @@ export default function PythonStrategyLogs() {
                       onClick={handleDownloadLog}
                       title="Download log file"
                     >
-                      <Download className="h-3.5 w-3.5 mr-1.5" />
+                      <Download className="size-4 mr-1.5" />
                       Download
                     </Button>
                   </>
                 )}
                 {strategy.status === 'running' && (
-                  <Badge className="bg-green-500 animate-pulse">Live</Badge>
+                  <Badge className="bg-success animate-pulse">Live</Badge>
                 )}
               </span>
             </CardTitle>

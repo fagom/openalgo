@@ -259,14 +259,14 @@ export default function Home() {
               href="https://www.openalgo.in/learn"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] mb-8 shadow-sm transition-colors hover:border-emerald-500/40 hover:bg-card"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] mb-8 shadow-sm transition-colors hover:border-success/40 hover:bg-card"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60" />
-              <span className="text-amber-700 dark:text-amber-500">New Here</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_8px] shadow-success/60" />
+              <span className="text-warning">New Here</span>
               <span className="text-muted-foreground">
                 - Learn Free on Open Varsity, {VARSITY_COURSES} Courses
               </span>
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowRight className="size-4 text-muted-foreground" />
             </a>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
               <span className="block text-foreground">Your Personal</span>
@@ -299,7 +299,7 @@ export default function Home() {
 
         {/* Integrates With */}
         <section className="container mx-auto px-4 py-12 sm:py-16">
-          <p className="text-center text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-amber-700 dark:text-amber-500 mb-6">
+          <p className="text-center text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-warning mb-6">
             Integrates With
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
@@ -314,43 +314,45 @@ export default function Home() {
           </div>
         </section>
 
-        {/* One platform, many desks */}
-        <section className="container mx-auto px-4 py-16 sm:py-20">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-500 mb-6">
-              <Server className="h-3.5 w-3.5" />
-              One platform, many desks
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-              Not just an algo trading platform.
-              <span className="block text-muted-foreground">A complete trading desk.</span>
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground">
-              Execution is only the starting point. Charting, no-code strategy building, options
-              analytics, scalping and sandbox testing all run inside the same self-hosted stack.
-            </p>
-          </div>
+        {/* One platform, many desks -- a full-bleed coconut band, Dropbox style */}
+        <div className="border-y bg-muted">
+          <section className="container mx-auto px-4 py-16 sm:py-20">
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-warning mb-6">
+                <Server className="size-4" />
+                One platform, many desks
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                Not just an algo trading platform.
+                <span className="block text-muted-foreground">A complete trading desk.</span>
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                Execution is only the starting point. Charting, no-code strategy building, options
+                analytics, scalping and sandbox testing all run inside the same self-hosted stack.
+              </p>
+            </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {platformDesks.map((desk) => (
-              <Card key={desk.title} className="h-full transition-colors hover:border-amber-400/40">
-                <CardContent className="space-y-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-500">
-                    <desk.icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-bold text-base">{desk.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{desk.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {platformDesks.map((desk) => (
+                <Card key={desk.title} className="h-full transition-colors hover:border-warning/40">
+                  <CardContent className="space-y-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning/10 text-warning">
+                      <desk.icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-bold text-base">{desk.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{desk.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </div>
 
         {/* Trade & Research With Your AI */}
         <section className="container mx-auto px-4 py-16 sm:py-20">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-6">
-              <Sparkles className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-success mb-6">
+              <Sparkles className="size-4" />
               Made for AI
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
@@ -364,10 +366,10 @@ export default function Home() {
 
           <div className="grid gap-6 md:grid-cols-2 max-w-6xl mx-auto">
             {/* OpenAlgo MCP card */}
-            <Card className="group transition-colors hover:border-purple-400/40">
+            <Card className="group transition-colors hover:border-chart-4/40">
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-chart-4/10 text-chart-4">
                     <Bot className="h-6 w-6" />
                   </div>
                   <div>
@@ -393,7 +395,7 @@ export default function Home() {
                   ].map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-md bg-muted px-2.5 py-1 text-xs text-neutral-600 dark:text-neutral-400"
+                      className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground"
                     >
                       {tag}
                     </span>
@@ -403,10 +405,10 @@ export default function Home() {
             </Card>
 
             {/* OpenAlgo Skills card */}
-            <Card className="group transition-colors hover:border-emerald-400/40">
+            <Card className="group transition-colors hover:border-profit/40">
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-profit/10 text-profit">
                     <Wand2 className="h-6 w-6" />
                   </div>
                   <div>
@@ -429,7 +431,7 @@ export default function Home() {
                     (tag) => (
                       <span
                         key={tag}
-                        className="rounded-md bg-muted px-2.5 py-1 text-xs text-neutral-600 dark:text-neutral-400"
+                        className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground"
                       >
                         {tag}
                       </span>

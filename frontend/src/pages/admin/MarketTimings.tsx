@@ -114,16 +114,16 @@ export default function MarketTimingsPage() {
 
   const getExchangeColor = (exchange: string) => {
     const colors: Record<string, string> = {
-      NSE: 'bg-blue-500',
-      BSE: 'bg-red-500',
-      NFO: 'bg-green-500',
-      BFO: 'bg-yellow-500',
-      MCX: 'bg-purple-500',
-      NCO: 'bg-emerald-500',
-      CDS: 'bg-orange-500',
-      BCD: 'bg-pink-500',
+      NSE: 'bg-primary',
+      BSE: 'bg-loss',
+      NFO: 'bg-success',
+      BFO: 'bg-warning',
+      MCX: 'bg-chart-4',
+      NCO: 'bg-success',
+      CDS: 'bg-warning',
+      BCD: 'bg-primary',
     }
-    return colors[exchange] || 'bg-gray-500'
+    return colors[exchange] || 'bg-muted-foreground'
   }
 
   if (isLoading) {

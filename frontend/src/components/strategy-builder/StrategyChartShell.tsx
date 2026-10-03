@@ -35,8 +35,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getChartPalette } from '@/lib/chartTheme'
 import { cn } from '@/lib/utils'
-import { useThemeStore } from '@/stores/themeStore'
+import { type AppMode, type ThemeMode, useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
 
 /**
@@ -141,31 +142,16 @@ interface HoverPoint {
  *
  * Not the generic popover tokens: the box sits on the plot rather than on the
  * page, so it is tinted to the chart surface underneath it, and analyzer mode
- * tints violet the way the rest of that mode does. Keeping the exact values
- * means the tab looks the same after the migration as before it.
+ * tints violet the way the rest of that mode does. Values come from the
+ * shared chart palette in lib/chartTheme.
  */
-function tooltipPalette(mode: string, appMode: string) {
-  if (appMode === 'analyzer') {
-    return {
-      background: 'rgba(30, 15, 60, 0.92)',
-      border: 'rgba(139, 92, 246, 0.3)',
-      text: '#d4bfff',
-      muted: '#a78bfa',
-    }
-  }
-  if (mode === 'dark') {
-    return {
-      background: 'rgba(17, 24, 39, 0.92)',
-      border: 'rgba(166, 173, 187, 0.2)',
-      text: '#e2e8f0',
-      muted: '#9ca3af',
-    }
-  }
+function tooltipPalette(mode: ThemeMode, appMode: AppMode) {
+  const p = getChartPalette(mode, appMode)
   return {
-    background: 'rgba(255, 255, 255, 0.95)',
-    border: 'rgba(0, 0, 0, 0.15)',
-    text: '#1e293b',
-    muted: '#6b7280',
+    background: p.tooltipBg,
+    border: p.tooltipBorder,
+    text: p.tooltipText,
+    muted: p.tooltipMuted,
   }
 }
 
@@ -434,7 +420,7 @@ export function StrategyChartShell({
           disabled={!widget}
           onClick={() => setIndicatorsOpen(true)}
         >
-          <BarChart3 className="h-3.5 w-3.5" />
+          <BarChart3 className="size-4" />
           <span className="hidden sm:inline">Indicators</span>
           {activeIndicators.length > 0 ? (
             <span className="rounded bg-primary/15 px-1 font-medium text-[10px] text-primary">
@@ -453,7 +439,7 @@ export function StrategyChartShell({
           onClick={() => reload.current()}
           disabled={busy || !widget}
         >
-          <RefreshCw className={cn('h-3.5 w-3.5', busy && 'animate-spin')} />
+          <RefreshCw className={cn('size-4', busy && 'animate-spin')} />
           <span className="hidden sm:inline">{busy ? 'Loading' : 'Refresh'}</span>
         </Button>
 
@@ -468,7 +454,7 @@ export function StrategyChartShell({
             disabled={!widget}
             onClick={() => widget?.openSettings()}
           >
-            <Settings2 className="h-3.5 w-3.5" />
+            <Settings2 className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -477,11 +463,7 @@ export function StrategyChartShell({
             title={fullscreen ? 'Exit full screen' : 'Full screen'}
             onClick={toggleFullscreen}
           >
-            {fullscreen ? (
-              <Minimize2 className="h-3.5 w-3.5" />
-            ) : (
-              <Maximize2 className="h-3.5 w-3.5" />
-            )}
+            {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
           </Button>
         </div>
       </div>

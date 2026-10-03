@@ -672,7 +672,7 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
               disabled={!active}
             >
               <span className="truncate">{active?.name ?? 'Watchlist'}</span>
-              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
@@ -838,7 +838,7 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
               className="h-7 gap-1.5"
               onClick={() => void retry()}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="size-4" />
               Retry
             </Button>
           </div>
@@ -945,7 +945,7 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
 
                 {/* Out of flow: at rest the grip costs the symbol column no
                     width at all, which is the column under the most pressure. */}
-                <GripVertical className="pointer-events-none absolute left-0 top-1/2 h-3 w-3 -translate-y-1/2 text-transparent transition-colors group-hover:text-muted-foreground/50" />
+                <GripVertical className="pointer-events-none absolute left-0 top-1/2 size-4 -translate-y-1/2 text-transparent transition-colors group-hover:text-muted-foreground/50" />
 
                 <span className="pointer-events-none relative flex min-w-0 items-center gap-1.5">
                   {display.logo && (
@@ -976,8 +976,8 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
                     className={cn(
                       'pointer-events-none relative text-right tabular-nums',
                       // Only a column carrying direction is coloured.
-                      column.tone && direction === 'up' && 'text-emerald-600 dark:text-emerald-400',
-                      column.tone && direction === 'down' && 'text-rose-600 dark:text-rose-400',
+                      column.tone && direction === 'up' && 'text-profit',
+                      column.tone && direction === 'down' && 'text-loss',
                       (!column.tone || direction === 'flat') && 'text-muted-foreground',
                       !column.tone && quote && 'text-foreground'
                     )}
@@ -994,7 +994,7 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
                   title={`Remove ${item.symbol}`}
                   aria-label={`Remove ${item.symbol}`}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="size-4" />
                 </button>
               </div>
             )
@@ -1022,7 +1022,7 @@ export function WatchlistPanel({ apiKey, onPick, search, activeSymbol }: Props) 
         <p
           className={cn(
             'shrink-0 border-t px-2 py-1 text-[10px]',
-            stale ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+            stale ? 'text-warning' : 'text-muted-foreground'
           )}
         >
           {feedNote}

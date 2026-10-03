@@ -366,8 +366,8 @@ export function ExecuteBasketDialog({
                       'grid grid-cols-[32px_1fr_72px_104px] items-start gap-2 px-3 py-2 text-sm',
                       idx !== rows.length - 1 && 'border-b',
                       !r.include && 'opacity-50',
-                      result?.status === 'success' && 'bg-emerald-500/5',
-                      result?.status === 'error' && 'bg-rose-500/5'
+                      result?.status === 'success' && 'bg-success/5',
+                      result?.status === 'error' && 'bg-destructive/5'
                     )}
                   >
                     {/* Include */}
@@ -387,8 +387,10 @@ export function ExecuteBasketDialog({
                       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         <span
                           className={cn(
-                            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold text-white',
-                            r.action === 'BUY' ? 'bg-emerald-700' : 'bg-rose-700'
+                            'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold',
+                            r.action === 'BUY'
+                              ? 'bg-buy text-buy-foreground'
+                              : 'bg-sell text-sell-foreground'
                           )}
                         >
                           {r.action === 'BUY' ? 'B' : 'S'}
@@ -396,15 +398,17 @@ export function ExecuteBasketDialog({
                         {r.segment === 'OPTION' && r.optionType && (
                           <span
                             className={cn(
-                              'shrink-0 rounded px-1 py-0.5 text-[10px] font-bold text-white',
-                              r.optionType === 'CE' ? 'bg-emerald-700' : 'bg-rose-700'
+                              'shrink-0 rounded px-1 py-0.5 text-[10px] font-bold',
+                              r.optionType === 'CE'
+                                ? 'bg-success text-success-foreground'
+                                : 'bg-destructive text-destructive-foreground'
                             )}
                           >
                             {r.optionType}
                           </span>
                         )}
                         {r.segment === 'FUTURE' && (
-                          <span className="shrink-0 rounded bg-sky-700 px-1 py-0.5 text-[10px] font-bold text-white">
+                          <span className="shrink-0 rounded bg-info px-1 py-0.5 text-[10px] font-bold text-info-foreground">
                             FUT
                           </span>
                         )}
@@ -422,18 +426,13 @@ export function ExecuteBasketDialog({
                         <div className="mt-0.5 flex items-center gap-1 text-[10px]">
                           {result.status === 'success' ? (
                             <>
-                              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                              <span className="truncate text-emerald-600 dark:text-emerald-400">
-                                #{result.orderid}
-                              </span>
+                              <CheckCircle2 className="size-4 text-success" />
+                              <span className="truncate text-success">#{result.orderid}</span>
                             </>
                           ) : (
                             <>
-                              <XCircle className="h-3 w-3 text-rose-500" />
-                              <span
-                                className="truncate text-rose-600 dark:text-rose-400"
-                                title={result.message}
-                              >
+                              <XCircle className="size-4 text-destructive" />
+                              <span className="truncate text-destructive" title={result.message}>
                                 {result.message || 'Failed'}
                               </span>
                             </>
@@ -480,11 +479,7 @@ export function ExecuteBasketDialog({
                       className="h-8 text-right font-mono text-xs"
                     />
                     {r.price === null && (
-                      <span
-                        id={priceErrorId}
-                        role="alert"
-                        className="text-[10px] text-rose-700 dark:text-rose-400"
-                      >
+                      <span id={priceErrorId} role="alert" className="text-[10px] text-destructive">
                         {r.symbol}: price is outside the supported tick range
                       </span>
                     )}
@@ -504,7 +499,7 @@ export function ExecuteBasketDialog({
               {results ? 'Close' : 'Cancel'}
             </Button>
             <Button onClick={handleExecute} disabled={!canSubmit || !!results} className="gap-1.5">
-              <Send className="h-3.5 w-3.5" />
+              <Send className="size-4" />
               {submitting ? 'Placing…' : `Execute (${includedRows.length})`}
             </Button>
           </div>

@@ -1,128 +1,34 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Analyzer is a dark palette applied instead of .dark, so dark: utilities
+   apply under it too. */
+@custom-variant dark (&:is(.dark *, .analyzer *));
 
-/* Base styles */
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+/* =============================================================================
+   THEME TOKENS
+   -----------------------------------------------------------------------------
+   One palette, modelled on Dropbox's product UI: white and warm "coconut"
+   surfaces, graphite text, hairline warm borders and a single blue for action.
+   Every value is a complete oklch() colour, so a token is always used as
+   var(--x), never wrapped in hsl().
 
-    /* Trading colors */
-    --profit: 142 76% 36%;
-    --profit-foreground: 0 0% 100%;
-    --loss: 0 84% 60%;
-    --loss-foreground: 0 0% 100%;
-    --buy: 217 91% 60%;
-    --buy-foreground: 0 0% 100%;
-    --sell: 25 95% 53%;
-    --sell-foreground: 0 0% 100%;
-  }
+   Pages colour through these tokens only. Tailwind palette classes such as
+   text-green-600 do not follow light, dark or analyzer mode, which is why the
+   semantic trading tokens (profit, loss, buy, sell, success, warning, info)
+   exist: reach for them instead.
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-
-    /* Trading colors (dark mode) */
-    --profit: 142 69% 58%;
-    --loss: 0 91% 71%;
-    --buy: 217 91% 65%;
-    --sell: 25 95% 63%;
-  }
-
-  /* Analyzer Mode - Dark purple theme (like dracula) */
-  .analyzer {
-    --background: oklch(0.16 0.02 280);
-    --foreground: oklch(0.95 0.02 280);
-    --card: oklch(0.2 0.025 280);
-    --card-foreground: oklch(0.95 0.02 280);
-    --popover: oklch(0.2 0.025 280);
-    --popover-foreground: oklch(0.95 0.02 280);
-    --primary: oklch(0.7 0.2 280);
-    --primary-foreground: oklch(0.98 0 0);
-    --secondary: oklch(0.28 0.03 280);
-    --secondary-foreground: oklch(0.95 0.02 280);
-    --muted: oklch(0.28 0.025 280);
-    --muted-foreground: oklch(0.7 0.03 280);
-    --accent: oklch(0.28 0.03 280);
-    --accent-foreground: oklch(0.95 0.02 280);
-    --destructive: oklch(0.65 0.2 25);
-    --destructive-foreground: oklch(0.98 0 0);
-    --border: oklch(0.35 0.04 280);
-    --input: oklch(0.35 0.04 280);
-    --ring: oklch(0.7 0.2 280);
-  }
-
-  /* Sandbox Mode - Amber/Orange unique theme (no dark variant) */
-  .sandbox {
-    --background: oklch(0.97 0.03 85);
-    --foreground: oklch(0.2 0.05 60);
-    --card: oklch(0.99 0.02 85);
-    --card-foreground: oklch(0.2 0.05 60);
-    --popover: oklch(0.99 0.02 85);
-    --popover-foreground: oklch(0.2 0.05 60);
-    --primary: oklch(0.7 0.18 70);
-    --primary-foreground: oklch(0.15 0.05 60);
-    --secondary: oklch(0.93 0.04 85);
-    --secondary-foreground: oklch(0.25 0.05 60);
-    --muted: oklch(0.93 0.03 85);
-    --muted-foreground: oklch(0.5 0.04 70);
-    --accent: oklch(0.93 0.04 85);
-    --accent-foreground: oklch(0.25 0.05 60);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.88 0.04 85);
-    --input: oklch(0.88 0.04 85);
-    --ring: oklch(0.7 0.18 70);
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-}
+   Analyzer mode is applied INSTEAD of .dark (the theme store removes one when
+   it adds the other) and has its own violet palette on purpose. It is how a
+   trader tells at a glance that orders are going to the Sandbox, so it must
+   never look like the live theme.
+   ============================================================================= */
 
 @theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Inter Tight Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -130,6 +36,7 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -138,6 +45,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -145,9 +53,29 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+
+  --color-profit: var(--profit);
+  --color-profit-foreground: var(--profit-foreground);
+  --color-loss: var(--loss);
+  --color-loss-foreground: var(--loss-foreground);
+  --color-buy: var(--buy);
+  --color-buy-foreground: var(--buy-foreground);
+  --color-sell: var(--sell);
+  --color-sell-foreground: var(--sell-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -163,264 +91,211 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Light: white page, coconut (#F7F5F2) surfaces, graphite (#1E1919) text,
+   Dropbox blue (#0061FE). */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.205 0.008 17);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.205 0.008 17);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.205 0.008 17);
+  --primary: oklch(0.537 0.247 262);
+  --primary-hover: oklch(0.49 0.235 262);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0.004 75);
+  --secondary-foreground: oklch(0.205 0.008 17);
+  --muted: oklch(0.97 0.004 75);
+  --muted-foreground: oklch(0.52 0.01 70);
+  --accent: oklch(0.945 0.006 75);
+  --accent-foreground: oklch(0.205 0.008 17);
+  --destructive: oklch(0.56 0.205 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.895 0.008 75);
+  --input: oklch(0.855 0.009 75);
+  --ring: oklch(0.537 0.247 262);
+  --overlay: oklch(0.205 0.008 17 / 0.55);
+  --tooltip: oklch(0.205 0.008 17);
+  --tooltip-foreground: oklch(0.985 0.003 75);
+
+  --profit: oklch(0.52 0.13 152);
+  --profit-foreground: oklch(1 0 0);
+  --loss: oklch(0.55 0.2 25);
+  --loss-foreground: oklch(1 0 0);
+  --buy: oklch(0.52 0.13 152);
+  --buy-foreground: oklch(1 0 0);
+  --sell: oklch(0.55 0.2 25);
+  --sell-foreground: oklch(1 0 0);
+  --success: oklch(0.52 0.13 152);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.56 0.12 65);
+  --warning-foreground: oklch(1 0 0);
+  --info: oklch(0.537 0.247 262);
+  --info-foreground: oklch(1 0 0);
+
+  /* Dropbox brand accents: ocean, tangerine, canopy, plum, sunset. */
+  --chart-1: oklch(0.537 0.247 262);
+  --chart-2: oklch(0.66 0.2 38);
+  --chart-3: oklch(0.52 0.1 165);
+  --chart-4: oklch(0.45 0.13 330);
+  --chart-5: oklch(0.76 0.16 65);
+
+  --sidebar: oklch(0.97 0.004 75);
+  --sidebar-foreground: oklch(0.205 0.008 17);
+  --sidebar-primary: oklch(0.537 0.247 262);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.945 0.006 75);
+  --sidebar-accent-foreground: oklch(0.205 0.008 17);
+  --sidebar-border: oklch(0.895 0.008 75);
+  --sidebar-ring: oklch(0.537 0.247 262);
 }
 
+/* Dark: graphite page. The blue is lifted so it reads on graphite, and its
+   label turns graphite because white on the lifted blue fails AA. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.205 0.008 17);
+  --foreground: oklch(0.965 0.004 75);
+  --card: oklch(0.235 0.008 17);
+  --card-foreground: oklch(0.965 0.004 75);
+  --popover: oklch(0.25 0.008 17);
+  --popover-foreground: oklch(0.965 0.004 75);
+  --primary: oklch(0.68 0.16 258);
+  --primary-hover: oklch(0.74 0.14 258);
+  --primary-foreground: oklch(0.18 0.008 17);
+  --secondary: oklch(0.27 0.008 17);
+  --secondary-foreground: oklch(0.965 0.004 75);
+  --muted: oklch(0.27 0.008 17);
+  --muted-foreground: oklch(0.72 0.01 70);
+  --accent: oklch(0.3 0.008 17);
+  --accent-foreground: oklch(0.965 0.004 75);
+  --destructive: oklch(0.68 0.18 22);
+  --destructive-foreground: oklch(0.18 0.008 17);
+  --border: oklch(0.32 0.008 17);
+  --input: oklch(0.37 0.008 17);
+  --ring: oklch(0.68 0.16 258);
+  --overlay: oklch(0.1 0.005 17 / 0.7);
+  --tooltip: oklch(0.965 0.004 75);
+  --tooltip-foreground: oklch(0.205 0.008 17);
+
+  --profit: oklch(0.76 0.15 152);
+  --profit-foreground: oklch(0.18 0.008 17);
+  --loss: oklch(0.7 0.17 25);
+  --loss-foreground: oklch(0.18 0.008 17);
+  --buy: oklch(0.76 0.15 152);
+  --buy-foreground: oklch(0.18 0.008 17);
+  --sell: oklch(0.7 0.17 25);
+  --sell-foreground: oklch(0.18 0.008 17);
+  --success: oklch(0.76 0.15 152);
+  --success-foreground: oklch(0.18 0.008 17);
+  --warning: oklch(0.82 0.13 80);
+  --warning-foreground: oklch(0.18 0.008 17);
+  --info: oklch(0.74 0.13 250);
+  --info-foreground: oklch(0.18 0.008 17);
+
+  --chart-1: oklch(0.68 0.16 258);
+  --chart-2: oklch(0.72 0.17 40);
+  --chart-3: oklch(0.72 0.12 165);
+  --chart-4: oklch(0.72 0.12 320);
+  --chart-5: oklch(0.82 0.14 75);
+
+  --sidebar: oklch(0.235 0.008 17);
+  --sidebar-foreground: oklch(0.965 0.004 75);
+  --sidebar-primary: oklch(0.68 0.16 258);
+  --sidebar-primary-foreground: oklch(0.18 0.008 17);
+  --sidebar-accent: oklch(0.3 0.008 17);
+  --sidebar-accent-foreground: oklch(0.965 0.004 75);
+  --sidebar-border: oklch(0.32 0.008 17);
+  --sidebar-ring: oklch(0.68 0.16 258);
+}
+
+/* Analyzer: a violet-tinted graphite with a violet primary. Deliberately
+   unlike the live theme in either mode. */
+.analyzer {
+  --background: oklch(0.2 0.03 293);
+  --foreground: oklch(0.96 0.012 293);
+  --card: oklch(0.235 0.035 293);
+  --card-foreground: oklch(0.96 0.012 293);
+  --popover: oklch(0.25 0.035 293);
+  --popover-foreground: oklch(0.96 0.012 293);
+  --primary: oklch(0.74 0.15 293);
+  --primary-hover: oklch(0.8 0.12 293);
+  --primary-foreground: oklch(0.18 0.03 293);
+  --secondary: oklch(0.28 0.04 293);
+  --secondary-foreground: oklch(0.96 0.012 293);
+  --muted: oklch(0.28 0.035 293);
+  --muted-foreground: oklch(0.75 0.03 293);
+  --accent: oklch(0.31 0.045 293);
+  --accent-foreground: oklch(0.96 0.012 293);
+  --destructive: oklch(0.7 0.17 22);
+  --destructive-foreground: oklch(0.18 0.03 293);
+  --border: oklch(0.35 0.045 293);
+  --input: oklch(0.4 0.05 293);
+  --ring: oklch(0.74 0.15 293);
+  --overlay: oklch(0.1 0.02 293 / 0.7);
+  --tooltip: oklch(0.96 0.012 293);
+  --tooltip-foreground: oklch(0.2 0.03 293);
+
+  --profit: oklch(0.78 0.14 152);
+  --profit-foreground: oklch(0.18 0.03 293);
+  --loss: oklch(0.72 0.16 22);
+  --loss-foreground: oklch(0.18 0.03 293);
+  --buy: oklch(0.78 0.14 152);
+  --buy-foreground: oklch(0.18 0.03 293);
+  --sell: oklch(0.72 0.16 22);
+  --sell-foreground: oklch(0.18 0.03 293);
+  --success: oklch(0.78 0.14 152);
+  --success-foreground: oklch(0.18 0.03 293);
+  --warning: oklch(0.83 0.12 80);
+  --warning-foreground: oklch(0.18 0.03 293);
+  --info: oklch(0.78 0.1 260);
+  --info-foreground: oklch(0.18 0.03 293);
+
+  --chart-1: oklch(0.74 0.15 293);
+  --chart-2: oklch(0.72 0.15 330);
+  --chart-3: oklch(0.72 0.12 250);
+  --chart-4: oklch(0.8 0.12 300);
+  --chart-5: oklch(0.82 0.12 75);
+
+  --sidebar: oklch(0.235 0.035 293);
+  --sidebar-foreground: oklch(0.96 0.012 293);
+  --sidebar-primary: oklch(0.74 0.15 293);
+  --sidebar-primary-foreground: oklch(0.18 0.03 293);
+  --sidebar-accent: oklch(0.31 0.045 293);
+  --sidebar-accent-foreground: oklch(0.96 0.012 293);
+  --sidebar-border: oklch(0.35 0.045 293);
+  --sidebar-ring: oklch(0.74 0.15 293);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading tracking-tight;
+  }
+  table {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Accent Color Themes - Applied via data-theme attribute */
-/* Green accent */
-[data-theme="green"]:not(.analyzer) {
-  --primary: oklch(0.55 0.2 145);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.55 0.2 145);
-}
-[data-theme="green"].dark:not(.analyzer) {
-  --primary: oklch(0.65 0.2 145);
-  --ring: oklch(0.65 0.2 145);
-}
-
-/* Blue accent */
-[data-theme="blue"]:not(.analyzer) {
-  --primary: oklch(0.55 0.2 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.55 0.2 250);
-}
-[data-theme="blue"].dark:not(.analyzer) {
-  --primary: oklch(0.65 0.2 250);
-  --ring: oklch(0.65 0.2 250);
-}
-
-/* Violet accent */
-[data-theme="violet"]:not(.analyzer) {
-  --primary: oklch(0.55 0.2 290);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.55 0.2 290);
-}
-[data-theme="violet"].dark:not(.analyzer) {
-  --primary: oklch(0.65 0.2 290);
-  --ring: oklch(0.65 0.2 290);
-}
-
-/* Orange accent */
-[data-theme="orange"]:not(.analyzer) {
-  --primary: oklch(0.65 0.2 45);
-  --primary-foreground: oklch(0.15 0 0);
-  --ring: oklch(0.65 0.2 45);
-}
-[data-theme="orange"].dark:not(.analyzer) {
-  --primary: oklch(0.7 0.2 45);
-  --ring: oklch(0.7 0.2 45);
-}
-
-/* Slate accent (subtle blue-gray) */
-[data-theme="slate"]:not(.analyzer) {
-  --primary: oklch(0.4 0.03 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.4 0.03 250);
-}
-[data-theme="slate"].dark:not(.analyzer) {
-  --primary: oklch(0.7 0.03 250);
-  --ring: oklch(0.7 0.03 250);
-}
-
-/* Gray accent (pure gray) */
-[data-theme="gray"]:not(.analyzer) {
-  --primary: oklch(0.4 0 0);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.4 0 0);
-}
-[data-theme="gray"].dark:not(.analyzer) {
-  --primary: oklch(0.7 0 0);
-  --ring: oklch(0.7 0 0);
-}
-
-/* Neutral accent (warm gray) */
-[data-theme="neutral"]:not(.analyzer) {
-  --primary: oklch(0.4 0.01 80);
-  --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.4 0.01 80);
-}
-[data-theme="neutral"].dark:not(.analyzer) {
-  --primary: oklch(0.7 0.01 80);
-  --ring: oklch(0.7 0.01 80);
-}
-
-/* Zinc is default - no override needed */
-
-/* Analyzer Mode - Dark purple theme (like dracula) - placed last for highest priority */
-.analyzer {
-  --background: oklch(0.16 0.02 280);
-  --foreground: oklch(0.95 0.02 280);
-  --card: oklch(0.2 0.025 280);
-  --card-foreground: oklch(0.95 0.02 280);
-  --popover: oklch(0.2 0.025 280);
-  --popover-foreground: oklch(0.95 0.02 280);
-  --primary: oklch(0.7 0.2 280);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.28 0.03 280);
-  --secondary-foreground: oklch(0.95 0.02 280);
-  --muted: oklch(0.28 0.025 280);
-  --muted-foreground: oklch(0.7 0.03 280);
-  --accent: oklch(0.28 0.03 280);
-  --accent-foreground: oklch(0.95 0.02 280);
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.35 0.04 280);
-  --input: oklch(0.35 0.04 280);
-  --ring: oklch(0.7 0.2 280);
-  --chart-1: oklch(0.7 0.2 280);
-  --chart-2: oklch(0.65 0.18 320);
-  --chart-3: oklch(0.6 0.15 260);
-  --chart-4: oklch(0.75 0.15 300);
-  --chart-5: oklch(0.55 0.2 240);
-  --sidebar: oklch(0.18 0.02 280);
-  --sidebar-foreground: oklch(0.95 0.02 280);
-  --sidebar-primary: oklch(0.7 0.2 280);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.28 0.03 280);
-  --sidebar-accent-foreground: oklch(0.95 0.02 280);
-  --sidebar-border: oklch(0.35 0.04 280);
-  --sidebar-ring: oklch(0.7 0.2 280);
-}
-
-/* Analyzer mode overrides for warning alerts - use amber tones that work with purple theme */
-.analyzer [data-slot="alert"].border-amber-500,
-.analyzer [data-slot="alert"].border-amber-600 {
-  --tw-border-opacity: 1;
-  border-color: oklch(0.7 0.15 70);
-  background-color: oklch(0.25 0.04 70);
-}
-.analyzer [data-slot="alert"].text-amber-900,
-.analyzer [data-slot="alert"].text-amber-200 {
-  color: oklch(0.85 0.1 70);
-}
-.analyzer [data-slot="alert"] .text-amber-600,
-.analyzer [data-slot="alert"] .text-amber-500 {
-  color: oklch(0.75 0.15 70);
-}
-
-/* Analyzer mode overrides for permission status items (Profile page) */
-.analyzer .bg-green-50,
-.analyzer .dark\:bg-green-950\/20 {
-  background-color: oklch(0.22 0.04 145) !important;
-}
-.analyzer .bg-red-50,
-.analyzer .dark\:bg-red-950\/20 {
-  background-color: oklch(0.22 0.04 25) !important;
-}
-.analyzer .border-green-200,
-.analyzer .dark\:border-green-800 {
-  border-color: oklch(0.4 0.1 145) !important;
-}
-.analyzer .border-red-200,
-.analyzer .dark\:border-red-800 {
-  border-color: oklch(0.4 0.1 25) !important;
-}
-.analyzer .bg-green-100,
-.analyzer .dark\:bg-green-900 {
-  background-color: oklch(0.3 0.06 145) !important;
-}
-.analyzer .bg-red-100,
-.analyzer .dark\:bg-red-900 {
-  background-color: oklch(0.3 0.06 25) !important;
-}
-.analyzer .bg-red-100.dark\:bg-red-900\/30,
-.analyzer .dark\:bg-red-900\/30 {
-  background-color: oklch(0.25 0.05 25) !important;
-}
-.analyzer .bg-yellow-100,
-.analyzer .dark\:bg-yellow-900\/30 {
-  background-color: oklch(0.25 0.05 70) !important;
-}
-.analyzer .text-red-700,
-.analyzer .dark\:text-red-300 {
-  color: oklch(0.75 0.15 25) !important;
-}
-.analyzer .text-red-600,
-.analyzer .dark\:text-red-400 {
-  color: oklch(0.7 0.15 25) !important;
-}
-.analyzer .text-yellow-700,
-.analyzer .dark\:text-yellow-300 {
-  color: oklch(0.8 0.12 70) !important;
-}
-.analyzer .bg-red-200,
-.analyzer .dark\:bg-red-800 {
-  background-color: oklch(0.35 0.08 25) !important;
+/* Bottom market ticker (components/layout/MarketTicker.tsx). It moves itself
+   from JavaScript; under reduced motion it stays still and scrolls by hand. */
+@media (prefers-reduced-motion: reduce) {
+  .ticker-viewport {
+    overflow-x: auto;
+  }
 }
 
 /* Safe area utilities for mobile devices with notches/home indicators */
@@ -478,24 +353,25 @@
 
 /* Flow Node Colors */
 :root {
-  --node-trigger: 38 92% 50%;
-  --node-action: 217 91% 60%;
-  --node-condition: 270 60% 60%;
-  --node-data: 142 76% 36%;
-  --node-utility: 200 70% 50%;
+  --node-trigger: oklch(0.66 0.2 38);
+  --node-action: oklch(0.537 0.247 262);
+  --node-condition: oklch(0.55 0.17 300);
+  --node-data: oklch(0.52 0.13 152);
+  --node-utility: oklch(0.6 0.11 220);
 }
 
-.dark {
-  --node-trigger: 38 92% 55%;
-  --node-action: 217 91% 65%;
-  --node-condition: 270 60% 65%;
-  --node-data: 142 76% 46%;
-  --node-utility: 200 70% 55%;
+.dark,
+.analyzer {
+  --node-trigger: oklch(0.72 0.17 40);
+  --node-action: oklch(0.68 0.16 258);
+  --node-condition: oklch(0.7 0.14 300);
+  --node-data: oklch(0.76 0.15 152);
+  --node-utility: oklch(0.72 0.1 220);
 }
 
 /* ReactFlow Base Styles */
 .react-flow__background {
-  background-color: hsl(var(--background)) !important;
+  background-color: var(--background) !important;
 }
 
 .react-flow__node {
@@ -511,53 +387,41 @@
   width: 12px;
   height: 12px;
   border-width: 2px;
-  background: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--background)) !important;
+  background: var(--foreground) !important;
+  border-color: var(--background) !important;
   transition: box-shadow 0.2s ease;
 }
 
-/* Multi-color neon glow on handle hover */
+/* Soft primary ring on handle hover */
 .react-flow__handle:hover {
-  box-shadow:
-    0 0 4px #e879f9,
-    0 0 8px #e879f9,
-    0 0 12px rgba(232, 121, 249, 0.6),
-    0 0 16px rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 25%, transparent);
 }
 
 /* Glow during connection drag */
 .react-flow__handle.connectingto,
 .react-flow__handle.connectingfrom {
-  box-shadow:
-    0 0 4px #e879f9,
-    0 0 8px #e879f9,
-    0 0 12px rgba(232, 121, 249, 0.6),
-    0 0 16px rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 25%, transparent);
 }
 
-/* Bright cyan glow when hovering over valid target */
+/* Valid drop target */
 .react-flow__handle.valid {
-  background: #22d3ee !important;
-  box-shadow:
-    0 0 4px #22d3ee,
-    0 0 8px #22d3ee,
-    0 0 12px rgba(34, 211, 238, 0.6),
-    0 0 16px rgba(232, 121, 249, 0.3);
+  background: var(--success) !important;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--success) 30%, transparent);
 }
 
 .react-flow__edge-path {
-  stroke: #888888;
+  stroke: var(--muted-foreground);
   stroke-width: 2px;
 }
 
 .react-flow__edge.selected .react-flow__edge-path,
 .react-flow__edge:hover .react-flow__edge-path {
-  stroke: #ffffff;
+  stroke: var(--primary);
 }
 
 /* Ensure edge paths are visible */
 .react-flow__edge path {
-  stroke: #888888;
+  stroke: var(--muted-foreground);
   stroke-width: 2px;
 }
 
@@ -573,27 +437,27 @@
 
 /* Connection line style */
 .react-flow__connection-line {
-  stroke: hsl(var(--primary));
+  stroke: var(--primary);
   stroke-width: 2px;
 }
 
 .react-flow__controls {
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card)) !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  border: 1px solid var(--border);
+  background: var(--card) !important;
+  box-shadow: 0 1px 2px 0 rgb(30 25 25 / 0.06);
 }
 
 .react-flow__controls-button {
   border: 0;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid var(--border);
   background: transparent !important;
-  fill: hsl(var(--foreground)) !important;
+  fill: var(--foreground) !important;
 }
 
 .react-flow__controls-button:hover {
-  background: hsl(var(--accent)) !important;
+  background: var(--accent) !important;
 }
 
 .react-flow__controls-button:last-child {
@@ -603,16 +467,16 @@
 .react-flow__minimap {
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card)) !important;
+  border: 1px solid var(--border);
+  background: var(--card) !important;
 }
 
 .react-flow__minimap-mask {
-  fill: hsl(var(--background) / 0.9) !important;
+  fill: color-mix(in oklch, var(--background) 90%, transparent) !important;
 }
 
 .react-flow__minimap-node {
-  fill: hsl(var(--muted-foreground)) !important;
+  fill: var(--muted-foreground) !important;
   stroke: none !important;
 }
 
@@ -623,54 +487,43 @@
 }
 
 .workflow-node:hover {
-  border-color: #e879f9;
-  box-shadow:
-    /* Pink/magenta - subtle outer glow */
-    0 0 3px #e879f9,
-    0 0 6px rgba(232, 121, 249, 0.5),
-    /* Cyan accent */
-    inset 0 0 2px rgba(34, 211, 238, 0.3);
+  border-color: color-mix(in oklch, var(--primary) 50%, var(--border));
 }
 
 .workflow-node.selected {
-  border-color: #22d3ee;
-  box-shadow:
-    /* Cyan - subtle outer glow */
-    0 0 3px #22d3ee,
-    0 0 6px rgba(34, 211, 238, 0.5),
-    /* Pink accent */
-    inset 0 0 2px rgba(232, 121, 249, 0.3);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 25%, transparent);
 }
 
 /* Node type indicators */
 .node-trigger {
   @apply border-l-2;
-  border-left-color: hsl(var(--node-trigger));
+  border-left-color: var(--node-trigger);
 }
 
 .node-start {
   @apply border-l-2;
-  border-left-color: hsl(var(--node-trigger));
+  border-left-color: var(--node-trigger);
 }
 
 .node-action {
   @apply border-l-2;
-  border-left-color: hsl(var(--node-action));
+  border-left-color: var(--node-action);
 }
 
 .node-condition {
   @apply border-l-2;
-  border-left-color: hsl(var(--node-condition));
+  border-left-color: var(--node-condition);
 }
 
 .node-data {
   @apply border-l-2;
-  border-left-color: hsl(var(--primary));
+  border-left-color: var(--primary);
 }
 
 .node-utility {
   @apply border-l-2;
-  border-left-color: hsl(var(--muted-foreground));
+  border-left-color: var(--muted-foreground);
 }
 
 /* Node icon styles */
@@ -680,15 +533,15 @@
 
 .node-trigger .node-icon,
 .node-start .node-icon {
-  @apply bg-[hsl(var(--node-trigger))]/10 text-[hsl(var(--node-trigger))];
+  @apply bg-[var(--node-trigger)]/10 text-[var(--node-trigger)];
 }
 
 .node-action .node-icon {
-  @apply bg-[hsl(var(--node-action))]/10 text-[hsl(var(--node-action))];
+  @apply bg-[var(--node-action)]/10 text-[var(--node-action)];
 }
 
 .node-condition .node-icon {
-  @apply bg-[hsl(var(--node-condition))]/10 text-[hsl(var(--node-condition))];
+  @apply bg-[var(--node-condition)]/10 text-[var(--node-condition)];
 }
 
 .node-data .node-icon {
@@ -707,20 +560,20 @@
 }
 
 .flow-status-dot.active {
-  background-color: hsl(var(--node-data));
+  background-color: var(--node-data);
 }
 
 .flow-status-dot.inactive {
-  background-color: hsl(var(--muted-foreground) / 0.5);
+  background-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
 }
 
 .flow-status-dot.running {
-  background-color: hsl(var(--node-trigger));
+  background-color: var(--node-trigger);
   animation: flow-pulse 2s ease-in-out infinite;
 }
 
 .flow-status-dot.error {
-  background-color: hsl(var(--destructive));
+  background-color: var(--destructive);
 }
 
 @keyframes flow-pulse {
@@ -740,11 +593,11 @@
 
 /* Buy/Sell badges */
 .badge-buy {
-  @apply bg-[hsl(142_76%_36%/0.15)] text-[hsl(142_76%_46%)] border border-[hsl(142_76%_36%/0.3)] rounded-md px-2 py-0.5 text-xs font-medium;
+  @apply bg-buy/12 text-buy border border-buy/30 rounded-md px-2 py-0.5 text-xs font-medium;
 }
 
 .badge-sell {
-  @apply bg-[hsl(0_84%_60%/0.15)] text-[hsl(0_84%_70%)] border border-[hsl(0_84%_60%/0.3)] rounded-md px-2 py-0.5 text-xs font-medium;
+  @apply bg-sell/12 text-sell border border-sell/30 rounded-md px-2 py-0.5 text-xs font-medium;
 }
 
 /* Surface background for node data rows */
@@ -761,29 +614,16 @@
    worth remembering to opt in per element. `.scrollbar-thin` below still exists
    for places that want the narrower variant. */
 
-/* Scrollbar chrome, and why it is a literal colour rather than a token.
-   ---------------------------------------------------------------------------
-   This file carries two incompatible token systems: the base :root and .dark
-   define channels ("240 3.8% 46.1%") for hsl(var(--x)), while .analyzer and the
-   accent themes define complete oklch() colours. hsl(var(--muted-foreground))
-   is therefore invalid under half of them, and an invalid scrollbar-color
-   silently falls back to `auto`, which paints the browser's light default on a
-   dark panel. That is exactly what shipped.
-
-   color-scheme is the real fix and covers more than scrollbars: it tells the
-   engine to render every native control (scrollbars, selects, checkboxes, date
-   pickers) in the matching palette. The scrollbar-color below is a literal
-   slate that reads on either theme, so it cannot be invalidated by whichever
-   token system is in force. */
-:root,
-.sandbox {
+/* Scrollbar chrome. color-scheme tells the engine to render every native
+   control (scrollbars, selects, checkboxes, date pickers) in the matching
+   palette; the scrollbar colour below is a literal warm gray that reads on
+   every theme. */
+:root {
   color-scheme: light;
 }
 
-/* .analyzer is a dark palette (background oklch(0.16 ...)) applied INSTEAD of
-   .dark, not alongside it: the theme store removes 'dark' when it adds
-   'analyzer'. So it has to declare dark itself or every native control in
-   Analyze Mode renders light on a dark page. .sandbox is the light one. */
+/* Analyzer is a dark palette applied instead of .dark, so it declares dark
+   itself or every native control in analyzer mode renders light. */
 .dark,
 .analyzer {
   color-scheme: dark;
@@ -791,7 +631,7 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(113 122 143 / 0.45) transparent;
+  scrollbar-color: rgb(128 120 112 / 0.45) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -804,14 +644,14 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(113 122 143 / 0.38);
+  background: rgb(128 120 112 / 0.38);
   border: 2px solid transparent;
   background-clip: content-box;
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(113 122 143 / 0.62);
+  background: rgb(128 120 112 / 0.62);
   background-clip: content-box;
 }
 
@@ -844,11 +684,11 @@
 /* Thin scrollbar utility class */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgb(113 122 143 / 0.38) transparent;
+  scrollbar-color: rgb(128 120 112 / 0.38) transparent;
 }
 
 .scrollbar-thin:hover {
-  scrollbar-color: rgb(113 122 143 / 0.62) transparent;
+  scrollbar-color: rgb(128 120 112 / 0.62) transparent;
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) */
@@ -863,13 +703,13 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
+  background: color-mix(in oklch, var(--muted-foreground) 20%, transparent);
   border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+  background: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
 }
 
 .scrollbar-thin::-webkit-scrollbar-corner {
@@ -878,9 +718,8 @@
 
 /* OpenScript editor syntax colours.
  *
- * Their own small palette rather than the app's accent, because the accent is
- * the operator's choice from six hues and a keyword painted in it would vanish
- * under one theme and shout under another. Low chroma on purpose: inside a
+ * Their own small palette rather than the app's primary, so a keyword does not
+ * read as a link or a button. Low chroma on purpose: inside a
  * monospace block these read as syntax, and a code panel is not the place to
  * compete with the chart beside it.
  *
@@ -899,7 +738,8 @@
   --oscript-punctuation: oklch(0.55 0.02 260);
 }
 
-.dark {
+.dark,
+.analyzer {
   --oscript-comment: oklch(0.62 0.02 260);
   --oscript-string: oklch(0.78 0.13 155);
   --oscript-number: oklch(0.8 0.12 75);
@@ -944,8 +784,6 @@
 }
 .oscript-identifier,
 .oscript-plain {
-  /* Inherited rather than named: this file defines --foreground as an HSL
-     triplet in some scopes and an oklch value in others, so wrapping it would
-     be invalid under half of them. The editor already sets its own colour. */
+  /* Inherited: the editor already sets its own colour. */
   color: inherit;
 }

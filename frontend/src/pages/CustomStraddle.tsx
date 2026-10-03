@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
 import { showToast } from '@/utils/toast'
@@ -113,8 +114,6 @@ export default function CustomStraddle() {
     defaultToolsFnoExchange: defaultFnoExchange,
     defaultUnderlyings,
   } = useSupportedExchanges()
-  const isDarkMode = mode === 'dark'
-  const isAnalyzer = appMode === 'analyzer'
 
   // Control state
   const [isLoading, setIsLoading] = useState(false)
@@ -171,71 +170,28 @@ export default function CustomStraddle() {
 
   // Theme colors
   const colors = useMemo(() => {
-    if (isAnalyzer) {
-      return {
-        text: '#d4bfff',
-        grid: 'rgba(139, 92, 246, 0.1)',
-        border: 'rgba(139, 92, 246, 0.2)',
-        crosshair: 'rgba(139, 92, 246, 0.5)',
-        crosshairLabel: '#4c1d95',
-        spot: '#e2e8f0',
-        profitLine: '#4ade80',
-        profitFill1: 'rgba(74, 222, 128, 0.28)',
-        profitFill2: 'rgba(74, 222, 128, 0.05)',
-        lossLine: '#f87171',
-        lossFill1: 'rgba(248, 113, 113, 0.05)',
-        lossFill2: 'rgba(248, 113, 113, 0.28)',
-        watermark: 'rgba(139, 92, 246, 0.12)',
-        synthetic: '#60a5fa',
-        tooltipBg: 'rgba(30, 15, 60, 0.92)',
-        tooltipBorder: 'rgba(139, 92, 246, 0.3)',
-        tooltipText: '#d4bfff',
-        tooltipMuted: '#a78bfa',
-      }
-    }
-    if (isDarkMode) {
-      return {
-        text: '#a6adbb',
-        grid: 'rgba(166, 173, 187, 0.1)',
-        border: 'rgba(166, 173, 187, 0.2)',
-        crosshair: 'rgba(166, 173, 187, 0.5)',
-        crosshairLabel: '#1f2937',
-        spot: '#e2e8f0',
-        profitLine: '#4ade80',
-        profitFill1: 'rgba(74, 222, 128, 0.28)',
-        profitFill2: 'rgba(74, 222, 128, 0.05)',
-        lossLine: '#f87171',
-        lossFill1: 'rgba(248, 113, 113, 0.05)',
-        lossFill2: 'rgba(248, 113, 113, 0.28)',
-        watermark: 'rgba(166, 173, 187, 0.12)',
-        synthetic: '#60a5fa',
-        tooltipBg: 'rgba(17, 24, 39, 0.92)',
-        tooltipBorder: 'rgba(166, 173, 187, 0.2)',
-        tooltipText: '#e2e8f0',
-        tooltipMuted: '#9ca3af',
-      }
-    }
+    const p = getChartPalette(mode, appMode)
     return {
-      text: '#333',
-      grid: 'rgba(0, 0, 0, 0.1)',
-      border: 'rgba(0, 0, 0, 0.2)',
-      crosshair: 'rgba(0, 0, 0, 0.3)',
-      crosshairLabel: '#2563eb',
-      spot: '#1e293b',
-      profitLine: '#16a34a',
-      profitFill1: 'rgba(22, 163, 106, 0.28)',
-      profitFill2: 'rgba(22, 163, 106, 0.05)',
-      lossLine: '#dc2626',
-      lossFill1: 'rgba(220, 38, 38, 0.05)',
-      lossFill2: 'rgba(220, 38, 38, 0.28)',
-      watermark: 'rgba(0, 0, 0, 0.06)',
-      synthetic: '#2563eb',
-      tooltipBg: 'rgba(255, 255, 255, 0.95)',
-      tooltipBorder: 'rgba(0, 0, 0, 0.15)',
-      tooltipText: '#1e293b',
-      tooltipMuted: '#6b7280',
+      text: p.textMuted,
+      grid: p.grid,
+      border: p.border,
+      crosshair: p.crosshair,
+      crosshairLabel: p.crosshairLabel,
+      spot: p.spot,
+      profitLine: p.up,
+      profitFill1: withAlpha(p.up, 0.28),
+      profitFill2: withAlpha(p.up, 0.05),
+      lossLine: p.down,
+      lossFill1: withAlpha(p.down, 0.05),
+      lossFill2: withAlpha(p.down, 0.28),
+      watermark: p.watermark,
+      synthetic: p.primary,
+      tooltipBg: p.tooltipBg,
+      tooltipBorder: p.tooltipBorder,
+      tooltipText: p.tooltipText,
+      tooltipMuted: p.tooltipMuted,
     }
-  }, [isDarkMode, isAnalyzer])
+  }, [mode, appMode])
 
   const colorsRef = useRef(colors)
   colorsRef.current = colors
@@ -336,7 +292,7 @@ export default function CustomStraddle() {
 
     // Watermark
     const watermark = document.createElement('div')
-    watermark.style.cssText = `position:absolute;z-index:2;font-family:Arial,sans-serif;font-size:48px;font-weight:bold;user-select:none;pointer-events:none;color:${colors.watermark}`
+    watermark.style.cssText = `position:absolute;z-index:2;font-family:${CHART_FONT.replace(/"/g, "'")};font-size:48px;font-weight:bold;user-select:none;pointer-events:none;color:${colors.watermark}`
     watermark.textContent = 'OpenAlgo'
     container.appendChild(watermark)
     watermarkRef.current = watermark
@@ -829,7 +785,7 @@ export default function CustomStraddle() {
               <div>
                 <span className="text-muted-foreground">P&L </span>
                 <span
-                  className={`font-semibold ${summary.total_pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                  className={`font-semibold ${summary.total_pnl >= 0 ? 'text-profit' : 'text-loss'}`}
                 >
                   {formatINR(summary.total_pnl)}
                 </span>
@@ -840,11 +796,11 @@ export default function CustomStraddle() {
               </div>
               <div>
                 <span className="text-muted-foreground">Max </span>
-                <span className="font-medium text-green-500">{formatINR(summary.max_pnl)}</span>
+                <span className="font-medium text-profit">{formatINR(summary.max_pnl)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Min </span>
-                <span className="font-medium text-red-500">{formatINR(summary.min_pnl)}</span>
+                <span className="font-medium text-loss">{formatINR(summary.min_pnl)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Spot </span>
@@ -955,14 +911,14 @@ function TradeRow({ trade }: { trade: TradeEntry }) {
   const { date, time } = formatIST(trade.time)
   const typeColor =
     trade.type === 'ENTRY'
-      ? 'text-blue-500'
+      ? 'text-primary'
       : trade.type === 'ADJUSTMENT'
-        ? 'text-amber-500'
-        : 'text-purple-500'
+        ? 'text-warning'
+        : 'text-chart-4'
 
-  const pnlColor = trade.leg_pnl > 0 ? 'text-green-500' : trade.leg_pnl < 0 ? 'text-red-500' : ''
+  const pnlColor = trade.leg_pnl > 0 ? 'text-profit' : trade.leg_pnl < 0 ? 'text-loss' : ''
   const cumColor =
-    trade.cumulative_pnl > 0 ? 'text-green-500' : trade.cumulative_pnl < 0 ? 'text-red-500' : ''
+    trade.cumulative_pnl > 0 ? 'text-profit' : trade.cumulative_pnl < 0 ? 'text-loss' : ''
 
   const strikeDisplay =
     trade.type === 'ADJUSTMENT' && trade.old_strike

@@ -260,7 +260,7 @@ export default function HolidaysPage() {
       case 'SETTLEMENT_HOLIDAY':
         return <Badge variant="secondary">Settlement Holiday</Badge>
       case 'SPECIAL_SESSION':
-        return <Badge className="bg-purple-500 hover:bg-purple-600">Special Session</Badge>
+        return <Badge className="bg-chart-4 hover:bg-chart-4/90">Special Session</Badge>
       default:
         return <Badge variant="outline">{type}</Badge>
     }

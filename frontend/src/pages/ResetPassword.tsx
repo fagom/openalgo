@@ -116,9 +116,9 @@ export default function ResetPassword() {
   const canSubmitPassword = allRequirementsMet && passwordsMatch === true
 
   const getStrengthLabel = () => {
-    if (passwordStrength >= 80) return { label: 'Strong', color: 'text-green-500' }
-    if (passwordStrength >= 50) return { label: 'Medium', color: 'text-yellow-500' }
-    if (passwordStrength > 0) return { label: 'Weak', color: 'text-red-500' }
+    if (passwordStrength >= 80) return { label: 'Strong', color: 'text-profit' }
+    if (passwordStrength >= 50) return { label: 'Medium', color: 'text-warning' }
+    if (passwordStrength > 0) return { label: 'Weak', color: 'text-loss' }
     return { label: '', color: '' }
   }
 
@@ -264,7 +264,7 @@ export default function ResetPassword() {
 
   const RequirementItem = ({ met, label }: { met: boolean; label: string }) => (
     <div
-      className={`flex items-center gap-2 text-sm transition-colors ${met ? 'text-green-500' : 'text-muted-foreground'}`}
+      className={`flex items-center gap-2 text-sm transition-colors ${met ? 'text-success' : 'text-muted-foreground'}`}
     >
       <Check className={`h-4 w-4 ${met ? 'opacity-100' : 'opacity-0'}`} />
       <span>{label}</span>
@@ -287,11 +287,9 @@ export default function ResetPassword() {
             )}
 
             {success && (
-              <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <AlertDescription className="text-green-700 dark:text-green-300">
-                  {success}
-                </AlertDescription>
+              <Alert className="border-success/60 bg-success/10">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">{success}</AlertDescription>
               </Alert>
             )}
 
@@ -407,8 +405,8 @@ export default function ResetPassword() {
             {step === 'email_sent' && (
               <div className="text-center space-y-4">
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
-                    <Mail className="h-8 w-8 text-white" />
+                  <div className="w-16 h-16 rounded-full bg-success flex items-center justify-center">
+                    <Mail className="h-8 w-8 text-success-foreground" />
                   </div>
                 </div>
                 <h3 className="text-lg font-semibold">Check Your Email</h3>
@@ -471,7 +469,9 @@ export default function ResetPassword() {
                     required
                   />
                   {passwordsMatch !== null && (
-                    <p className={`text-sm ${passwordsMatch ? 'text-green-500' : 'text-red-500'}`}>
+                    <p
+                      className={`text-sm ${passwordsMatch ? 'text-success' : 'text-destructive'}`}
+                    >
                       {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
                     </p>
                   )}

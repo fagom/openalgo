@@ -25,6 +25,7 @@ import {
   type IChartApi,
   type ISeriesApi,
 } from 'lightweight-charts'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 
 // PnL and drawdown are plotted in separate panes rather than sharing one price
 // scale. Drawdown is always <= 0 and usually an order of magnitude smaller than
@@ -42,9 +43,6 @@ const DRAWDOWN_PANE_HEIGHT = CHART_HEIGHT - PNL_PANE_HEIGHT
 // card points at the series it summarises: green and red for MTM either side of
 // break-even, amber for drawdown. Tailwind 500-weight hex values, because the
 // canvas cannot parse the oklch CSS tokens the cards use.
-const COLOR_PROFIT = '#22c55e' // green-500, matches a positive Current MTM
-const COLOR_LOSS = '#ef4444' // red-500, matches a negative Current MTM
-const COLOR_DRAWDOWN = '#eab308' // yellow-500, matches the Max Drawdown card
 
 interface PnLDataPoint {
   time: number
@@ -63,8 +61,8 @@ interface PnLData {
 }
 
 export default function PnLTracker() {
-  const { mode } = useThemeStore()
-  const isDarkMode = mode === 'dark'
+  const { mode, appMode } = useThemeStore()
+  const pal = useMemo(() => getChartPalette(mode, appMode), [mode, appMode])
   const { user } = useAuthStore()
   const formatCurrency = useMemo(() => makeFormatCurrency(user?.broker), [user?.broker])
 
@@ -123,31 +121,31 @@ export default function PnLTracker() {
       height: CHART_HEIGHT,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: isDarkMode ? '#a6adbb' : '#333',
+        textColor: pal.textMuted,
         panes: {
           enableResize: true,
-          separatorColor: isDarkMode ? 'rgba(166, 173, 187, 0.2)' : 'rgba(0, 0, 0, 0.2)',
-          separatorHoverColor: isDarkMode ? 'rgba(166, 173, 187, 0.4)' : 'rgba(0, 0, 0, 0.35)',
+          separatorColor: pal.border,
+          separatorHoverColor: pal.crosshair,
         },
       },
       grid: {
         vertLines: {
-          color: isDarkMode ? 'rgba(166, 173, 187, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+          color: pal.grid,
           style: 1,
           visible: true,
         },
         horzLines: {
-          color: isDarkMode ? 'rgba(166, 173, 187, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+          color: pal.grid,
           style: 1,
           visible: true,
         },
       },
       rightPriceScale: {
-        borderColor: isDarkMode ? 'rgba(166, 173, 187, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+        borderColor: pal.border,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: isDarkMode ? 'rgba(166, 173, 187, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+        borderColor: pal.border,
         timeVisible: true,
         secondsVisible: false,
         tickMarkFormatter: (time: number) => {
@@ -163,15 +161,15 @@ export default function PnLTracker() {
         mode: CrosshairMode.Normal,
         vertLine: {
           width: 1,
-          color: isDarkMode ? 'rgba(166, 173, 187, 0.5)' : 'rgba(0, 0, 0, 0.3)',
+          color: pal.crosshair,
           style: 2,
           labelVisible: false,
         },
         horzLine: {
           width: 1,
-          color: isDarkMode ? 'rgba(166, 173, 187, 0.5)' : 'rgba(0, 0, 0, 0.3)',
+          color: pal.crosshair,
           style: 2,
-          labelBackgroundColor: isDarkMode ? '#1f2937' : '#2563eb',
+          labelBackgroundColor: pal.crosshairLabel,
         },
       },
     })
@@ -180,8 +178,8 @@ export default function PnLTracker() {
     const watermark = document.createElement('div')
     watermark.style.position = 'absolute'
     watermark.style.zIndex = '2'
-    watermark.style.color = isDarkMode ? 'rgba(166, 173, 187, 0.2)' : 'rgba(0, 0, 0, 0.15)'
-    watermark.style.fontFamily = 'Arial, sans-serif'
+    watermark.style.color = pal.watermark
+    watermark.style.fontFamily = CHART_FONT
     watermark.style.fontSize = '48px'
     watermark.style.fontWeight = 'bold'
     watermark.style.userSelect = 'none'
@@ -218,12 +216,12 @@ export default function PnLTracker() {
       BaselineSeries,
       {
         baseValue: { type: 'price', price: 0 },
-        topLineColor: COLOR_PROFIT,
-        topFillColor1: 'rgba(34, 197, 94, 0.28)',
-        topFillColor2: 'rgba(34, 197, 94, 0.02)',
-        bottomLineColor: COLOR_LOSS,
-        bottomFillColor1: 'rgba(239, 68, 68, 0.02)',
-        bottomFillColor2: 'rgba(239, 68, 68, 0.28)',
+        topLineColor: pal.up,
+        topFillColor1: withAlpha(pal.up, 0.28),
+        topFillColor2: withAlpha(pal.up, 0.02),
+        bottomLineColor: pal.down,
+        bottomFillColor1: withAlpha(pal.down, 0.02),
+        bottomFillColor2: withAlpha(pal.down, 0.28),
         lineWidth: 2,
         priceScaleId: 'right',
         priceFormat: {
@@ -242,12 +240,12 @@ export default function PnLTracker() {
       {
         baseValue: { type: 'price', price: 0 },
         // Drawdown is never positive; the top half is defined but unused.
-        topLineColor: COLOR_DRAWDOWN,
-        topFillColor1: 'rgba(234, 179, 8, 0)',
-        topFillColor2: 'rgba(234, 179, 8, 0)',
-        bottomLineColor: COLOR_DRAWDOWN,
-        bottomFillColor1: 'rgba(234, 179, 8, 0.04)',
-        bottomFillColor2: 'rgba(234, 179, 8, 0.30)',
+        topLineColor: pal.warning,
+        topFillColor1: withAlpha(pal.warning, 0.0),
+        topFillColor2: withAlpha(pal.warning, 0.0),
+        bottomLineColor: pal.warning,
+        bottomFillColor1: withAlpha(pal.warning, 0.04),
+        bottomFillColor2: withAlpha(pal.warning, 0.3),
         lineWidth: 2,
         priceScaleId: 'right',
         priceFormat: {
@@ -281,7 +279,7 @@ export default function PnLTracker() {
     return () => {
       window.removeEventListener('resize', handleResize)
     }
-  }, [isDarkMode])
+  }, [pal])
 
   // Load PnL data
   const loadPnLData = useCallback(async () => {
@@ -393,8 +391,7 @@ export default function PnLTracker() {
       // Match the page's own background instead of a hardcoded slate, so the
       // exported PNG does not sit on a colour the app never shows. Reading the
       // computed style also keeps it correct for any future theme.
-      const pageBackground =
-        getComputedStyle(document.body).backgroundColor || (isDarkMode ? '#1f2937' : '#ffffff')
+      const pageBackground = getComputedStyle(document.body).backgroundColor || pal.background
 
       const canvas = await html2canvas(screenshotContainerRef.current, {
         backgroundColor: pageBackground,
@@ -510,13 +507,11 @@ export default function PnLTracker() {
             </CardHeader>
             <CardContent>
               <div
-                className={`text-2xl font-bold font-mono ${metrics.currentMtm >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                className={`text-2xl font-bold font-mono ${metrics.currentMtm >= 0 ? 'text-profit' : 'text-loss'}`}
               >
                 {formatCurrency(metrics.currentMtm)}
               </div>
-              <div
-                className={`text-sm ${metrics.currentMtm >= 0 ? 'text-green-500' : 'text-red-500'}`}
-              >
+              <div className={`text-sm ${metrics.currentMtm >= 0 ? 'text-profit' : 'text-loss'}`}>
                 {metrics.currentMtm >= 0 ? '+' : ''}
                 {((metrics.currentMtm / 100000) * 100).toFixed(2)}%
               </div>
@@ -527,12 +522,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-profit" />
                 Max MTM
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-green-500">
+              <div className="text-2xl font-bold font-mono text-success">
                 {formatCurrency(metrics.maxMtm)}
               </div>
               <div className="text-sm text-muted-foreground">at {metrics.maxMtmTime}</div>
@@ -543,12 +538,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <TrendingDown className="h-4 w-4 text-loss" />
                 Min MTM
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500">
+              <div className="text-2xl font-bold font-mono text-destructive">
                 {formatCurrency(metrics.minMtm)}
               </div>
               <div className="text-sm text-muted-foreground">at {metrics.minMtmTime}</div>
@@ -559,12 +554,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <AlertTriangle className="h-4 w-4 text-warning" />
                 Max Drawdown
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-yellow-500">
+              <div className="text-2xl font-bold font-mono text-warning">
                 {formatCurrency(Math.abs(metrics.maxDrawdown))}
               </div>
               <div className="text-sm text-muted-foreground">Peak to trough</div>
@@ -581,13 +576,13 @@ export default function PnLTracker() {
                 <span className="flex items-center gap-1.5">
                   {/* Split swatch: the MTM curve is green above break-even, red below */}
                   <span className="inline-flex h-3 w-3 overflow-hidden rounded-full">
-                    <span className="h-full w-1/2 bg-green-500" />
-                    <span className="h-full w-1/2 bg-red-500" />
+                    <span className="h-full w-1/2 bg-profit" />
+                    <span className="h-full w-1/2 bg-loss" />
                   </span>
                   MTM PnL
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-full bg-yellow-500"></span>
+                  <span className="inline-block w-3 h-3 rounded-full bg-warning"></span>
                   Drawdown
                 </span>
               </div>

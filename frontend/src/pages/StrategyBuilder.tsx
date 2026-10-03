@@ -288,9 +288,10 @@ export default function StrategyBuilder() {
   const requiredSupplementalChainKeys = useMemo(() => {
     const derivativeExchange = optionExchangeFor(selectedExchange)
     return new Set(
-      supplementalExpiryKey.split('|').filter(Boolean).map((expiry) =>
-        chainIdentity(derivativeExchange, selectedUnderlying, expiry)
-      )
+      supplementalExpiryKey
+        .split('|')
+        .filter(Boolean)
+        .map((expiry) => chainIdentity(derivativeExchange, selectedUnderlying, expiry))
     )
   }, [selectedExchange, selectedUnderlying, supplementalExpiryKey])
 
@@ -362,13 +363,7 @@ export default function StrategyBuilder() {
         })
       )
     },
-    [
-      apiKey,
-      rememberSupplementalChain,
-      selectedExchange,
-      selectedUnderlying,
-      supplementalExpiryKey,
-    ]
+    [apiKey, rememberSupplementalChain, selectedExchange, selectedUnderlying, supplementalExpiryKey]
   )
 
   useEffect(() => {
@@ -376,9 +371,7 @@ export default function StrategyBuilder() {
     const requiredKeys = new Set(requiredSupplementalChainKeys)
     supplementalChainKeysRef.current = requiredKeys
     setSupplementalChains((previous) => {
-      const retained = new Map(
-        Array.from(previous).filter(([key]) => requiredKeys.has(key))
-      )
+      const retained = new Map(Array.from(previous).filter(([key]) => requiredKeys.has(key)))
       return retained.size === previous.size ? previous : retained
     })
     for (const key of supplementalClockOffsetsRef.current.keys()) {
@@ -398,10 +391,7 @@ export default function StrategyBuilder() {
       window.clearInterval(interval)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [
-    refreshSupplementalChains,
-    requiredSupplementalChainKeys,
-  ])
+  }, [refreshSupplementalChains, requiredSupplementalChainKeys])
 
   const supplementalWsSymbols = useMemo(() => {
     const symbols = new Map<string, { symbol: string; exchange: string }>()
@@ -470,11 +460,7 @@ export default function StrategyBuilder() {
         isSupplementalWsAuthenticated,
         supplementalWsConnectionEpoch
       ),
-    [
-      supplementalMarketData,
-      isSupplementalWsAuthenticated,
-      supplementalWsConnectionEpoch,
-    ]
+    [supplementalMarketData, isSupplementalWsAuthenticated, supplementalWsConnectionEpoch]
   )
 
   const liveSupplementalChains = useMemo(() => {
@@ -929,10 +915,7 @@ export default function StrategyBuilder() {
     const generation = rehydrationGenerationRef.current
     const candidates = legs.filter((leg) => {
       if (!leg.active || isLegClosed(leg) || leg.contractValid) return false
-      if (
-        leg.segment === 'FUTURE' &&
-        !futureExpiries.includes(normalizeExpiryCode(leg.expiry))
-      ) {
+      if (leg.segment === 'FUTURE' && !futureExpiries.includes(normalizeExpiryCode(leg.expiry))) {
         return false
       }
       const selectionKey = `${leg.id}|${leg.segment}|${leg.expiry}|${leg.strike ?? ''}|${leg.optionType ?? ''}`
@@ -1157,17 +1140,15 @@ export default function StrategyBuilder() {
   const marginRequestKey = useMemo(() => {
     const exchange = optionExchangeFor(selectedExchange)
     return JSON.stringify(
-      legs
-        .filter(isLegExecutable)
-        .map((leg) => ({
-          exchange: leg.exchange ?? exchange,
-          symbol: leg.symbol,
-          action: leg.side,
-          quantity: String(leg.lots * leg.lotSize),
-          product: 'NRML',
-          pricetype: leg.price > 0 ? 'LIMIT' : 'MARKET',
-          price: leg.price > 0 ? String(leg.price) : '0',
-        }))
+      legs.filter(isLegExecutable).map((leg) => ({
+        exchange: leg.exchange ?? exchange,
+        symbol: leg.symbol,
+        action: leg.side,
+        quantity: String(leg.lots * leg.lotSize),
+        product: 'NRML',
+        pricetype: leg.price > 0 ? 'LIMIT' : 'MARKET',
+        price: leg.price > 0 ? String(leg.price) : '0',
+      }))
     )
   }, [legs, selectedExchange])
 
@@ -1733,14 +1714,14 @@ export default function StrategyBuilder() {
           the top is needed. */}
       <div className="space-y-1.5">
         <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          <Sparkles className="h-3 w-3" />
+          <Sparkles className="size-4" />
           Tools / Strategy Builder
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Strategy Builder</h1>
           {loadedEntry && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 dark:text-violet-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-chart-4/30 bg-chart-4/10 px-2.5 py-0.5 text-[11px] font-semibold text-chart-4">
+              <span className="h-1.5 w-1.5 rounded-full bg-chart-4" />
               {loadedEntry.name}
             </span>
           )}
@@ -1803,16 +1784,16 @@ export default function StrategyBuilder() {
       {legs.length === 0 ? (
         <div className="relative overflow-hidden rounded-xl border border-dashed bg-gradient-to-br from-muted/30 via-background to-muted/20 px-6 py-14 shadow-sm">
           {/* Decorative floating icons */}
-          <div className="pointer-events-none absolute -left-4 top-6 h-16 w-16 rounded-full bg-emerald-500/5 blur-2xl" />
-          <div className="pointer-events-none absolute right-12 top-10 h-20 w-20 rounded-full bg-violet-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute bottom-4 left-1/2 h-20 w-40 -translate-x-1/2 rounded-full bg-blue-500/5 blur-3xl" />
+          <div className="pointer-events-none absolute -left-4 top-6 h-16 w-16 rounded-full bg-success/5 blur-2xl" />
+          <div className="pointer-events-none absolute right-12 top-10 h-20 w-20 rounded-full bg-chart-4/10 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-4 left-1/2 h-20 w-40 -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
 
           <div className="relative mx-auto max-w-xl space-y-4 text-center">
             <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl border bg-background shadow-sm">
               <div className="relative">
-                <BarChart3 className="h-7 w-7 text-violet-500/60" />
-                <span className="absolute -right-1 -top-1 inline-flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-background">
-                  <TrendingUp className="h-2 w-2 text-white" />
+                <BarChart3 className="h-7 w-7 text-chart-4/60" />
+                <span className="absolute -right-1 -top-1 inline-flex h-3 w-3 items-center justify-center rounded-full bg-success ring-2 ring-background">
+                  <TrendingUp className="size-4 text-white" />
                 </span>
               </div>
             </div>
@@ -1827,13 +1808,13 @@ export default function StrategyBuilder() {
 
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
               <span className="inline-flex items-center gap-1 rounded-full border bg-background/80 px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
-                <LineChart className="h-3 w-3" /> Payoff diagrams
+                <LineChart className="size-4" /> Payoff diagrams
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border bg-background/80 px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
-                <Sparkles className="h-3 w-3" /> Greeks &amp; IV
+                <Sparkles className="size-4" /> Greeks &amp; IV
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border bg-background/80 px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
-                <TrendingUp className="h-3 w-3" /> What-if sims
+                <TrendingUp className="size-4" /> What-if sims
               </span>
             </div>
           </div>
@@ -1882,41 +1863,41 @@ export default function StrategyBuilder() {
                   className="min-w-0 max-w-full flex-1 overflow-x-auto pb-1"
                 >
                   <TabsList className="inline-flex h-10 w-max min-w-max gap-1 rounded-xl border bg-card p-1 shadow-sm">
-                  <TabsTrigger
-                    value="payoff"
-                    className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
-                  >
-                    <LineChart className="mr-1.5 h-3.5 w-3.5" />
-                    Payoff
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="greeks"
-                    className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
-                  >
-                    <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                    Greeks
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="pnl"
-                    className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
-                  >
-                    <TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-                    P&amp;L
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="strategychart"
-                    className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
-                  >
-                    <Activity className="mr-1.5 h-3.5 w-3.5" />
-                    Strategy Chart
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="multistrikeoi"
-                    className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
-                  >
-                    <Layers className="mr-1.5 h-3.5 w-3.5" />
-                    Multi Strike OI
-                  </TabsTrigger>
+                    <TabsTrigger
+                      value="payoff"
+                      className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
+                    >
+                      <LineChart className="mr-1.5 size-4" />
+                      Payoff
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="greeks"
+                      className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
+                    >
+                      <Sparkles className="mr-1.5 size-4" />
+                      Greeks
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="pnl"
+                      className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
+                    >
+                      <TrendingUp className="mr-1.5 size-4" />
+                      P&amp;L
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="strategychart"
+                      className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
+                    >
+                      <Activity className="mr-1.5 size-4" />
+                      Strategy Chart
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="multistrikeoi"
+                      className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-background data-[state=active]:to-muted/60 data-[state=active]:shadow-sm"
+                    >
+                      <Layers className="mr-1.5 size-4" />
+                      Multi Strike OI
+                    </TabsTrigger>
                   </TabsList>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -1926,7 +1907,7 @@ export default function StrategyBuilder() {
                     onClick={() => navigate('/strategybuilder/portfolio')}
                     className="h-10 gap-1.5 px-4 text-xs font-semibold"
                   >
-                    <Briefcase className="h-3.5 w-3.5" />
+                    <Briefcase className="size-4" />
                     Portfolio
                   </Button>
                 </div>

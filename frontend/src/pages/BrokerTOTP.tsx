@@ -532,7 +532,7 @@ export default function BrokerTOTP() {
                   to="/broker"
                   className="text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  <ArrowLeft className="h-3 w-3" />
+                  <ArrowLeft className="size-4" />
                   Back to Broker Selection
                 </Link>
                 <a
@@ -542,7 +542,7 @@ export default function BrokerTOTP() {
                   className="text-primary hover:underline inline-flex items-center gap-1"
                 >
                   Documentation
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="size-4" />
                 </a>
                 <BrokerAuthSignOut />
               </div>

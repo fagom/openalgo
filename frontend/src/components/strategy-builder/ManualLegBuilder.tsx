@@ -295,8 +295,8 @@ export function ManualLegBuilder({
       {/* Header — icon + title only. Buy/Sell moved down next to Add. */}
       <div className="flex items-center justify-between border-b bg-gradient-to-r from-muted/30 to-transparent px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-emerald-500/15 to-blue-500/15 text-emerald-600 dark:text-emerald-400">
-            <ListPlus className="h-3.5 w-3.5" />
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-buy/15 to-primary/15 text-buy">
+            <ListPlus className="size-4" />
           </div>
           <div>
             <h3 className="text-sm font-semibold leading-none">Add a Position</h3>
@@ -308,7 +308,7 @@ export function ManualLegBuilder({
         {resolvedContract && (
           <div className="hidden items-center gap-2 text-[11px] sm:flex">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
               LTP
               <span className="font-bold tabular-nums text-foreground">
                 ₹{resolvedContract.marketPrice.toFixed(2)}
@@ -372,10 +372,8 @@ export function ManualLegBuilder({
                     <span
                       className={cn(
                         'rounded px-1 py-px text-[9px] font-bold uppercase tracking-wider normal-case',
-                        currentMoneyness.kind === 'ATM' &&
-                          'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                        currentMoneyness.kind === 'ITM' &&
-                          'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+                        currentMoneyness.kind === 'ATM' && 'bg-warning/15 text-warning',
+                        currentMoneyness.kind === 'ITM' && 'bg-info/15 text-info',
                         currentMoneyness.kind === 'OTM' && 'bg-muted text-muted-foreground'
                       )}
                     >
@@ -406,8 +404,8 @@ export function ManualLegBuilder({
                           <span
                             className={cn(
                               'ml-2 text-[9px] font-semibold uppercase tracking-wider',
-                              m.kind === 'ATM' && 'text-amber-600 dark:text-amber-400',
-                              m.kind === 'ITM' && 'text-sky-600 dark:text-sky-400',
+                              m.kind === 'ATM' && 'text-warning',
+                              m.kind === 'ITM' && 'text-info',
                               m.kind === 'OTM' && 'text-muted-foreground'
                             )}
                           >
@@ -474,7 +472,7 @@ export function ManualLegBuilder({
               className={cn(
                 'inline-flex items-center gap-1 rounded-sm px-3 text-[11px] font-bold uppercase tracking-wider transition',
                 side === 'BUY'
-                  ? 'bg-emerald-700 text-white shadow-sm dark:bg-emerald-600'
+                  ? 'bg-buy text-buy-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -487,7 +485,7 @@ export function ManualLegBuilder({
               className={cn(
                 'inline-flex items-center gap-1 rounded-sm px-3 text-[11px] font-bold uppercase tracking-wider transition',
                 side === 'SELL'
-                  ? 'bg-rose-700 text-white shadow-sm dark:bg-rose-600'
+                  ? 'bg-sell text-sell-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -506,7 +504,7 @@ export function ManualLegBuilder({
               className="flex h-full w-9 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Decrease lots"
             >
-              <Minus className="h-3.5 w-3.5" />
+              <Minus className="size-4" />
             </button>
             <input
               type="number"
@@ -522,7 +520,7 @@ export function ManualLegBuilder({
               className="flex h-full w-9 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Increase lots"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="size-4" />
             </button>
           </div>
         </div>
@@ -538,11 +536,11 @@ export function ManualLegBuilder({
             className={cn(
               'h-9 gap-1.5 px-4 text-xs font-bold uppercase tracking-wider transition',
               side === 'BUY'
-                ? 'bg-emerald-700 text-white hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700'
-                : 'bg-rose-700 text-white hover:bg-rose-800 dark:bg-rose-600 dark:hover:bg-rose-700'
+                ? 'bg-buy text-buy-foreground hover:bg-buy/90'
+                : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
             )}
           >
-            <PlusCircle className="h-3.5 w-3.5" />
+            <PlusCircle className="size-4" />
             {side === 'BUY' ? 'Add Buy' : 'Add Sell'}{' '}
             <span className="rounded bg-white/20 px-1.5 py-px text-[10px] font-bold tabular-nums">
               {side === 'BUY' ? '+' : '-'}
