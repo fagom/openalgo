@@ -172,7 +172,7 @@ export function RightRail({ active, onSelect }: Props) {
                 // that is not in the document is worse than omitting it.
                 aria-controls={isOpen ? `oa-panel-${id}` : undefined}
               >
-                <Icon className="h-[18px] w-[18px]" strokeWidth={RAIL_ICON_STROKE} />
+                <Icon className="h-5 w-5" strokeWidth={RAIL_ICON_STROKE} />
               </button>
             </div>
           </Tip>

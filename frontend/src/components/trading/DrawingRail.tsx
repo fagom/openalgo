@@ -152,7 +152,7 @@ const ERASER_GLYPH = (
   </svg>
 )
 
-const iconBox = 'h-[18px] w-[18px]'
+const iconBox = 'h-5 w-5'
 const rowIcon = 'h-4 w-4 shrink-0 text-muted-foreground'
 
 export function DrawingRail({
