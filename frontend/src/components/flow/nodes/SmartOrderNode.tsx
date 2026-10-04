@@ -22,7 +22,7 @@ export const SmartOrderNode = memo(({ data, selected }: SmartOrderNodeProps) => 
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded">
-            <Zap className="h-3 w-3" />
+            <Zap className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Smart Order</div>

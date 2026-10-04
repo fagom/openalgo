@@ -33,7 +33,7 @@ export const TelegramAlertNode = memo(({ data, selected }: TelegramAlertNodeProp
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="flex h-5 w-5 items-center justify-center rounded bg-[#0088cc]/20 text-[#0088cc]">
-            <Send className="h-3 w-3" />
+            <Send className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Telegram</div>

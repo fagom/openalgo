@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
@@ -43,8 +44,6 @@ function convertExpiryForAPI(expiry: string): string {
 export default function IVSmile() {
   const { mode, appMode } = useThemeStore()
   const { toolsFnoExchanges, defaultToolsFnoExchange, defaultUnderlyings } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultToolsFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -177,25 +176,21 @@ export default function IVSmile() {
   }, [autoRefresh, fetchIVSmileData, selectedExpiry])
 
   // Theme colors for Plotly
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
       paper: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      callIV: '#3b82f6',
-      putIV: '#ef4444',
-      spotLine: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      callIV: p.primary,
+      putIV: p.down,
+      spotLine: withAlpha(p.text, 0.55),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+    }
+  }, [mode, appMode])
 
   // Plotly config
   const plotConfig: Partial<PlotlyTypes.Config> = useMemo(
@@ -304,7 +299,7 @@ export default function IVSmile() {
       },
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       hovermode: 'x unified' as const,
       hoverlabel: {
         bgcolor: themeColors.hoverBg,
@@ -512,8 +507,8 @@ export default function IVSmile() {
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">
                       Strike
                     </th>
-                    <th className="text-right py-2 px-3 font-medium text-blue-500">Call IV</th>
-                    <th className="text-right py-2 px-3 font-medium text-red-500">Put IV</th>
+                    <th className="text-right py-2 px-3 font-medium text-primary">Call IV</th>
+                    <th className="text-right py-2 px-3 font-medium text-destructive">Put IV</th>
                     <th className="text-right py-2 px-3 font-medium text-muted-foreground">
                       Diff (PE-CE)
                     </th>
@@ -533,18 +528,18 @@ export default function IVSmile() {
                           <span className="ml-1 text-xs text-muted-foreground">(ATM)</span>
                         )}
                       </td>
-                      <td className="text-right py-2 px-3 text-blue-500">
+                      <td className="text-right py-2 px-3 text-primary">
                         {row.ce_iv !== null ? `${row.ce_iv}%` : '-'}
                       </td>
-                      <td className="text-right py-2 px-3 text-red-500">
+                      <td className="text-right py-2 px-3 text-destructive">
                         {row.pe_iv !== null ? `${row.pe_iv}%` : '-'}
                       </td>
                       <td
                         className={`text-right py-2 px-3 ${
                           row.diff !== null && row.diff > 0
-                            ? 'text-red-500'
+                            ? 'text-loss'
                             : row.diff !== null && row.diff < 0
-                              ? 'text-blue-500'
+                              ? 'text-primary'
                               : 'text-muted-foreground'
                         }`}
                       >

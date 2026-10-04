@@ -414,7 +414,8 @@ export default function Arbitrage() {
 
   const connBadge = () => {
     if (conn.isFallbackMode) return <Badge variant="secondary">REST fallback (after-hours)</Badge>
-    if (conn.isAuthenticated) return <Badge className="bg-emerald-600 text-white">Live</Badge>
+    if (conn.isAuthenticated)
+      return <Badge className="bg-profit text-profit-foreground">Live</Badge>
     if (conn.isConnected) return <Badge variant="secondary">Authenticating…</Badge>
     return <Badge variant="outline">Connecting…</Badge>
   }
@@ -548,11 +549,7 @@ export default function Arbitrage() {
                 ) : (
                   visibleRows.map((row, idx) => {
                     const pctColor =
-                      row.spreadPct == null
-                        ? ''
-                        : row.spreadPct > 0
-                          ? 'text-emerald-600'
-                          : 'text-red-600'
+                      row.spreadPct == null ? '' : row.spreadPct > 0 ? 'text-profit' : 'text-loss'
                     return (
                       <TableRow key={row.pair.id}>
                         <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
@@ -560,7 +557,7 @@ export default function Arbitrage() {
                           <div className="flex items-center gap-1.5">
                             <span
                               className={`inline-block h-2 w-2 rounded-full ${
-                                row.fresh ? 'bg-emerald-500' : 'bg-muted-foreground/40'
+                                row.fresh ? 'bg-success' : 'bg-muted-foreground/40'
                               }`}
                               title={row.fresh ? 'Live' : 'Stale / no recent tick'}
                             />

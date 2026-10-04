@@ -42,8 +42,7 @@ export function EoyChart({ rows, benchmarkLabel = 'Benchmark', height = 300 }: P
 
   const y = (v: number) => ((top - v) / range) * 100
   const zero = y(0)
-  const average =
-    years.reduce((sum, r) => sum + (r.portfolio ?? 0), 0) / years.length
+  const average = years.reduce((sum, r) => sum + (r.portfolio ?? 0), 0) / years.length
 
   const ticks: number[] = []
   for (let v = bottom; v <= top + 1e-9; v += step) ticks.push(Number(v.toFixed(4)))
@@ -55,15 +54,15 @@ export function EoyChart({ rows, benchmarkLabel = 'Benchmark', height = 300 }: P
     <div className="space-y-2">
       <div className="flex items-center justify-end gap-4 text-xs">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm bg-amber-400" />
+          <span className="inline-block h-2.5 w-4 rounded-sm bg-warning" />
           {benchmarkLabel}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-4 rounded-sm bg-blue-500" />
+          <span className="inline-block h-2.5 w-4 rounded-sm bg-primary" />
           Portfolio
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-px w-4 border-t border-dashed border-rose-500" />
+          <span className="inline-block h-px w-4 border-t border-dashed border-destructive/60" />
           average year
         </span>
       </div>

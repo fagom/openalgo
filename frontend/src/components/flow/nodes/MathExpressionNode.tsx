@@ -28,15 +28,15 @@ export const MathExpressionNode = memo(({ data, selected }: MathExpressionNodePr
   return (
     <div
       className={cn(
-        'workflow-node min-w-[140px] border-purple-500/50 bg-purple-500/5',
+        'workflow-node min-w-[140px] border-chart-4/50 bg-chart-4/5',
         selected && 'selected'
       )}
     >
-      <Handle type="target" position={Position.Top} className="!bg-purple-500" />
+      <Handle type="target" position={Position.Top} className="!bg-chart-4" />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="node-icon bg-purple-500/20">
-            <Sigma className="h-3 w-3 text-purple-500" />
+          <div className="node-icon bg-chart-4/20">
+            <Sigma className="size-4 text-chart-4" />
           </div>
           <span className="node-title">Math</span>
         </div>
@@ -44,7 +44,7 @@ export const MathExpressionNode = memo(({ data, selected }: MathExpressionNodePr
         {expression ? (
           <div className="space-y-1">
             <div className="rounded bg-muted/50 px-2 py-1">
-              <code className="text-[10px] text-purple-400 font-mono">{displayExpr}</code>
+              <code className="text-[10px] text-chart-4 font-mono">{displayExpr}</code>
             </div>
             <div className="text-[9px] text-muted-foreground text-center">{outputVar} = ...</div>
           </div>
@@ -54,7 +54,7 @@ export const MathExpressionNode = memo(({ data, selected }: MathExpressionNodePr
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Bottom} className="!bg-purple-500" />
+      <Handle type="source" position={Position.Bottom} className="!bg-chart-4" />
     </div>
   )
 })

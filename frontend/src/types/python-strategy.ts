@@ -116,12 +116,12 @@ export const SCHEDULE_DAYS = [
 ] as const
 
 export const STATUS_COLORS: Record<string, string> = {
-  running: 'bg-green-500',
-  stopped: 'bg-gray-500',
-  error: 'bg-red-500',
-  scheduled: 'bg-blue-500',
-  paused: 'bg-yellow-500',
-  manually_stopped: 'bg-orange-500',
+  running: 'bg-success',
+  stopped: 'bg-muted-foreground',
+  error: 'bg-destructive',
+  scheduled: 'bg-primary',
+  paused: 'bg-warning',
+  manually_stopped: 'bg-warning',
 }
 
 export const STATUS_LABELS: Record<string, string> = {

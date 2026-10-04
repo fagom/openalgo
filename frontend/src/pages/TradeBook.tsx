@@ -283,7 +283,7 @@ export default function TradeBook() {
       size="sm"
       className={cn(
         'rounded-full',
-        filters[type].includes(value) && 'bg-pink-500 hover:bg-pink-600'
+        filters[type].includes(value) && 'bg-primary hover:bg-primary/90'
       )}
       onClick={() => toggleFilter(type, value)}
     >
@@ -312,7 +312,7 @@ export default function TradeBook() {
                 <Settings2 className="h-4 w-4 mr-2" />
                 Filters
                 {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                 )}
               </Button>
             </DialogTrigger>
@@ -403,7 +403,7 @@ export default function TradeBook() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -412,7 +412,7 @@ export default function TradeBook() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -422,7 +422,7 @@ export default function TradeBook() {
               <Badge
                 key={v}
                 variant="secondary"
-                className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+                className="bg-primary/10 text-primary border-primary/30"
               >
                 {v}
               </Badge>
@@ -430,7 +430,7 @@ export default function TradeBook() {
           <Button
             variant="outline"
             size="sm"
-            className="text-red-500 border-red-500/50 hover:bg-red-500/10"
+            className="text-destructive border-destructive/50 hover:bg-destructive/10"
             onClick={clearFilters}
             aria-label="Clear active filters"
           >
@@ -450,7 +450,7 @@ export default function TradeBook() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Buy Trades</CardDescription>
-            <CardTitle className="text-2xl text-green-600 flex items-center gap-2">
+            <CardTitle className="text-2xl text-buy flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               {stats.buyTrades}
             </CardTitle>
@@ -459,7 +459,7 @@ export default function TradeBook() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Sell Trades</CardDescription>
-            <CardTitle className="text-2xl text-red-600 flex items-center gap-2">
+            <CardTitle className="text-2xl text-sell flex items-center gap-2">
               <TrendingDown className="h-5 w-5" />
               {stats.sellTrades}
             </CardTitle>
@@ -502,9 +502,9 @@ export default function TradeBook() {
                         Symbol
                         {sortConfig.key === 'symbol' &&
                           (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="h-3 w-3" />
+                            <ArrowUp className="size-4" />
                           ) : (
-                            <ArrowDown className="h-3 w-3" />
+                            <ArrowDown className="size-4" />
                           ))}
                       </div>
                     </TableHead>
@@ -518,9 +518,9 @@ export default function TradeBook() {
                         Action
                         {sortConfig.key === 'action' &&
                           (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="h-3 w-3" />
+                            <ArrowUp className="size-4" />
                           ) : (
-                            <ArrowDown className="h-3 w-3" />
+                            <ArrowDown className="size-4" />
                           ))}
                       </div>
                     </TableHead>
@@ -536,9 +536,9 @@ export default function TradeBook() {
                         Time
                         {sortConfig.key === 'timestamp' &&
                           (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="h-3 w-3" />
+                            <ArrowUp className="size-4" />
                           ) : (
-                            <ArrowDown className="h-3 w-3" />
+                            <ArrowDown className="size-4" />
                           ))}
                       </div>
                     </TableHead>
@@ -559,12 +559,12 @@ export default function TradeBook() {
                       <TableCell>
                         <Badge
                           variant={trade.action === 'BUY' ? 'default' : 'destructive'}
-                          className={cn('gap-1', trade.action === 'BUY' ? 'bg-green-500' : '')}
+                          className={cn('gap-1', trade.action === 'BUY' ? 'bg-buy' : '')}
                         >
                           {trade.action === 'BUY' ? (
-                            <TrendingUp className="h-3 w-3" />
+                            <TrendingUp className="size-4" />
                           ) : (
-                            <TrendingDown className="h-3 w-3" />
+                            <TrendingDown className="size-4" />
                           )}
                           {trade.action}
                         </Badge>

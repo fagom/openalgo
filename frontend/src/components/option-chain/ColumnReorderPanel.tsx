@@ -56,7 +56,7 @@ function DraggableColumn({
         'flex items-center gap-2 rounded-md border px-3 py-2 cursor-grab active:cursor-grabbing transition-all',
         isDragging && 'opacity-50 border-dashed',
         isVisible ? 'bg-card' : 'bg-muted/50 opacity-60',
-        side === 'ce' ? 'border-l-2 border-l-green-500' : 'border-r-2 border-r-red-500'
+        side === 'ce' ? 'border-l-2 border-l-success/60' : 'border-r-2 border-r-destructive/60'
       )}
     >
       <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -64,7 +64,7 @@ function DraggableColumn({
       <span
         className={cn(
           'text-xs px-1.5 py-0.5 rounded',
-          side === 'ce' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+          side === 'ce' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
         )}
       >
         {side === 'ce' ? 'CE' : 'PE'}
@@ -157,9 +157,8 @@ export function ColumnReorderPanel({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-9 w-9">
+        <Button variant="outline" size="icon" tooltip="Reorder columns" className="h-9 w-9">
           <Columns3 className="h-4 w-4" />
-          <span className="sr-only">Reorder columns</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -173,7 +172,7 @@ export function ColumnReorderPanel({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h4 className="text-sm font-medium mb-2 text-green-500">CALLS (CE)</h4>
+            <h4 className="text-sm font-medium mb-2 text-success">CALLS (CE)</h4>
             <ScrollArea className="h-64 pr-2">
               <div className="space-y-1.5">
                 {ceColumns.map((key) => (
@@ -195,7 +194,7 @@ export function ColumnReorderPanel({
           </div>
 
           <div>
-            <h4 className="text-sm font-medium mb-2 text-red-500">PUTS (PE)</h4>
+            <h4 className="text-sm font-medium mb-2 text-destructive">PUTS (PE)</h4>
             <ScrollArea className="h-64 pr-2">
               <div className="space-y-1.5">
                 {peColumns.map((key) => (

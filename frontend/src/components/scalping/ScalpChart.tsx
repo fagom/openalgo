@@ -26,6 +26,7 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import { scalpingApi } from '@/api/scalping'
 import { useMarketData } from '@/hooks/useMarketData'
+import { getChartPalette, withAlpha } from '@/lib/chartTheme'
 import { priceDecimals } from '@/lib/scalpingPrice'
 import { useThemeStore } from '@/stores/themeStore'
 
@@ -33,11 +34,6 @@ import { useThemeStore } from '@/stores/themeStore'
 // with history bars. 5h30m = 19800s, a whole multiple of 60/300/900s.
 const IST_OFFSET = 19800
 const INTERVAL_SEC: Record<string, number> = { '1m': 60, '5m': 300, '15m': 900 }
-
-const UP = '#26a69a'
-const DOWN = '#ef5350'
-const VOL_UP = 'rgba(38,166,154,0.45)'
-const VOL_DOWN = 'rgba(239,83,80,0.45)'
 
 interface Candle {
   time: number
@@ -73,8 +69,8 @@ export function ScalpChart({
   interval: string
   title?: string
 }) {
-  const { mode } = useThemeStore()
-  const isDark = mode === 'dark'
+  const { mode, appMode } = useThemeStore()
+  const pal = getChartPalette(mode, appMode)
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const legendRef = useRef<HTMLDivElement | null>(null)
@@ -82,7 +78,8 @@ export function ScalpChart({
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const volRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const renderLegendRef = useRef<(time?: number) => void>(() => {})
-  const colorsRef = useRef({ title: '#d6dde6', muted: '#8a97a5' })
+  // Read from callbacks that outlive a render, so they see the current theme.
+  const palRef = useRef(pal)
 
   // Authoritative model: bucket time -> candle. Completed bars are reconciled
   // from broker history; the current bucket is built live from ticks.
@@ -107,9 +104,8 @@ export function ScalpChart({
   })
 
   // Create the chart once per symbol/exchange (candles + volume + legend).
-  // isDark is used only for the initial colors; theme changes are applied by the
-  // separate re-theme effect below, so it is intentionally not a dependency.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: isDark excluded; theme handled by the re-theme effect
+  // Initial colors come from palRef; theme changes are applied by the separate
+  // re-theme effect below, so the chart is not recreated when the theme flips.
   useEffect(() => {
     const container = containerRef.current
     if (!container || !enabled) return
@@ -121,27 +117,28 @@ export function ScalpChart({
       autoSize: true,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: colorsRef.current.muted,
+        textColor: palRef.current.textMuted,
+        fontFamily: palRef.current.fontFamily,
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: isDark ? 'rgba(120,130,145,0.06)' : 'rgba(0,0,0,0.05)' },
-        horzLines: { color: isDark ? 'rgba(120,130,145,0.06)' : 'rgba(0,0,0,0.05)' },
+        vertLines: { color: palRef.current.grid },
+        horzLines: { color: palRef.current.grid },
       },
-      rightPriceScale: { borderColor: isDark ? '#1b2330' : '#e2e8f0' },
+      rightPriceScale: { borderColor: palRef.current.border },
       timeScale: {
-        borderColor: isDark ? '#1b2330' : '#e2e8f0',
+        borderColor: palRef.current.border,
         timeVisible: true,
         secondsVisible: false,
       },
       crosshair: { mode: CrosshairMode.Normal },
     })
     const candle = chart.addSeries(CandlestickSeries, {
-      upColor: UP,
-      downColor: DOWN,
+      upColor: palRef.current.up,
+      downColor: palRef.current.down,
       borderVisible: false,
-      wickUpColor: UP,
-      wickDownColor: DOWN,
+      wickUpColor: palRef.current.up,
+      wickDownColor: palRef.current.down,
       priceFormat: { type: 'price', precision: decimals, minMove: 10 ** -decimals },
     })
     const vol = chart.addSeries(HistogramSeries, {
@@ -172,9 +169,9 @@ export function ScalpChart({
       const ref = idx > 0 ? arr[idx - 1].close : bar.open
       const chg = bar.close - ref
       const pct = ref ? (chg / ref) * 100 : 0
-      const col = chg >= 0 ? UP : DOWN
+      const col = chg >= 0 ? palRef.current.up : palRef.current.down
       const sign = chg >= 0 ? '+' : ''
-      const { title: titleColor, muted } = colorsRef.current
+      const { text: titleColor, textMuted: muted } = palRef.current
       el.innerHTML =
         `<div style="color:${titleColor};font-weight:600">${symbol} ` +
         `<span style="color:${muted};font-weight:500">· ${intervalRef.current} · ${exchange}</span></div>` +
@@ -226,13 +223,19 @@ export function ScalpChart({
       const ts = chart.timeScale()
       const range = preserveRange ? ts.getVisibleLogicalRange() : null
       candle.setData(
-        arr.map((k) => ({ time: k.time as UTCTimestamp, open: k.open, high: k.high, low: k.low, close: k.close }))
+        arr.map((k) => ({
+          time: k.time as UTCTimestamp,
+          open: k.open,
+          high: k.high,
+          low: k.low,
+          close: k.close,
+        }))
       )
       vol.setData(
         arr.map((k) => ({
           time: k.time as UTCTimestamp,
           value: k.volume,
-          color: k.close >= k.open ? VOL_UP : VOL_DOWN,
+          color: withAlpha(k.close >= k.open ? palRef.current.up : palRef.current.down, 0.45),
         }))
       )
       if (range) {
@@ -337,23 +340,27 @@ export function ScalpChart({
 
   // Re-theme the chart and legend without recreating it.
   useEffect(() => {
-    colorsRef.current = isDark
-      ? { title: '#d6dde6', muted: '#8a97a5' }
-      : { title: '#0f172a', muted: '#64748b' }
+    palRef.current = pal
     const chart = chartRef.current
     if (chart) {
       chart.applyOptions({
-        layout: { textColor: colorsRef.current.muted },
+        layout: { textColor: pal.textMuted },
         grid: {
-          vertLines: { color: isDark ? 'rgba(120,130,145,0.06)' : 'rgba(0,0,0,0.05)' },
-          horzLines: { color: isDark ? 'rgba(120,130,145,0.06)' : 'rgba(0,0,0,0.05)' },
+          vertLines: { color: pal.grid },
+          horzLines: { color: pal.grid },
         },
-        rightPriceScale: { borderColor: isDark ? '#1b2330' : '#e2e8f0' },
-        timeScale: { borderColor: isDark ? '#1b2330' : '#e2e8f0' },
+        rightPriceScale: { borderColor: pal.border },
+        timeScale: { borderColor: pal.border },
+      })
+      candleRef.current?.applyOptions({
+        upColor: pal.up,
+        downColor: pal.down,
+        wickUpColor: pal.up,
+        wickDownColor: pal.down,
       })
     }
     renderLegendRef.current()
-  }, [isDark])
+  }, [pal])
 
   // Update the forming candle (and its volume) from each live tick.
   const tick = data.get(`${exchange}:${symbol}`)?.data
@@ -366,7 +373,9 @@ export function ScalpChart({
     if (!candle || !vol || !readyRef.current || ltp == null || !Number.isFinite(ltp)) return
 
     const parsed = ts ? Date.parse(ts) : Number.NaN
-    const epochUtc = Number.isNaN(parsed) ? Math.floor(Date.now() / 1000) : Math.floor(parsed / 1000)
+    const epochUtc = Number.isNaN(parsed)
+      ? Math.floor(Date.now() / 1000)
+      : Math.floor(parsed / 1000)
     const sec = intervalSecRef.current
     const bucket = Math.floor((epochUtc + IST_OFFSET) / sec) * sec
     const cur = currentBucketRef.current
@@ -407,8 +416,14 @@ export function ScalpChart({
       arr[arr.length - 1] = bar
     }
 
-    const color = bar.close >= bar.open ? VOL_UP : VOL_DOWN
-    candle.update({ time: bar.time as UTCTimestamp, open: bar.open, high: bar.high, low: bar.low, close: bar.close })
+    const color = withAlpha(bar.close >= bar.open ? palRef.current.up : palRef.current.down, 0.45)
+    candle.update({
+      time: bar.time as UTCTimestamp,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+    })
     vol.update({ time: bar.time as UTCTimestamp, value: bar.volume, color })
     renderLegendRef.current()
     // Clear the live-only "waiting for ticks" placeholder once a bar exists.

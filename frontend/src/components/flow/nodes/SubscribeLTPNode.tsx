@@ -11,12 +11,12 @@ interface SubscribeLTPNodeProps {
 
 export const SubscribeLTPNode = memo(({ data, selected }: SubscribeLTPNodeProps) => {
   return (
-    <div className={cn('workflow-node min-w-[120px] border-l-green-500', selected && 'selected')}>
+    <div className={cn('workflow-node min-w-[120px] border-l-profit/60', selected && 'selected')}>
       <Handle type="target" position={Position.Top} />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-green-500/20 text-green-500">
-            <Radio className="h-3 w-3" />
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-success/20 text-success">
+            <Radio className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Subscribe LTP</div>
@@ -36,7 +36,7 @@ export const SubscribeLTPNode = memo(({ data, selected }: SubscribeLTPNodeProps)
             {data.outputVariable && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Output:</span>
-                <span className="mono-data text-green-500">{`{{${data.outputVariable}}}`}</span>
+                <span className="mono-data text-success">{`{{${data.outputVariable}}}`}</span>
               </div>
             )}
           </div>

@@ -43,7 +43,7 @@ export default function RateLimited() {
         </div>
 
         <h1 className="text-5xl font-bold mb-4">
-          <span className="text-orange-500">429</span> - Too Many Requests
+          <span className="text-warning">429</span> - Too Many Requests
         </h1>
 
         <p className="text-xl text-muted-foreground mb-6">
@@ -71,11 +71,11 @@ export default function RateLimited() {
         <div className="mb-8">
           {!canRetry ? (
             <div className="text-center">
-              <div className="text-4xl font-mono font-bold text-orange-500 mb-2">{countdown}s</div>
+              <div className="text-4xl font-mono font-bold text-warning mb-2">{countdown}s</div>
               <p className="text-muted-foreground">Wait before retrying</p>
             </div>
           ) : (
-            <p className="text-green-600 dark:text-green-400 font-medium">You can retry now!</p>
+            <p className="text-success font-medium">You can retry now!</p>
           )}
         </div>
 

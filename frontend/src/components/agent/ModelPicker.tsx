@@ -142,7 +142,7 @@ export function ModelPicker({
     <>
       {showSearch && (
         <div className="flex items-center gap-2 border-b border-border px-2 py-1.5">
-          <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -228,7 +228,7 @@ export function ModelPicker({
           {showEffort && (
             <span className="shrink-0 text-muted-foreground">{effortLabel(effort)}</span>
           )}
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+          <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
         </Button>
       </DropdownMenuTrigger>
 

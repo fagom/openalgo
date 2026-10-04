@@ -13,6 +13,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DEFAULT_NODE_DATA } from '@/lib/flow/constants'
 import { cn } from '@/lib/utils'
 
@@ -162,17 +163,23 @@ export function InsertableEdge({
         >
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'flex h-5 w-5 items-center justify-center rounded-full border bg-background shadow-sm transition-all',
-                  'hover:scale-110 hover:border-primary hover:bg-primary hover:text-primary-foreground',
-                  isHovered || menuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-75',
-                  selected && 'opacity-100 scale-100'
-                )}
-              >
-                <Plus className="h-3 w-3" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded-full border bg-background shadow-sm transition-all',
+                      'hover:scale-110 hover:border-primary hover:bg-primary hover:text-primary-foreground',
+                      isHovered || menuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-75',
+                      selected && 'opacity-100 scale-100'
+                    )}
+                    aria-label="Insert a node here"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Insert a node here</TooltipContent>
+              </Tooltip>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="w-48">
               {Object.entries(NODE_MENU).map(([category, nodes]) => (

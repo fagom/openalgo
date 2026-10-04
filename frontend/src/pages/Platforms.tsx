@@ -11,21 +11,21 @@ export default function Platforms() {
       description: 'Advanced charting with Pine Script alerts and webhook integration',
       icon: BarChart3,
       href: '/tradingview',
-      color: 'bg-blue-500',
+      color: 'bg-primary',
     },
     {
       title: 'GoCharting',
       description: 'Professional HTML5 charting optimized for Indian markets',
       icon: LineChart,
       href: '/gocharting',
-      color: 'bg-cyan-500',
+      color: 'bg-chart-3',
     },
     {
       title: 'Chartink',
       description: 'Custom stock screeners with technical scan automation',
       icon: Lightbulb,
       href: '/chartink',
-      color: 'bg-orange-500',
+      color: 'bg-warning',
     },
   ]
 

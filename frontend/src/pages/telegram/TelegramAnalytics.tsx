@@ -103,7 +103,7 @@ export default function TelegramAnalytics() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
                 <Users className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -116,7 +116,7 @@ export default function TelegramAnalytics() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-success flex items-center justify-center">
                 <Bell className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -129,7 +129,7 @@ export default function TelegramAnalytics() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-chart-4 flex items-center justify-center">
                 <MessageSquare className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -142,7 +142,7 @@ export default function TelegramAnalytics() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-warning flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -282,7 +282,7 @@ export default function TelegramAnalytics() {
                       </TableCell>
                       <TableCell>
                         {user.notifications_enabled ? (
-                          <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
+                          <Badge className="bg-success hover:bg-success/90">Active</Badge>
                         ) : (
                           <Badge variant="secondary">Inactive</Badge>
                         )}

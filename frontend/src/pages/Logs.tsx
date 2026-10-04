@@ -133,17 +133,17 @@ export default function LogsPage() {
   const getApiTypeBadgeColor = (apiType: string) => {
     switch (apiType) {
       case 'placeorder':
-        return 'bg-blue-500 hover:bg-blue-600'
+        return 'bg-primary hover:bg-primary/90'
       case 'placesmartorder':
-        return 'bg-purple-500 hover:bg-purple-600'
+        return 'bg-chart-4 hover:bg-chart-4/90'
       case 'modifyorder':
-        return 'bg-yellow-500 hover:bg-yellow-600'
+        return 'bg-warning hover:bg-warning/90'
       case 'cancelorder':
-        return 'bg-red-500 hover:bg-red-600'
+        return 'bg-loss hover:bg-loss/90'
       case 'closeposition':
-        return 'bg-green-500 hover:bg-green-600'
+        return 'bg-profit hover:bg-profit/90'
       default:
-        return 'bg-gray-500 hover:bg-gray-600'
+        return 'bg-muted-foreground hover:bg-muted-foreground'
     }
   }
 
@@ -315,7 +315,7 @@ export default function LogsPage() {
                   <div className="flex flex-wrap gap-2 mb-4">
                     <Badge className={getApiTypeBadgeColor(log.api_type)}>{log.api_type}</Badge>
                     <Badge variant="outline" className="gap-1">
-                      <Zap className="h-3 w-3" />
+                      <Zap className="size-4" />
                       {log.strategy}
                     </Badge>
                     {requestData.action ? (
@@ -323,14 +323,14 @@ export default function LogsPage() {
                         variant={String(requestData.action) === 'BUY' ? 'default' : 'destructive'}
                         className={`gap-1 ${
                           String(requestData.action) === 'BUY'
-                            ? 'bg-green-500 hover:bg-green-600'
-                            : 'bg-red-500 hover:bg-red-600'
+                            ? 'bg-buy hover:bg-buy/90'
+                            : 'bg-destructive hover:bg-destructive/90'
                         }`}
                       >
                         {String(requestData.action) === 'BUY' ? (
-                          <ArrowUp className="h-3 w-3" />
+                          <ArrowUp className="size-4" />
                         ) : (
-                          <ArrowDown className="h-3 w-3" />
+                          <ArrowDown className="size-4" />
                         )}
                         {String(requestData.action)}
                       </Badge>

@@ -104,9 +104,9 @@ export default function SamcoAuth() {
             Connect to Samco
           </CardTitle>
           <CardDescription>
-            Samco Trade API v3.2 authenticates with an API Key and API Secret from an OAuth
-            app. Create the app, copy both values into your .env as BROKER_API_KEY and
-            BROKER_API_SECRET, and register this server's IP under Static IPs.
+            Samco Trade API v3.2 authenticates with an API Key and API Secret from an OAuth app.
+            Create the app, copy both values into your .env as BROKER_API_KEY and BROKER_API_SECRET,
+            and register this server's IP under Static IPs.
           </CardDescription>
         </CardHeader>
 
@@ -160,7 +160,7 @@ export default function SamcoAuth() {
                 <Network className="h-4 w-4" />
                 Static IP
                 {ipStatus.matches ? (
-                  <span className="ml-auto flex items-center gap-1 text-sm text-green-600">
+                  <span className="ml-auto flex items-center gap-1 text-sm text-profit">
                     <Check className="h-4 w-4" />
                     {ipStatus.matched_as}
                   </span>
@@ -191,8 +191,8 @@ export default function SamcoAuth() {
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Order APIs will reject this host. Register {ipStatus.src_ip || 'this IP'}{' '}
-                    under Static IPs in the dashboard. SEBI allows one IP change every 7 days.
+                    Order APIs will reject this host. Register {ipStatus.src_ip || 'this IP'} under
+                    Static IPs in the dashboard. SEBI allows one IP change every 7 days.
                   </AlertDescription>
                 </Alert>
               )}

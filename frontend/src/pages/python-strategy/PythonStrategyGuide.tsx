@@ -873,13 +873,13 @@ export default function PythonStrategyGuide() {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-2 bg-muted rounded">
-                    <Badge className="bg-green-500 text-white">Running</Badge>
+                    <Badge className="bg-success text-success-foreground">Running</Badge>
                     <span className="text-sm">
                       Strategy is actively running and executing trades
                     </span>
                   </div>
                   <div className="flex items-center gap-3 p-2 bg-muted rounded">
-                    <Badge className="bg-blue-500 text-white">Scheduled</Badge>
+                    <Badge className="bg-primary text-primary-foreground">Scheduled</Badge>
                     <div className="text-sm">
                       <p>Strategy is waiting and will start on its own at the scheduled time</p>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -888,19 +888,19 @@ export default function PythonStrategyGuide() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-2 bg-muted rounded">
-                    <Badge className="bg-orange-500 text-white">Manual Stop</Badge>
+                    <Badge className="bg-warning text-warning-foreground">Manual Stop</Badge>
                     <span className="text-sm">
                       Strategy was manually stopped &mdash; won't auto-start until you click Start
                     </span>
                   </div>
                   <div className="flex items-center gap-3 p-2 bg-muted rounded">
-                    <Badge className="bg-yellow-500 text-white">Paused</Badge>
+                    <Badge className="bg-warning text-warning-foreground">Paused</Badge>
                     <span className="text-sm">
                       Strategy is paused due to market holiday for its exchange
                     </span>
                   </div>
                   <div className="flex items-center gap-3 p-2 bg-muted rounded">
-                    <Badge className="bg-red-500 text-white">Error</Badge>
+                    <Badge className="bg-destructive text-destructive-foreground">Error</Badge>
                     <span className="text-sm">Strategy encountered an error and crashed</span>
                   </div>
                 </div>
@@ -910,8 +910,8 @@ export default function PythonStrategyGuide() {
             <AccordionItem value="start-stop">
               <AccordionTrigger>How does Start and Stop work?</AccordionTrigger>
               <AccordionContent className="text-muted-foreground space-y-3">
-                <div className="bg-green-500/10 border border-green-500/20 p-3 rounded-lg">
-                  <p className="font-medium text-green-600">Start Button</p>
+                <div className="bg-success/10 border border-success/20 p-3 rounded-lg">
+                  <p className="font-medium text-success">Start Button</p>
                   <ul className="list-disc list-inside space-y-1 ml-2 mt-2 text-sm">
                     <li>
                       <strong>Within schedule:</strong> Strategy starts running immediately
@@ -926,8 +926,8 @@ export default function PythonStrategyGuide() {
                   </ul>
                 </div>
 
-                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg">
-                  <p className="font-medium text-red-600">Stop Button (when running)</p>
+                <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
+                  <p className="font-medium text-destructive">Stop Button (when running)</p>
                   <ul className="list-disc list-inside space-y-1 ml-2 mt-2 text-sm">
                     <li>Stops the running strategy process (SIGTERM)</li>
                     <li>Sets "manually stopped" flag &mdash; won't auto-start</li>
@@ -935,8 +935,8 @@ export default function PythonStrategyGuide() {
                   </ul>
                 </div>
 
-                <div className="bg-orange-500/10 border border-orange-500/20 p-3 rounded-lg">
-                  <p className="font-medium text-orange-600">Cancel Button (when scheduled)</p>
+                <div className="bg-warning/10 border border-warning/20 p-3 rounded-lg">
+                  <p className="font-medium text-warning">Cancel Button (when scheduled)</p>
                   <ul className="list-disc list-inside space-y-1 ml-2 mt-2 text-sm">
                     <li>Cancels the scheduled auto-start</li>
                     <li>Sets "manually stopped" flag</li>

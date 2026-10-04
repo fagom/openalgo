@@ -19,30 +19,30 @@ const DIRECTION_FILTERS: Array<{
   {
     value: 'BULLISH',
     label: 'Bullish',
-    dotClass: 'bg-emerald-500',
-    activeClass: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+    dotClass: 'bg-success',
+    activeClass: 'border-success/50 bg-success/10 text-success',
   },
   {
     value: 'BEARISH',
     label: 'Bearish',
-    dotClass: 'bg-rose-500',
-    activeClass: 'border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-400',
+    dotClass: 'bg-destructive',
+    activeClass: 'border-destructive/50 bg-destructive/10 text-destructive',
   },
   {
     value: 'NON_DIRECTIONAL',
     label: 'Neutral',
-    dotClass: 'bg-amber-500',
-    activeClass: 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+    dotClass: 'bg-warning',
+    activeClass: 'border-warning/50 bg-warning/10 text-warning',
   },
 ]
 
 function MiniPayoffIcon({ path, direction }: { path: string; direction: Direction }) {
   const strokeColor =
     direction === 'BULLISH'
-      ? 'stroke-emerald-500'
+      ? 'stroke-profit'
       : direction === 'BEARISH'
-        ? 'stroke-rose-500'
-        : 'stroke-amber-500'
+        ? 'stroke-destructive'
+        : 'stroke-warning'
   return (
     <svg
       aria-hidden="true"
@@ -89,8 +89,8 @@ export function TemplateGrid({ direction, onDirectionChange, onPick }: TemplateG
       {/* Section heading */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-500/15 to-blue-500/15 text-violet-600 dark:text-violet-400">
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-chart-4/15 to-primary/15 text-chart-4">
+            <Sparkles className="size-4" />
           </div>
           <div>
             <h3 className="text-sm font-semibold leading-none">Strategy Library</h3>
@@ -103,7 +103,7 @@ export function TemplateGrid({ direction, onDirectionChange, onPick }: TemplateG
 
         {/* Search */}
         <div className="relative sm:max-w-[220px] sm:flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             aria-label="Search strategy templates"
             value={query}
@@ -173,11 +173,11 @@ export function TemplateGrid({ direction, onDirectionChange, onPick }: TemplateG
                 className={cn(
                   'flex h-14 w-full items-center justify-center rounded-lg px-2 transition',
                   tpl.direction === 'BULLISH' &&
-                    'bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent group-hover:from-emerald-500/15',
+                    'bg-gradient-to-br from-profit/10 via-profit/5 to-transparent group-hover:from-profit/15',
                   tpl.direction === 'BEARISH' &&
-                    'bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent group-hover:from-rose-500/15',
+                    'bg-gradient-to-br from-loss/10 via-loss/5 to-transparent group-hover:from-loss/15',
                   tpl.direction === 'NON_DIRECTIONAL' &&
-                    'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent group-hover:from-amber-500/15'
+                    'bg-gradient-to-br from-warning/10 via-warning/5 to-transparent group-hover:from-warning/15'
                 )}
               >
                 <MiniPayoffIcon path={tpl.payoffPath} direction={tpl.direction} />
@@ -197,12 +197,9 @@ export function TemplateGrid({ direction, onDirectionChange, onPick }: TemplateG
                   <span
                     className={cn(
                       'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
-                      tpl.direction === 'BULLISH' &&
-                        'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-                      tpl.direction === 'BEARISH' &&
-                        'bg-rose-500/10 text-rose-700 dark:text-rose-400',
-                      tpl.direction === 'NON_DIRECTIONAL' &&
-                        'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                      tpl.direction === 'BULLISH' && 'bg-success/10 text-success',
+                      tpl.direction === 'BEARISH' && 'bg-destructive/10 text-destructive',
+                      tpl.direction === 'NON_DIRECTIONAL' && 'bg-warning/10 text-warning'
                     )}
                   >
                     {tpl.legs.length} {tpl.legs.length === 1 ? 'leg' : 'legs'}

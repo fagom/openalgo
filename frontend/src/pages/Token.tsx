@@ -386,7 +386,7 @@ export default function Token() {
               <div className="flex justify-between">
                 <Label htmlFor="symbol">Symbol, Name, or Token</Label>
                 <span
-                  className={`text-xs ${symbolError ? 'text-red-500' : exchanges.length > 0 ? 'text-green-600' : 'text-muted-foreground'}`}
+                  className={`text-xs ${symbolError ? 'text-loss' : exchanges.length > 0 ? 'text-profit' : 'text-muted-foreground'}`}
                 >
                   {symbolError ||
                     (exchanges.length > 0
@@ -510,7 +510,7 @@ export default function Token() {
                             onCheckedChange={() => toggleExchange(ex.value)}
                           />
                           <span className="flex-1">{ex.label}</span>
-                          {checked ? <Check className="h-3.5 w-3.5 text-primary" /> : null}
+                          {checked ? <Check className="size-4 text-primary" /> : null}
                         </label>
                       )
                     })}
@@ -531,7 +531,7 @@ export default function Token() {
                         className="text-muted-foreground hover:text-foreground"
                         aria-label={`Remove ${ex}`}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="size-4" />
                       </button>
                     </span>
                   ))}
@@ -674,7 +674,7 @@ export default function Token() {
                 onClick={clearHistory}
                 className="text-muted-foreground hover:text-foreground h-7 px-2"
               >
-                <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
+                <Trash2 className="size-4 mr-1" /> Clear
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -700,7 +700,7 @@ export default function Token() {
                       title="Remove from history"
                       aria-label="Remove from history"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="size-4" />
                     </button>
                   </div>
                 )

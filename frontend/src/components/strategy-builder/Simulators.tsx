@@ -42,21 +42,21 @@ function SliderRow({
   // because Tailwind utilities inside pseudo-selectors aren't composed the
   // way the `accent` utility is.
   const accentTrack = {
-    pink: 'accent-pink-500',
-    violet: 'accent-violet-500',
-    blue: 'accent-blue-500',
+    pink: 'accent-primary',
+    violet: 'accent-chart-4',
+    blue: 'accent-primary',
   }[accent]
 
   const accentBg = {
-    pink: 'from-pink-500/15 to-pink-500/0 text-pink-600 dark:text-pink-400',
-    violet: 'from-violet-500/15 to-violet-500/0 text-violet-600 dark:text-violet-400',
-    blue: 'from-blue-500/15 to-blue-500/0 text-blue-600 dark:text-blue-400',
+    pink: 'from-primary/15 to-primary/0 text-primary',
+    violet: 'from-chart-4/15 to-chart-4/0 text-chart-4',
+    blue: 'from-primary/15 to-primary/0 text-primary',
   }[accent]
 
   const accentValue = {
-    pink: 'text-pink-600 dark:text-pink-400',
-    violet: 'text-violet-600 dark:text-violet-400',
-    blue: 'text-blue-600 dark:text-blue-400',
+    pink: 'text-primary',
+    violet: 'text-chart-4',
+    blue: 'text-primary',
   }[accent]
 
   return (
@@ -174,8 +174,8 @@ export function Simulators({
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <div className="flex items-center justify-between border-b bg-gradient-to-r from-muted/30 to-transparent px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-amber-500/15 to-pink-500/15 text-amber-600 dark:text-amber-400">
-            <Sliders className="h-3.5 w-3.5" />
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-warning/15 to-primary/15 text-warning">
+            <Sliders className="size-4" />
           </div>
           <div>
             <h3 className="text-sm font-semibold leading-none">What-If Simulator</h3>
@@ -191,13 +191,13 @@ export function Simulators({
           disabled={!isDirty}
           className="h-7 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
-          <RotateCcw className="mr-1 h-3 w-3" />
+          <RotateCcw className="mr-1 size-4" />
           Reset
         </Button>
       </div>
       <div className="space-y-5 px-4 py-4">
         <SliderRow
-          icon={<TrendingUp className="h-3.5 w-3.5" />}
+          icon={<TrendingUp className="size-4" />}
           label="Spot Price"
           accessibleLabel="Spot price shift"
           sublabel="Move underlying up or down"
@@ -211,7 +211,7 @@ export function Simulators({
           onChange={onSpotShiftChange}
         />
         <SliderRow
-          icon={<Waves className="h-3.5 w-3.5" />}
+          icon={<Waves className="size-4" />}
           label="Implied Volatility"
           accessibleLabel="Implied volatility shift"
           sublabel="Vol expansion or crush"
@@ -225,7 +225,7 @@ export function Simulators({
           onChange={onIvShiftChange}
         />
         <SliderRow
-          icon={<Clock className="h-3.5 w-3.5" />}
+          icon={<Clock className="size-4" />}
           label={isSubDay ? 'Hours Forward' : 'Days Forward'}
           accessibleLabel="Time forward"
           sublabel="Advance time toward expiry"

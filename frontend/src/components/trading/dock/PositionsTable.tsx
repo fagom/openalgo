@@ -116,7 +116,7 @@ export function PositionsTable({ positions, activeSymbol, onPick, onClose, isLoa
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-[11px] text-rose-600 hover:text-rose-600 dark:text-rose-400"
+                      className="h-6 px-2 text-[11px] text-destructive hover:text-destructive"
                       onClick={() => setPending(p)}
                       aria-label={`Close ${p.product} position in ${p.symbol}`}
                     >

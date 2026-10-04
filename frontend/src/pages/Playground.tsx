@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input'
 import { JsonEditor } from '@/components/ui/json-editor'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useProfileMenuItems } from '@/hooks/useProfileMenuItems'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
@@ -125,15 +126,15 @@ function tokenizeJson(json: string): SyntaxToken[] {
 function getTokenClassName(type: SyntaxToken['type']): string {
   switch (type) {
     case 'key':
-      return 'text-sky-400'
+      return 'text-info'
     case 'string':
-      return 'text-emerald-400'
+      return 'text-profit'
     case 'number':
-      return 'text-orange-400'
+      return 'text-warning'
     case 'boolean':
-      return 'text-purple-400'
+      return 'text-chart-4'
     case 'null':
-      return 'text-red-400'
+      return 'text-loss'
     default:
       return ''
   }
@@ -588,16 +589,16 @@ export default function Playground() {
 
   const getStatusColor = (status: number | null) => {
     if (!status) return 'text-muted-foreground'
-    if (status >= 200 && status < 300) return 'text-emerald-500 dark:text-emerald-400'
-    if (status >= 400) return 'text-red-500 dark:text-red-400'
-    return 'text-yellow-500 dark:text-yellow-400'
+    if (status >= 200 && status < 300) return 'text-profit'
+    if (status >= 400) return 'text-loss'
+    return 'text-warning'
   }
 
   const getStatusBg = (status: number | null) => {
     if (!status) return 'bg-muted/50'
-    if (status >= 200 && status < 300) return 'bg-emerald-500/10'
-    if (status >= 400) return 'bg-red-500/10'
-    return 'bg-yellow-500/10'
+    if (status >= 200 && status < 300) return 'bg-profit/10'
+    if (status >= 400) return 'bg-loss/10'
+    return 'bg-warning/10'
   }
 
   const formatSize = (bytes: number) => {
@@ -645,23 +646,29 @@ export default function Playground() {
                 className={cn(
                   'text-[9px] px-1 py-0 h-4 border-0 font-semibold',
                   tab.endpoint.method === 'GET'
-                    ? 'bg-sky-500/20 text-sky-400'
+                    ? 'bg-info/20 text-info'
                     : tab.endpoint.method === 'WS'
-                      ? 'bg-purple-500/20 text-purple-400'
-                      : 'bg-emerald-500/20 text-emerald-400'
+                      ? 'bg-chart-4/20 text-chart-4'
+                      : 'bg-success/20 text-success'
                 )}
               >
                 {tab.endpoint.method}
               </Badge>
               <span className="truncate max-w-[100px]">{tab.endpoint.name}</span>
-              {tab.modified && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
-              <button
-                type="button"
-                className="opacity-0 group-hover:opacity-100 hover:text-foreground p-0.5 -mr-1"
-                onClick={(e) => closeTab(tab.id, e)}
-              >
-                <X className="h-3 w-3" />
-              </button>
+              {tab.modified && <span className="w-1.5 h-1.5 rounded-full bg-warning" />}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="opacity-0 group-hover:opacity-100 hover:text-foreground p-0.5 -mr-1"
+                    onClick={(e) => closeTab(tab.id, e)}
+                    aria-label="Close tab"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Close tab</TooltipContent>
+              </Tooltip>
             </div>
           ))}
           <Button
@@ -677,7 +684,7 @@ export default function Playground() {
             }}
             aria-label="New request tab"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="size-4" />
           </Button>
         </div>
 
@@ -699,7 +706,7 @@ export default function Playground() {
               className="h-6 px-2 text-xs"
               onClick={() => setPlaygroundMode('websocket')}
             >
-              <Globe className="h-3 w-3 mr-1" />
+              <Globe className="size-4 mr-1" />
               WebSocket
             </Button>
           </div>
@@ -709,7 +716,7 @@ export default function Playground() {
             variant={appMode === 'live' ? 'default' : 'secondary'}
             className={cn(
               'text-xs',
-              appMode === 'analyzer' && 'bg-purple-500 hover:bg-purple-600 text-white'
+              appMode === 'analyzer' && 'bg-primary hover:bg-primary/90 text-primary-foreground'
             )}
           >
             <span className="hidden sm:inline">
@@ -752,7 +759,7 @@ export default function Playground() {
 
           <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
             <Link to="/dashboard">
-              <Home className="h-3.5 w-3.5 mr-1.5" />
+              <Home className="size-4 mr-1.5" />
               Dashboard
             </Link>
           </Button>
@@ -830,7 +837,7 @@ export default function Playground() {
               {/* Search */}
               <div className="p-2 border-b border-border shrink-0">
                 <div className="relative">
-                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="search here"
                     className="h-7 pl-8 text-xs bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -851,9 +858,9 @@ export default function Playground() {
                         onClick={() => toggleCategory(category)}
                       >
                         {collapsedCategories.has(category) ? (
-                          <ChevronRight className="h-3 w-3" />
+                          <ChevronRight className="size-4" />
                         ) : (
-                          <ChevronDown className="h-3 w-3" />
+                          <ChevronDown className="size-4" />
                         )}
                         {category}
                       </button>
@@ -876,10 +883,10 @@ export default function Playground() {
                                 className={cn(
                                   'text-[9px] px-1 py-0 h-4 border-0 font-semibold shrink-0',
                                   endpoint.method === 'GET'
-                                    ? 'bg-sky-500/20 text-sky-400'
+                                    ? 'bg-info/20 text-info'
                                     : endpoint.method === 'WS'
-                                      ? 'bg-purple-500/20 text-purple-400'
-                                      : 'bg-emerald-500/20 text-emerald-400'
+                                      ? 'bg-chart-4/20 text-chart-4'
+                                      : 'bg-success/20 text-success'
                                 )}
                               >
                                 {endpoint.method}
@@ -897,7 +904,7 @@ export default function Playground() {
               {/* API Key Section */}
               <div className="p-2 border-t border-border shrink-0">
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded bg-secondary/50">
-                  <Key className="h-3 w-3 text-muted-foreground" />
+                  <Key className="size-4 text-muted-foreground" />
                   <Input
                     type={showApiKey ? 'text' : 'password'}
                     value={apiKey}
@@ -912,7 +919,7 @@ export default function Playground() {
                     onClick={() => setShowApiKey(!showApiKey)}
                     aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
                   >
-                    {showApiKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                    {showApiKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </Button>
                   <Button
                     variant="ghost"
@@ -921,7 +928,7 @@ export default function Playground() {
                     onClick={copyApiKey}
                     aria-label="Copy API key"
                   >
-                    <Copy className="h-3 w-3" />
+                    <Copy className="size-4" />
                   </Button>
                 </div>
               </div>
@@ -938,10 +945,10 @@ export default function Playground() {
                       className={cn(
                         'text-xs px-2 py-0.5 border-0 font-semibold',
                         method === 'GET'
-                          ? 'bg-sky-500/20 text-sky-400'
+                          ? 'bg-info/20 text-info'
                           : method === 'WS'
-                            ? 'bg-purple-500/20 text-purple-400'
-                            : 'bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-chart-4/20 text-chart-4'
+                            : 'bg-success/20 text-success'
                       )}
                     >
                       {method}
@@ -958,7 +965,7 @@ export default function Playground() {
                     </div>
                     <Button
                       size="sm"
-                      className="h-8 px-4 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="h-8 px-4 bg-success hover:bg-success/90 text-success-foreground"
                       onClick={sendRequest}
                       disabled={isLoading}
                     >
@@ -966,7 +973,7 @@ export default function Playground() {
                         <RefreshCw className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <Send className="h-3.5 w-3.5 mr-1.5" />
+                          <Send className="size-4 mr-1.5" />
                           Send
                         </>
                       )}
@@ -1070,13 +1077,13 @@ export default function Playground() {
                             )}
                             {responseTime !== null && (
                               <span className="text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
+                                <Clock className="size-4" />
                                 {responseTime}ms
                               </span>
                             )}
                             {responseSize !== null && (
                               <span className="text-muted-foreground flex items-center gap-1">
-                                <Download className="h-3 w-3" />
+                                <Download className="size-4" />
                                 {formatSize(responseSize)}
                               </span>
                             )}
@@ -1086,7 +1093,7 @@ export default function Playground() {
                               className="h-6 text-[10px] text-muted-foreground hover:text-foreground hover:bg-accent"
                               onClick={copyCurl}
                             >
-                              <Terminal className="h-3 w-3 mr-1" />
+                              <Terminal className="size-4 mr-1" />
                               cURL
                             </Button>
                             {responseData && (
@@ -1097,7 +1104,7 @@ export default function Playground() {
                                 onClick={copyResponse}
                                 aria-label="Copy response"
                               >
-                                <Copy className="h-3 w-3" />
+                                <Copy className="size-4" />
                               </Button>
                             )}
                           </div>

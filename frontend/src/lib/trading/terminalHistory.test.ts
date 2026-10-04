@@ -707,10 +707,11 @@ describe('built-in volume and average', () => {
     'BSE_INDEX',
     'MCX_INDEX',
     'GLOBAL_INDEX',
-  ])('hides index volume and its average on %s without losing the user preference', async (exchange) => {
+  ])('hides index volume and its average on %s when the broker sends none, without losing the user preference', async (exchange) => {
     const { terminal, state } = mount()
     state.sym.exchange = exchange
     state.sym.quoteOnly = true
+    state.rawBars = state.rawBars.map((b) => ({ ...b, volume: 0 }))
     await terminal.applyChartSettings({ 'volume.showMA': true, 'volume.maPeriod': 2 })
     terminal.setVolumeVisible(true)
     expect(
@@ -729,6 +730,25 @@ describe('built-in volume and average', () => {
         .series.filter((s) => s.priceScaleId === '')
         .every((s) => s.style.visible === true)
     ).toBe(true)
+  })
+
+  it.each([
+    'NSE_INDEX',
+    'BSE_INDEX',
+  ])('shows index volume on %s when the broker supplies it (constituent turnover)', async (exchange) => {
+    const { terminal, state } = mount()
+    state.sym.exchange = exchange
+    state.sym.quoteOnly = true
+    state.rawBars = state.rawBars.map((b, i) => ({ ...b, volume: [1e6, 2e6, 3e6, 4e6][i] }))
+    state.setPriceData()
+    terminal.setVolumeVisible(true)
+    const volume = state.chart.getState().series.find((s) => s.priceScaleId === '')
+    expect(volume?.style.visible).toBe(true)
+    // The trader's off switch still wins.
+    terminal.setVolumeVisible(false)
+    expect(state.chart.getState().series.find((s) => s.priceScaleId === '')?.style.visible).toBe(
+      false
+    )
   })
 
   it('follows candle colours and corrects direction on a live replacement', () => {

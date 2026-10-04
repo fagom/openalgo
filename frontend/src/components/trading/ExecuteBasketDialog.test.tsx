@@ -188,11 +188,13 @@ describe('ExecuteBasketDialog', () => {
       />
     )
 
-    expect(screen.getAllByText('B')[0]).toHaveClass('bg-emerald-700', 'text-white')
-    expect(screen.getByText('S')).toHaveClass('bg-rose-700', 'text-white')
-    expect(screen.getByText('CE')).toHaveClass('bg-emerald-700', 'text-white')
-    expect(screen.getByText('PE')).toHaveClass('bg-rose-700', 'text-white')
-    expect(screen.getByText('FUT')).toHaveClass('bg-sky-700', 'text-white')
+    // Each badge pairs a solid theme token with that token's own label colour,
+    // which is what keeps it AA in light, dark and analyzer mode alike.
+    expect(screen.getAllByText('B')[0]).toHaveClass('bg-buy', 'text-buy-foreground')
+    expect(screen.getByText('S')).toHaveClass('bg-sell', 'text-sell-foreground')
+    expect(screen.getByText('CE')).toHaveClass('bg-success', 'text-success-foreground')
+    expect(screen.getByText('PE')).toHaveClass('bg-destructive', 'text-destructive-foreground')
+    expect(screen.getByText('FUT')).toHaveClass('bg-info', 'text-info-foreground')
   })
 
   it('preserves row and global choices when live metadata refreshes the same contracts', async () => {

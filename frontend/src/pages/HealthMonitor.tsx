@@ -79,16 +79,16 @@ interface MetricCardProps {
 function MetricCard({ title, icon: Icon, value, subtitle, status, loading }: MetricCardProps) {
   // Color mappings matching Latency Dashboard style
   const valueColors = {
-    pass: 'text-green-500',
-    warn: 'text-yellow-500',
-    fail: 'text-red-500',
+    pass: 'text-success',
+    warn: 'text-warning',
+    fail: 'text-destructive',
     unknown: 'text-primary',
   }
 
   const iconColors = {
-    pass: 'text-green-500 opacity-20',
-    warn: 'text-yellow-500 opacity-20',
-    fail: 'text-red-500 opacity-20',
+    pass: 'text-success opacity-20',
+    warn: 'text-warning opacity-20',
+    fail: 'text-destructive opacity-20',
     unknown: 'text-primary opacity-20',
   }
 
@@ -115,9 +115,9 @@ function MetricCard({ title, icon: Icon, value, subtitle, status, loading }: Met
 }
 
 function StatusIcon({ status }: { status: 'pass' | 'warn' | 'fail' | 'unknown' }) {
-  if (status === 'pass') return <CheckCircle className="h-4 w-4 text-green-500" />
-  if (status === 'warn') return <AlertCircle className="h-4 w-4 text-yellow-500" />
-  if (status === 'fail') return <XCircle className="h-4 w-4 text-red-500" />
+  if (status === 'pass') return <CheckCircle className="h-4 w-4 text-profit" />
+  if (status === 'warn') return <AlertCircle className="h-4 w-4 text-warning" />
+  if (status === 'fail') return <XCircle className="h-4 w-4 text-loss" />
   return <WifiOff className="h-4 w-4 text-muted-foreground" />
 }
 
@@ -459,9 +459,9 @@ export default function HealthMonitor() {
         <div
           className={cn(
             'rounded-lg border p-4 flex items-center gap-4',
-            currentMetrics.overall_status === 'pass' && 'border-green-500/50 bg-green-500/10',
-            currentMetrics.overall_status === 'warn' && 'border-yellow-500/50 bg-yellow-500/10',
-            currentMetrics.overall_status === 'fail' && 'border-red-500/50 bg-red-500/10'
+            currentMetrics.overall_status === 'pass' && 'border-success/50 bg-success/10',
+            currentMetrics.overall_status === 'warn' && 'border-warning/50 bg-warning/10',
+            currentMetrics.overall_status === 'fail' && 'border-destructive/50 bg-destructive/10'
           )}
         >
           <StatusIcon status={currentMetrics.overall_status} />
@@ -592,15 +592,11 @@ export default function HealthMonitor() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Warnings:</dt>
-                  <dd className="font-medium text-yellow-600 dark:text-yellow-400">
-                    {stats.fd.warn_count}
-                  </dd>
+                  <dd className="font-medium text-warning">{stats.fd.warn_count}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Failures:</dt>
-                  <dd className="font-medium text-red-600 dark:text-red-400">
-                    {stats.fd.fail_count}
-                  </dd>
+                  <dd className="font-medium text-destructive">{stats.fd.fail_count}</dd>
                 </div>
               </dl>
             </CardContent>
@@ -628,15 +624,11 @@ export default function HealthMonitor() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Warnings:</dt>
-                  <dd className="font-medium text-yellow-600 dark:text-yellow-400">
-                    {stats.memory.warn_count}
-                  </dd>
+                  <dd className="font-medium text-warning">{stats.memory.warn_count}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Failures:</dt>
-                  <dd className="font-medium text-red-600 dark:text-red-400">
-                    {stats.memory.fail_count}
-                  </dd>
+                  <dd className="font-medium text-destructive">{stats.memory.fail_count}</dd>
                 </div>
               </dl>
             </CardContent>
@@ -807,8 +799,8 @@ export default function HealthMonitor() {
                   key={alert.id}
                   className={cn(
                     'rounded-lg border p-3 flex items-start justify-between gap-4',
-                    alert.severity === 'fail' && 'border-red-500/50 bg-red-500/10',
-                    alert.severity === 'warn' && 'border-yellow-500/50 bg-yellow-500/10'
+                    alert.severity === 'fail' && 'border-destructive/50 bg-destructive/10',
+                    alert.severity === 'warn' && 'border-warning/50 bg-warning/10'
                   )}
                 >
                   <div className="flex items-start gap-3">

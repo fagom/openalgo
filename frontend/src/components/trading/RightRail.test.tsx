@@ -36,7 +36,7 @@ describe('RightRail', () => {
   it('opens Objects from a glyph, not a word down the rail', async () => {
     const onSelect = rail()
     const button = screen.getByRole('button', { name: 'Objects' })
-    // The rail is glyphs in identical 32px boxes. Spelling this one out made
+    // The rail is glyphs in identical 36px boxes. Spelling this one out made
     // its button twice the height of the three beside it, so the name reaches
     // a reader through the button and the hover tip instead of the rail.
     expect(button.textContent).toBe('')

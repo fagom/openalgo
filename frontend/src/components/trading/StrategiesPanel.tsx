@@ -153,7 +153,7 @@ function Holding({
             <span
               className={cn(
                 'ml-auto font-mono tabular-nums',
-                profit >= 0 ? 'text-emerald-500' : 'text-destructive'
+                profit >= 0 ? 'text-profit' : 'text-destructive'
               )}
             >
               {money(profit)}
@@ -173,7 +173,7 @@ function Holding({
               key={`${one.symbol}-${one.exchange}`}
               className="flex items-baseline gap-1.5 font-mono text-[10px] tabular-nums"
             >
-              <span className={one.side === 'short' ? 'text-destructive' : 'text-emerald-500'}>
+              <span className={one.side === 'short' ? 'text-destructive' : 'text-success'}>
                 {one.side === 'short' ? 'SHORT' : 'LONG'} {one.quantity}
               </span>
               <span className="truncate text-muted-foreground">{one.symbol}</span>
@@ -181,9 +181,7 @@ function Holding({
                 <span className="text-muted-foreground">@{one.averagePrice.toFixed(2)}</span>
               )}
               {profit !== null && (
-                <span
-                  className={cn('ml-auto', profit >= 0 ? 'text-emerald-500' : 'text-destructive')}
-                >
+                <span className={cn('ml-auto', profit >= 0 ? 'text-profit' : 'text-destructive')}>
                   {money(profit)}
                 </span>
               )}
@@ -602,9 +600,7 @@ export function StrategiesPanel({ getChartContext }: Props) {
         <span
           className={cn(
             'ml-auto shrink-0 rounded px-1.5 py-px text-[10px] font-medium uppercase tracking-wide',
-            isLive
-              ? 'bg-destructive/15 text-destructive'
-              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+            isLive ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning'
           )}
           title={
             isLive
@@ -676,7 +672,7 @@ export function StrategiesPanel({ getChartContext }: Props) {
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
         {unreachable && (
-          <p className="rounded border border-amber-500/40 px-2 py-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+          <p className="rounded border border-warning/40 px-2 py-1.5 text-[11px] text-warning">
             The runner cannot be reached, so this list may be out of date. Anything already running
             on the server is still running.
           </p>
@@ -729,7 +725,7 @@ export function StrategiesPanel({ getChartContext }: Props) {
                   <span
                     className={cn(
                       'h-1.5 w-1.5 shrink-0 rounded-full',
-                      run ? 'bg-emerald-500' : 'bg-muted-foreground/40'
+                      run ? 'bg-success' : 'bg-muted-foreground/40'
                     )}
                     aria-hidden
                   />
@@ -860,7 +856,7 @@ export function StrategiesPanel({ getChartContext }: Props) {
                       }
                       onClick={() => setRemoving(one.id)}
                     >
-                      <Trash2 className="h-3 w-3" aria-hidden />
+                      <Trash2 className="size-4" aria-hidden />
                     </button>
                   )}
                 </div>

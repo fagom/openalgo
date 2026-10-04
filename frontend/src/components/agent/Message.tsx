@@ -284,7 +284,7 @@ function Reasoning({ text }: { text: string }) {
     >
       <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/60">
         <ChevronRight
-          className={cn('h-3.5 w-3.5 shrink-0 transition-transform', open && 'rotate-90')}
+          className={cn('size-4 shrink-0 transition-transform', open && 'rotate-90')}
           aria-hidden
         />
         Reasoning
@@ -300,10 +300,8 @@ function Reasoning({ text }: { text: string }) {
 
 const NOTICE_CLASSES: Record<string, string> = {
   info: 'border-border bg-muted/40 text-muted-foreground',
-  warning:
-    'border-amber-500/60 bg-amber-50 text-amber-900 dark:border-amber-600/60 dark:bg-amber-950/40 dark:text-amber-200',
-  error:
-    'border-red-500/60 bg-red-50 text-red-900 dark:border-red-600/60 dark:bg-red-950/40 dark:text-red-200',
+  warning: 'border-warning/60 bg-warning/10 text-warning',
+  error: 'border-destructive/60 bg-destructive/10 text-destructive',
 }
 
 function Notices({ notices }: { notices: AgentMessage['notices'] }) {
@@ -352,15 +350,13 @@ function PendingConfirm({
   )
 
   return (
-    <div className="space-y-2 rounded-lg border border-amber-500/60 bg-amber-50 p-3 dark:border-amber-600/60 dark:bg-amber-950/40">
-      <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
-        This turn is waiting for your approval.
-      </p>
+    <div className="space-y-2 rounded-lg border border-warning/60 bg-warning/10 p-3">
+      <p className="text-xs font-medium text-warning">This turn is waiting for your approval.</p>
       <ul className="space-y-1">
         {pending.requirements.map((requirement: ConfirmRequirement) => (
           <li
             key={requirement.id || requirement.tool_call_id}
-            className="rounded-md border border-amber-500/40 bg-background/60 p-2 dark:border-amber-600/40"
+            className="rounded-md border border-warning/40 bg-background/60 p-2"
           >
             <p className="text-xs font-medium text-foreground">{requirement.tool_name}</p>
             <pre className="mt-1 max-h-40 overflow-auto font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-words text-muted-foreground">

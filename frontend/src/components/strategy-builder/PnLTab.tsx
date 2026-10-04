@@ -60,8 +60,8 @@ function PriceCell({
     <span
       className={cn(
         'inline-block rounded px-1.5 py-0.5 tabular-nums transition-colors duration-300',
-        flash === 'up' && 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
-        flash === 'down' && 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+        flash === 'up' && 'bg-profit/20 text-profit',
+        flash === 'down' && 'bg-loss/20 text-loss'
       )}
     >
       {formatCurrency(value)}
@@ -81,10 +81,10 @@ function PnlCell({
     <span
       className={cn(
         'inline-block rounded px-1.5 py-0.5 font-semibold tabular-nums transition-colors duration-300',
-        value > 0 && 'text-emerald-600 dark:text-emerald-400',
-        value < 0 && 'text-rose-600 dark:text-rose-400',
-        flash === 'up' && 'bg-emerald-500/20',
-        flash === 'down' && 'bg-rose-500/20'
+        value > 0 && 'text-profit',
+        value < 0 && 'text-loss',
+        flash === 'up' && 'bg-profit/20',
+        flash === 'down' && 'bg-loss/20'
       )}
     >
       {formatCurrency(value)}
@@ -192,29 +192,29 @@ export function PnLTab({ legs, fnoExchange, fallbackPrices, formatCurrency }: Pn
             Live P&amp;L
           </span>
           {streamingState === 'streaming' && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
               </span>
               Streaming
             </span>
           )}
           {streamingState === 'paused' && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-              <Radio className="h-2.5 w-2.5" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-warning">
+              <Radio className="size-4" />
               Paused
             </span>
           )}
           {streamingState === 'fallback' && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
-              <Wifi className="h-2.5 w-2.5" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-info/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-info">
+              <Wifi className="size-4" />
               Polling
             </span>
           )}
           {streamingState === 'connecting' && (
             <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              <WifiOff className="h-2.5 w-2.5" />
+              <WifiOff className="size-4" />
               Connecting
             </span>
           )}
@@ -274,15 +274,15 @@ export function PnLTab({ legs, fnoExchange, fallbackPrices, formatCurrency }: Pn
           {rows.map(({ leg, current, pnl, isClosed }) => (
             <TableRow
               key={leg.id}
-              className={cn(!leg.active && 'opacity-50', isClosed && 'bg-rose-500/5')}
+              className={cn(!leg.active && 'opacity-50', isClosed && 'bg-loss/5')}
             >
               <TableCell className="text-center">
                 <span
                   className={cn(
                     'inline-flex h-5 w-9 items-center justify-center rounded-md text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset',
                     leg.side === 'BUY'
-                      ? 'bg-emerald-500/15 text-emerald-700 ring-emerald-500/20 dark:text-emerald-400'
-                      : 'bg-rose-500/15 text-rose-700 ring-rose-500/20 dark:text-rose-400'
+                      ? 'bg-buy/15 text-buy ring-buy/20'
+                      : 'bg-destructive/15 text-destructive ring-destructive/20'
                   )}
                   title={leg.side === 'BUY' ? 'Buy' : 'Sell'}
                 >
@@ -299,7 +299,7 @@ export function PnLTab({ legs, fnoExchange, fallbackPrices, formatCurrency }: Pn
                   </span>
                   <span className="tabular-nums text-muted-foreground">{leg.expiry}</span>
                   {isClosed && (
-                    <span className="rounded bg-rose-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+                    <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-destructive">
                       Closed
                     </span>
                   )}

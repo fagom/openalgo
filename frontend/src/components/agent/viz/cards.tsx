@@ -34,8 +34,8 @@ import { cn } from '@/lib/utils'
 
 /** Up, down and neither, in the two themes. */
 export const TONE = {
-  up: 'text-emerald-600 dark:text-emerald-500',
-  down: 'text-red-600 dark:text-red-400',
+  up: 'text-profit',
+  down: 'text-loss',
   flat: 'text-muted-foreground',
 } as const
 
@@ -59,17 +59,17 @@ export function toneOf(value: number | undefined): Tone {
  */
 export const FEED = {
   /** The socket is up, the session is open, and ticks are arriving. */
-  live: { dot: 'motion-safe:animate-pulse bg-emerald-500', label: 'Live' },
+  live: { dot: 'motion-safe:animate-pulse bg-profit', label: 'Live' },
   /** The socket failed and the manager is polling the REST snapshot instead. */
-  polling: { dot: 'bg-sky-500', label: 'Polling' },
+  polling: { dot: 'bg-info', label: 'Polling' },
   /** Connected and open, but this card has not been sent a tick yet. */
-  waiting: { dot: 'bg-amber-500', label: 'Waiting' },
+  waiting: { dot: 'bg-warning', label: 'Waiting' },
   /** Connected, but the numbers on screen are older than the feed's cadence. */
-  delayed: { dot: 'bg-amber-500', label: 'Delayed' },
+  delayed: { dot: 'bg-warning', label: 'Delayed' },
   /** Subscriptions released on purpose: the tab is hidden, or the card is not. */
-  paused: { dot: 'bg-amber-500', label: 'Paused' },
+  paused: { dot: 'bg-warning', label: 'Paused' },
   /** No socket. Nothing on screen is going to move. */
-  offline: { dot: 'bg-red-500', label: 'Not connected' },
+  offline: { dot: 'bg-destructive', label: 'Not connected' },
   /** The session is shut. The last price is the closing one and that is fine. */
   closed: { dot: 'bg-muted-foreground/50', label: 'Closed' },
 } as const

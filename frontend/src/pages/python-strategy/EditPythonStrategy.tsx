@@ -193,11 +193,11 @@ export default function EditPythonStrategy() {
         </span>
         <span>
           {hasChanges ? (
-            <Badge variant="outline" className="text-yellow-500 border-yellow-500">
+            <Badge variant="outline" className="text-warning border-warning/60">
               Unsaved Changes
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-green-500 border-green-500">
+            <Badge variant="outline" className="text-profit border-profit/60">
               Saved
             </Badge>
           )}
@@ -221,7 +221,7 @@ export default function EditPythonStrategy() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
             {isRunning ? 'View' : 'Edit'} Strategy
-            {isRunning && <Badge className="bg-green-500">Running</Badge>}
+            {isRunning && <Badge className="bg-success">Running</Badge>}
           </h1>
           <p className="text-muted-foreground flex items-center gap-2">
             <FileCode className="h-4 w-4" />

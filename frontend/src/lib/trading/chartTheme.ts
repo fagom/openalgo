@@ -118,7 +118,7 @@ export function buildChartTheme(mode: ThemeMode, appMode: AppMode): ChartTheme {
  *
  * The engine ships its dialogs as canvas-adjacent DOM with its own token set,
  * and its defaults are a step smaller than this app's: a 28px control against
- * our 32px, 12.5px text against 14px, a 7px corner against 8px. Each gap is
+ * our 40px, 12.5px text against 14px, a 7px corner against 8px. Each gap is
  * small and together they are what makes the alert editor read as a window
  * from somewhere else, sitting over a page whose every other control agrees.
  *
@@ -135,7 +135,7 @@ export function buildChartTheme(mode: ThemeMode, appMode: AppMode): ChartTheme {
  * is nine fields in a column. The rest of the scale is the app's exactly.
  */
 export const CHART_DIALOG_METRICS: Readonly<Record<string, string>> = {
-  '--oac-ctl-h': '32px',
+  '--oac-ctl-h': '40px',
   '--oac-fs': '13px',
   '--oac-radius': '8px',
 }

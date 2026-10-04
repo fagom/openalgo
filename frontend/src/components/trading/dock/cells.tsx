@@ -26,14 +26,14 @@ export const ROW_ACTIVE = '!bg-accent shadow-[inset_2px_0_0_0_var(--color-primar
 /** The emerald and rose the watchlist uses, on a signed figure. */
 export function toneClass(value: number): string {
   const d = direction(value)
-  if (d === 'up') return 'text-emerald-600 dark:text-emerald-400'
-  if (d === 'down') return 'text-rose-600 dark:text-rose-400'
+  if (d === 'up') return 'text-profit'
+  if (d === 'down') return 'text-loss'
   return 'text-muted-foreground'
 }
 
 export function sideClass(action: string): string {
-  if (action === 'BUY') return 'text-emerald-600 dark:text-emerald-400'
-  if (action === 'SELL') return 'text-rose-600 dark:text-rose-400'
+  if (action === 'BUY') return 'text-buy'
+  if (action === 'SELL') return 'text-sell'
   return ''
 }
 
@@ -100,9 +100,8 @@ export function StatusBadge({ status }: { status: string }) {
         // The primary token, not a fixed hue: it follows light, dark and the
         // analyzer accent the way the tab badge does.
         tone === 'working' && 'border-primary/40 bg-primary/10 text-primary',
-        tone === 'done' &&
-          'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-        tone === 'failed' && 'border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+        tone === 'done' && 'border-success/40 bg-success/10 text-success',
+        tone === 'failed' && 'border-destructive/40 bg-destructive/10 text-destructive',
         tone === 'off' && 'border-border bg-muted text-muted-foreground',
         tone === 'unknown' && 'border-border text-foreground'
       )}

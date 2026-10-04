@@ -120,11 +120,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       aria-label={label}
       className="h-6 gap-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground"
     >
-      {copied ? (
-        <Check className="h-3 w-3" aria-hidden />
-      ) : (
-        <Copy className="h-3 w-3" aria-hidden />
-      )}
+      {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
       {copied ? 'Copied' : 'Copy'}
     </Button>
   )

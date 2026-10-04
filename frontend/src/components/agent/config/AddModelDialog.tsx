@@ -397,10 +397,7 @@ export function AddModelDialog({
             {testResult ? (
               <Alert
                 variant={testResult.ok ? 'default' : 'destructive'}
-                className={cn(
-                  testResult.ok &&
-                    'border-emerald-500 bg-emerald-50 text-emerald-900 dark:border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-200'
-                )}
+                className={cn(testResult.ok && 'border-success/60 bg-success/10 text-success')}
               >
                 <AlertDescription>
                   {testResult.ok

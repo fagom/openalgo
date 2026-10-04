@@ -197,7 +197,7 @@ export default function TwoFactorEnforcement() {
 
         {/* TOTP confirmation */}
         {isDirty ? (
-          <div className="space-y-2 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:bg-amber-950/30">
+          <div className="space-y-2 rounded-lg border border-warning/30 bg-warning/10 p-4">
             <Label htmlFor="confirm-totp" className="text-sm font-semibold">
               Confirm with TOTP code
             </Label>
