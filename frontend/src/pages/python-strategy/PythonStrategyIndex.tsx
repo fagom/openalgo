@@ -39,8 +39,26 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { MasterContractStatus, PythonStrategy } from '@/types/python-strategy'
-import { SCHEDULE_DAYS, STATUS_COLORS, STATUS_LABELS } from '@/types/python-strategy'
+import {
+  CRYPTO_EXCHANGE_VALUE,
+  SCHEDULE_DAYS,
+  STATUS_COLORS,
+  STATUS_LABELS,
+} from '@/types/python-strategy'
 import { showToast } from '@/utils/toast'
+
+/**
+ * The schedule as a trader reads it. A strategy saved with no stop time is a
+ * crypto strategy running around the clock; filling in a stop time it does
+ * not have would say it stops when it never does.
+ */
+function scheduleWindow(strategy: PythonStrategy): string {
+  const start = strategy.schedule_start_time || '09:00'
+  if (strategy.schedule_stop_time) return `${start} - ${strategy.schedule_stop_time}`
+  const everyDay = new Set(strategy.schedule_days ?? []).size === 7
+  if (strategy.exchange === CRYPTO_EXCHANGE_VALUE && everyDay && start === '00:00') return '24/7'
+  return `From ${start}, no stop time`
+}
 
 export default function PythonStrategyIndex() {
   const navigate = useNavigate()
@@ -427,12 +445,8 @@ export default function PythonStrategyIndex() {
                 {/* Schedule Info - always show */}
                 <div className="text-sm p-2 rounded min-h-[52px] bg-primary/10 border border-primary/20">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    <span>
-                      {strategy.schedule_start_time || '09:00'}
-                      {' - '}
-                      {strategy.schedule_stop_time || '16:00'}
-                    </span>
+                    <Calendar className="h-4 w-4 text-blue-500" />
+                    <span>{scheduleWindow(strategy)}</span>
                     {strategy.exchange && (
                       <span className="ml-auto px-1.5 py-0.5 text-[10px] font-medium rounded bg-primary/20 text-primary">
                         {strategy.exchange}
@@ -534,9 +548,7 @@ export default function PythonStrategyIndex() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {strategy.schedule_start_time && strategy.schedule_stop_time
-                        ? `${strategy.schedule_start_time} - ${strategy.schedule_stop_time}`
-                        : 'Edit schedule'}
+                      {strategy.schedule_start_time ? scheduleWindow(strategy) : 'Edit schedule'}
                     </TooltipContent>
                   </Tooltip>
 

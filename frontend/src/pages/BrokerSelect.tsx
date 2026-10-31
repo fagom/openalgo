@@ -44,6 +44,8 @@ const allBrokers = [
   { id: 'paytm', name: 'Paytm Money', authType: 'oauth' },
   { id: 'pocketful', name: 'Pocketful', authType: 'oauth' },
   { id: 'rmoney', name: 'RMoney', authType: 'oauth' },
+  { id: 'rupeezy', name: 'Rupeezy', authType: 'oauth' },
+  { id: 'sahi', name: 'Sahi', authType: 'totp' },
   { id: 'samco', name: 'Samco', authType: 'totp' },
   { id: 'shoonya', name: 'Shoonya', authType: 'totp' },
   { id: 'tradejini', name: 'Tradejini', authType: 'totp' },
@@ -147,6 +149,7 @@ export default function BrokerSelect() {
       case 'motilal':
       case 'nubra':
       case 'groww':
+      case 'sahi':
       case 'ibulls':
       case 'iifl':
       case 'kotak':
@@ -195,6 +198,11 @@ export default function BrokerSelect() {
       case 'arrow':
         // Arrow hosted login; redirects back to /arrow/callback with request-token.
         loginUrl = `https://app.arrow.trade/app/login?appID=${broker_api_key}`
+        break
+
+      case 'rupeezy':
+        // Rupeezy Vortex SSO; redirects back to /rupeezy/callback with an `auth` param.
+        loginUrl = `https://flow.rupeezy.in?applicationId=${broker_api_key}`
         break
 
       case 'hdfcsecurities':

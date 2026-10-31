@@ -570,6 +570,12 @@ def broker_callback(broker, para=None):
         auth_token, error_message = auth_function(code)
         forward_url = "broker.html"
 
+    elif broker == "sahi":
+        # Sahi mints the day's token from the API key and secret in the
+        # environment; there is nothing for the trader to enter.
+        auth_token, error_message = auth_function("sahi")
+        forward_url = "broker.html"
+
     elif broker == "wisdom":
         code = "wisdom"
         logger.debug("Wisdom broker - authentication initiated")
@@ -996,6 +1002,15 @@ def broker_callback(broker, para=None):
             or request.args.get("code")
         )
         logger.debug(f"Arrow broker - request token present: {bool(code)}")
+        auth_token, error_message = auth_function(code)
+        forward_url = "broker.html"
+
+    elif broker == "rupeezy":
+        # Rupeezy Vortex SSO redirects back with the auth code in `auth`
+        # (https://vortex.rupeezy.in/docs/latest/authentication/), which the
+        # generic branch below would drop.
+        code = request.args.get("auth") or request.args.get("code")
+        logger.debug(f"Rupeezy broker - auth code present: {bool(code)}")
         auth_token, error_message = auth_function(code)
         forward_url = "broker.html"
 
