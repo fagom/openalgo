@@ -34,8 +34,8 @@ export function ConnectionPanel({
   const getStatusBadge = () => {
     if (isConnecting) {
       return (
-        <Badge variant="outline" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-          <div className="h-2 w-2 rounded-full bg-amber-400 mr-2 animate-pulse" />
+        <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
+          <div className="h-2 w-2 rounded-full bg-warning mr-2 animate-pulse" />
           Connecting...
         </Badge>
       )
@@ -43,11 +43,8 @@ export function ConnectionPanel({
 
     if (isAuthenticated) {
       return (
-        <Badge
-          variant="outline"
-          className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-        >
-          <div className="h-2 w-2 rounded-full bg-emerald-400 mr-2" />
+        <Badge variant="outline" className="bg-profit/20 text-profit border-profit/30">
+          <div className="h-2 w-2 rounded-full bg-success mr-2" />
           Authenticated
         </Badge>
       )
@@ -55,8 +52,8 @@ export function ConnectionPanel({
 
     if (isConnected) {
       return (
-        <Badge variant="outline" className="bg-sky-500/20 text-sky-400 border-sky-500/30">
-          <div className="h-2 w-2 rounded-full bg-sky-400 mr-2 animate-pulse" />
+        <Badge variant="outline" className="bg-info/20 text-info border-info/30">
+          <div className="h-2 w-2 rounded-full bg-info mr-2 animate-pulse" />
           Connected
         </Badge>
       )
@@ -72,9 +69,9 @@ export function ConnectionPanel({
 
   const getLatencyColor = (latency: number | null) => {
     if (!latency) return 'text-muted-foreground'
-    if (latency < 100) return 'text-emerald-400'
-    if (latency < 300) return 'text-amber-400'
-    return 'text-red-400'
+    if (latency < 100) return 'text-profit'
+    if (latency < 300) return 'text-warning'
+    return 'text-loss'
   }
 
   return (
@@ -86,10 +83,10 @@ export function ConnectionPanel({
           {!isConnected && !isConnecting ? (
             <Button
               size="sm"
-              className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="h-7 px-3 bg-success hover:bg-success/90 text-success-foreground"
               onClick={onConnect}
             >
-              <Plug className="h-3 w-3 mr-1.5" />
+              <Plug className="size-4 mr-1.5" />
               Connect
             </Button>
           ) : (
@@ -100,7 +97,7 @@ export function ConnectionPanel({
               onClick={onDisconnect}
               disabled={isConnecting}
             >
-              <Unplug className="h-3 w-3 mr-1.5" />
+              <Unplug className="size-4 mr-1.5" />
               Disconnect
             </Button>
           )}
@@ -112,7 +109,7 @@ export function ConnectionPanel({
               onClick={onPing}
               title="Send ping to measure latency"
             >
-              <Zap className="h-3 w-3 mr-1.5" />
+              <Zap className="size-4 mr-1.5" />
               Ping
             </Button>
           )}
@@ -122,7 +119,7 @@ export function ConnectionPanel({
       {/* WebSocket URL */}
       {wsUrl && (
         <div className="flex items-center gap-2 text-xs">
-          <Globe className="h-3 w-3 text-muted-foreground shrink-0" />
+          <Globe className="size-4 text-muted-foreground shrink-0" />
           <span className="font-mono text-muted-foreground truncate">{wsUrl}</span>
         </div>
       )}
@@ -132,7 +129,7 @@ export function ConnectionPanel({
         <div className="flex items-center gap-4 text-xs">
           {lastLatency !== null && (
             <div className="flex items-center gap-1.5">
-              <Clock className="h-3 w-3 text-muted-foreground" />
+              <Clock className="size-4 text-muted-foreground" />
               <span className="text-muted-foreground">Last:</span>
               <span className={cn('font-mono font-medium', getLatencyColor(lastLatency))}>
                 {lastLatency}ms

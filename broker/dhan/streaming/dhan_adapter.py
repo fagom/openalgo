@@ -26,6 +26,21 @@ from websocket_proxy.mapping import SymbolMapper
 from .dhan_mapping import DhanCapabilityRegistry, DhanExchangeMapper
 from .dhan_websocket import DhanWebSocket
 
+# Dhan's feed stamps last-trade-time as IST wall-clock encoded as a UTC epoch,
+# so it runs 5h30m ahead of true time. Consumers (the /trading candle builder
+# among them) bucket ticks by this value, and an uncorrected ltt opens a new
+# candle 5.5 hours in the future on the first tick.
+IST_OFFSET_SECONDS = 19800
+
+
+def _ltt_to_epoch(ltt: Any) -> int:
+    """Convert Dhan's IST-shifted last-trade-time to a true UTC epoch in seconds."""
+    try:
+        value = int(ltt or 0)
+    except (TypeError, ValueError):
+        return 0
+    return value - IST_OFFSET_SECONDS if value > IST_OFFSET_SECONDS else 0
+
 
 class DhanWebSocketAdapter(BaseBrokerWebSocketAdapter):
     """Dhan-specific implementation of the WebSocket adapter"""
@@ -835,14 +850,16 @@ class DhanWebSocketAdapter(BaseBrokerWebSocketAdapter):
         base_data = {"symbol": symbol, "exchange": exchange, "timestamp": int(time.time() * 1000)}
 
         if data_type == "ticker":
-            base_data.update({"mode": 1, "ltp": data.get("ltp", 0), "ltt": data.get("ltt", 0)})
+            base_data.update(
+                {"mode": 1, "ltp": data.get("ltp", 0), "ltt": _ltt_to_epoch(data.get("ltt"))}
+            )
 
         elif data_type == "quote":
             base_data.update(
                 {
                     "mode": 2,
                     "ltp": data.get("ltp", 0),
-                    "ltt": data.get("ltt", 0),
+                    "ltt": _ltt_to_epoch(data.get("ltt")),
                     "volume": data.get("volume", 0),
                     "open": data.get("open", 0),
                     "high": data.get("high", 0),
@@ -860,7 +877,7 @@ class DhanWebSocketAdapter(BaseBrokerWebSocketAdapter):
                 {
                     "mode": 3,
                     "ltp": data.get("ltp", 0),
-                    "ltt": data.get("ltt", 0),
+                    "ltt": _ltt_to_epoch(data.get("ltt")),
                     "volume": data.get("volume", 0),
                     "open": data.get("open", 0),
                     "high": data.get("high", 0),

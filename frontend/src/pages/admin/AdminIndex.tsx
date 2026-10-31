@@ -44,7 +44,7 @@ export default function AdminIndex() {
       href: '/admin/freeze',
       count: stats?.freeze_count,
       countLabel: 'entries',
-      color: 'bg-blue-500',
+      color: 'bg-primary',
     },
     {
       title: 'Market Holidays',
@@ -53,7 +53,7 @@ export default function AdminIndex() {
       href: '/admin/holidays',
       count: stats?.holiday_count,
       countLabel: 'holidays',
-      color: 'bg-green-500',
+      color: 'bg-success',
     },
     {
       title: 'Market Timings',
@@ -62,7 +62,7 @@ export default function AdminIndex() {
       href: '/admin/timings',
       count: 7,
       countLabel: 'exchanges',
-      color: 'bg-purple-500',
+      color: 'bg-chart-4',
     },
     {
       title: 'Security Dashboard',
@@ -70,7 +70,7 @@ export default function AdminIndex() {
       icon: Shield,
       href: '/logs/security',
       countLabel: 'monitoring',
-      color: 'bg-red-500',
+      color: 'bg-destructive',
     },
     {
       title: 'Traffic Dashboard',
@@ -78,7 +78,7 @@ export default function AdminIndex() {
       icon: Activity,
       href: '/logs/traffic',
       countLabel: 'monitoring',
-      color: 'bg-cyan-500',
+      color: 'bg-chart-3',
     },
     {
       title: 'Latency Dashboard',
@@ -86,7 +86,7 @@ export default function AdminIndex() {
       icon: Zap,
       href: '/logs/latency',
       countLabel: 'monitoring',
-      color: 'bg-orange-500',
+      color: 'bg-warning',
     },
     {
       title: 'Diagnostics',
@@ -94,7 +94,7 @@ export default function AdminIndex() {
       icon: Gauge,
       href: '/admin/diagnostics',
       countLabel: 'troubleshoot',
-      color: 'bg-indigo-500',
+      color: 'bg-info',
     },
     {
       title: 'Agent Config',
@@ -102,7 +102,7 @@ export default function AdminIndex() {
       icon: Bot,
       href: '/agent/config',
       countLabel: 'models and keys',
-      color: 'bg-violet-500',
+      color: 'bg-chart-4',
     },
     {
       title: 'Remote MCP',
@@ -110,7 +110,7 @@ export default function AdminIndex() {
       icon: Globe,
       href: '/admin/remote-mcp',
       countLabel: 'AI clients',
-      color: 'bg-teal-500',
+      color: 'bg-chart-3',
     },
   ]
 

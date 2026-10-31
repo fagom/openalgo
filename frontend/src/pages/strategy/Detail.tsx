@@ -117,8 +117,8 @@ function brokerNumber(value: number | null, fractionDigits = 2): string {
 }
 
 function severityClass(severity: string): string {
-  if (severity === 'critical') return 'text-red-600'
-  if (severity === 'warn') return 'text-amber-600'
+  if (severity === 'critical') return 'text-loss'
+  if (severity === 'warn') return 'text-warning'
   return 'text-muted-foreground'
 }
 
@@ -186,9 +186,9 @@ function Stat({
         className={cn(
           'mt-1 font-mono',
           bold ? 'text-xl font-bold' : 'text-lg font-semibold',
-          tone === 'good' && 'text-green-600',
-          tone === 'bad' && 'text-red-600',
-          tone === 'warn' && 'text-amber-600'
+          tone === 'good' && 'text-success',
+          tone === 'bad' && 'text-destructive',
+          tone === 'warn' && 'text-warning'
         )}
       >
         {value}
@@ -296,7 +296,7 @@ function TrailCell({ leg, live }: { leg: Leg; live: LegState | undefined }) {
     <div className="flex flex-col items-end gap-0.5 leading-tight">
       {armed ? (
         <>
-          <span className="text-amber-600">
+          <span className="text-warning">
             trailing{effectiveSl != null && ` @ ${effectiveSl.toFixed(2)}`}
           </span>
           <span className="text-[10px] text-muted-foreground">peak +{peakPts.toFixed(2)} pts</span>
@@ -529,7 +529,7 @@ function LiveTab({
                       <TableCell className="text-right font-mono">
                         {formatPrice(legLive?.effective_sl)}
                         {Boolean(legLive?.trail_active) && (
-                          <span className="ml-1 text-[10px] text-amber-600">(trail)</span>
+                          <span className="ml-1 text-[10px] text-warning">(trail)</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right font-mono">
@@ -1267,7 +1267,7 @@ export function OrdersTab({
   return (
     <div className="space-y-4">
       {runId === null ? (
-        <output className="block rounded-md border border-amber-500/50 p-3 text-sm">
+        <output className="block rounded-md border border-warning/50 p-3 text-sm">
           Broker orderbook was not requested because no strategy run is available. Showing recorded
           strategy audit data, which is not broker confirmation.
         </output>
@@ -1280,7 +1280,7 @@ export function OrdersTab({
           </CardContent>
         </Card>
       ) : broker.unavailable ? (
-        <output className="block rounded-md border border-amber-500/50 p-3 text-sm">
+        <output className="block rounded-md border border-warning/50 p-3 text-sm">
           Broker unavailable — showing recorded strategy audit, which may lag.
         </output>
       ) : (
@@ -1428,7 +1428,7 @@ export function TradesTab({
   return (
     <div className="space-y-4">
       {runId === null ? (
-        <output className="block rounded-md border border-amber-500/50 p-3 text-sm">
+        <output className="block rounded-md border border-warning/50 p-3 text-sm">
           Broker tradebook was not requested because no strategy run is available. Showing recorded
           strategy audit data, which is not broker confirmation.
         </output>
@@ -1441,7 +1441,7 @@ export function TradesTab({
           </CardContent>
         </Card>
       ) : broker.unavailable ? (
-        <output className="block rounded-md border border-amber-500/50 p-3 text-sm">
+        <output className="block rounded-md border border-warning/50 p-3 text-sm">
           Broker unavailable — showing recorded strategy audit, which may lag.
         </output>
       ) : (
@@ -1774,33 +1774,25 @@ function WebhookTab({
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase text-green-700 dark:text-green-400">
-                    Long entry
-                  </Label>
+                  <Label className="text-xs uppercase text-success">Long entry</Label>
                   <pre className="rounded-md bg-muted p-3 text-xs">
                     {`{"action":"long_entry","leg_id":${sampleLegId}}`}
                   </pre>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase text-amber-700 dark:text-amber-400">
-                    Long exit
-                  </Label>
+                  <Label className="text-xs uppercase text-warning">Long exit</Label>
                   <pre className="rounded-md bg-muted p-3 text-xs">
                     {`{"action":"long_exit","leg_id":${sampleLegId}}`}
                   </pre>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase text-red-700 dark:text-red-400">
-                    Short entry
-                  </Label>
+                  <Label className="text-xs uppercase text-destructive">Short entry</Label>
                   <pre className="rounded-md bg-muted p-3 text-xs">
                     {`{"action":"short_entry","leg_id":${sampleLegId}}`}
                   </pre>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase text-amber-700 dark:text-amber-400">
-                    Short exit
-                  </Label>
+                  <Label className="text-xs uppercase text-warning">Short exit</Label>
                   <pre className="rounded-md bg-muted p-3 text-xs">
                     {`{"action":"short_exit","leg_id":${sampleLegId}}`}
                   </pre>
@@ -2223,8 +2215,8 @@ function HistoryTab({ runs, orders }: { runs: Run[]; orders: Order[] }) {
                     className={cn(
                       'rounded-md border p-3',
                       mode === 'live'
-                        ? 'border-red-500/40 bg-red-500/5'
-                        : 'border-blue-500/40 bg-blue-500/5'
+                        ? 'border-destructive/40 bg-destructive/5'
+                        : 'border-primary/40 bg-primary/5'
                     )}
                   >
                     <div className="mb-2 flex items-center justify-between">
@@ -2709,7 +2701,7 @@ export default function StrategyDetail() {
               </Badge>
             )}
             {strategy.strategy_kind === 'signal' && (
-              <Badge variant="default" className="bg-blue-600 hover:bg-blue-600">
+              <Badge variant="default" className="bg-primary hover:bg-primary/90">
                 Signal mode
               </Badge>
             )}
@@ -2938,7 +2930,7 @@ export default function StrategyDetail() {
               ))}
             </div>
             {startMode === 'live' && !strategy.live_enabled && (
-              <p className="rounded-md bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+              <p className="rounded-md bg-warning/10 p-2 text-xs text-warning">
                 Strategy isn't live-enabled. Use "Enable LIVE" on the detail page to unlock live
                 mode.
               </p>

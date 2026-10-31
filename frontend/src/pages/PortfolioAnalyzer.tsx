@@ -11,11 +11,7 @@
  * Stated plainly rather than left for the reader to assume the stronger claim.
  */
 import { useState } from 'react'
-import {
-  analyseHoldings,
-  type HoldingsAnalysis,
-  type PriceSource,
-} from '@/api/portfolio'
+import { analyseHoldings, type HoldingsAnalysis, type PriceSource } from '@/api/portfolio'
 import { CrisisChart } from '@/components/portfolio/CrisisChart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,9 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuthStore } from '@/stores/authStore'
-import { cn } from '@/lib/utils'
 import { healthGradeTone } from '@/lib/portfolioRequest'
+import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/authStore'
 
 const inr = (v: number) =>
   `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
@@ -57,8 +53,8 @@ function Metric({
         <div
           className={cn(
             'mt-1 text-2xl font-semibold tabular-nums',
-            tone === 'good' && 'text-emerald-500',
-            tone === 'bad' && 'text-rose-500'
+            tone === 'good' && 'text-success',
+            tone === 'bad' && 'text-destructive'
           )}
         >
           {value}
@@ -113,8 +109,8 @@ export default function PortfolioAnalyzer() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Portfolio Analyzer</h1>
           <p className="text-sm text-muted-foreground">
-            Your live holdings, graded: concentration, co-movement, drawdown
-            resilience and how they behaved in past crises.
+            Your live holdings, graded: concentration, co-movement, drawdown resilience and how they
+            behaved in past crises.
           </p>
         </div>
         <div className="flex items-end gap-3">
@@ -146,19 +142,15 @@ export default function PortfolioAnalyzer() {
       </div>
 
       {error && (
-        <Card className="border-rose-500/40">
-          <CardContent className="p-4 text-sm text-rose-500">{error}</CardContent>
+        <Card className="border-destructive/40">
+          <CardContent className="p-4 text-sm text-destructive">{error}</CardContent>
         </Card>
       )}
 
       {result && s && (
         <>
           <div className="grid gap-3 md:grid-cols-5">
-            <Metric
-              label="Worth Today"
-              value={inr(s.current)}
-              sub={`${s.count} holdings`}
-            />
+            <Metric label="Worth Today" value={inr(s.current)} sub={`${s.count} holdings`} />
             <Metric
               label="Invested"
               value={s.invested === null ? '-' : inr(s.invested)}
@@ -167,11 +159,7 @@ export default function PortfolioAnalyzer() {
             <Metric
               label="Total P&L"
               value={inr(s.pnl)}
-              sub={
-                s.pnl_pct === null
-                  ? 'percent needs a cost basis'
-                  : `${s.pnl_pct.toFixed(2)}%`
-              }
+              sub={s.pnl_pct === null ? 'percent needs a cost basis' : `${s.pnl_pct.toFixed(2)}%`}
               tone={s.pnl >= 0 ? 'good' : 'bad'}
             />
             <Metric
@@ -182,34 +170,29 @@ export default function PortfolioAnalyzer() {
             />
             <Metric
               label="Effective Bets"
-              value={
-                result.analysis
-                  ? String(result.analysis.structure.effective_bets)
-                  : '-'
-              }
+              value={result.analysis ? String(result.analysis.structure.effective_bets) : '-'}
               sub={`from ${s.count} names`}
             />
           </div>
 
           {s.has_cost_basis === false && (
-            <Card className="border-amber-500/40">
+            <Card className="border-warning/40">
               <CardContent className="p-4 text-sm">
-                <span className="font-medium text-amber-500">No cost basis: </span>
-                your broker returns holdings without an average price, so invested
-                value and return percentages cannot be computed. Everything that
-                depends on current value, weights, concentration, co-movement,
-                health and risk, is unaffected, and the P&amp;L shown is the
-                broker's own figure.
+                <span className="font-medium text-warning">No cost basis: </span>
+                your broker returns holdings without an average price, so invested value and return
+                percentages cannot be computed. Everything that depends on current value, weights,
+                concentration, co-movement, health and risk, is unaffected, and the P&amp;L shown is
+                the broker's own figure.
               </CardContent>
             </Card>
           )}
 
           {result.skipped.length > 0 && (
-            <Card className="border-amber-500/40">
+            <Card className="border-warning/40">
               <CardContent className="p-4 text-sm">
-                <span className="font-medium text-amber-500">Not analysed: </span>
-                {result.skipped.join(', ')}, held on an exchange this tool does not
-                price. They are listed below but excluded from the figures above.
+                <span className="font-medium text-warning">Not analysed: </span>
+                {result.skipped.join(', ')}, held on an exchange this tool does not price. They are
+                listed below but excluded from the figures above.
               </CardContent>
             </Card>
           )}
@@ -248,7 +231,7 @@ export default function PortfolioAnalyzer() {
                             className={cn(
                               'rounded px-1.5 py-0.5 text-xs tabular-nums',
                               h.weight > 0.3
-                                ? 'bg-amber-500/15 text-amber-500'
+                                ? 'bg-warning/15 text-warning'
                                 : 'text-muted-foreground'
                             )}
                           >
@@ -259,9 +242,7 @@ export default function PortfolioAnalyzer() {
                         <td className="p-3 text-right tabular-nums text-muted-foreground">
                           {h.average_price > 0 ? h.average_price.toFixed(2) : '-'}
                         </td>
-                        <td className="p-3 text-right tabular-nums">
-                          {h.last_price.toFixed(2)}
-                        </td>
+                        <td className="p-3 text-right tabular-nums">{h.last_price.toFixed(2)}</td>
                         <td className="p-3 text-right tabular-nums text-muted-foreground">
                           {h.invested > 0 ? inr(h.invested) : '-'}
                         </td>
@@ -269,7 +250,7 @@ export default function PortfolioAnalyzer() {
                         <td
                           className={cn(
                             'p-3 text-right tabular-nums',
-                            h.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                            h.pnl >= 0 ? 'text-profit' : 'text-loss'
                           )}
                         >
                           {inr(h.pnl)}
@@ -300,9 +281,9 @@ export default function PortfolioAnalyzer() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Asset Returns</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Each holding on its own, close to close. A window longer than the
-                  available history shows n/a rather than a since-inception figure
-                  dressed up as a five-year return.
+                  Each holding on its own, close to close. A window longer than the available
+                  history shows n/a rather than a since-inception figure dressed up as a five-year
+                  return.
                 </p>
               </CardHeader>
               <CardContent className="p-0">
@@ -332,9 +313,7 @@ export default function PortfolioAnalyzer() {
                                   <span
                                     className={cn(
                                       'inline-block w-full rounded px-2 py-1 text-right tabular-nums',
-                                      v >= 0
-                                        ? 'bg-emerald-500/15 text-emerald-400'
-                                        : 'bg-rose-500/15 text-rose-400'
+                                      v >= 0 ? 'bg-profit/15 text-profit' : 'bg-loss/15 text-loss'
                                     )}
                                     style={{
                                       // Stronger colour for a bigger move, so the
@@ -363,8 +342,8 @@ export default function PortfolioAnalyzer() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Asset Correlation Matrix</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  How each pair moved together over the lookback. Holdings that move
-                  as one are a single bet however many names they carry.
+                  How each pair moved together over the lookback. Holdings that move as one are a
+                  single bet however many names they carry.
                 </p>
               </CardHeader>
               <CardContent>
@@ -422,8 +401,8 @@ export default function PortfolioAnalyzer() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Health Breakdown</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Every pillar shows its inputs and formula, so the grade can be argued
-                  with rather than merely believed.
+                  Every pillar shows its inputs and formula, so the grade can be argued with rather
+                  than merely believed.
                 </p>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -441,10 +420,10 @@ export default function PortfolioAnalyzer() {
                           className={cn(
                             'h-full rounded',
                             p.score >= 70
-                              ? 'bg-emerald-500'
+                              ? 'bg-success'
                               : p.score >= 40
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
+                                ? 'bg-warning'
+                                : 'bg-destructive'
                           )}
                           style={{ width: `${p.score}%` }}
                         />
@@ -471,11 +450,7 @@ export default function PortfolioAnalyzer() {
                     label="Beat the Benchmark"
                     value={pct(result.analysis.crisis.summary.hit_rate, 0)}
                     sub="of those periods"
-                    tone={
-                      (result.analysis.crisis.summary.hit_rate ?? 0) >= 0.5
-                        ? 'good'
-                        : 'bad'
-                    }
+                    tone={(result.analysis.crisis.summary.hit_rate ?? 0) >= 0.5 ? 'good' : 'bad'}
                   />
                   <Metric
                     label="Worst Crisis"
@@ -489,9 +464,9 @@ export default function PortfolioAnalyzer() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">In Past Crises</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    How these same weights would have fared, with the window each one
-                    ran over and how long it lasted. Only crises inside the lookback
-                    appear, widen it to see more.
+                    How these same weights would have fared, with the window each one ran over and
+                    how long it lasted. Only crises inside the lookback appear, widen it to see
+                    more.
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -503,20 +478,20 @@ export default function PortfolioAnalyzer() {
 
           <p className="text-xs text-muted-foreground">{result.meta.basis}</p>
           {result.analysis_error && (
-            <Card className="border-amber-500/40">
+            <Card className="border-warning/40">
               <CardContent className="space-y-1 p-4 text-sm">
                 <div>
-                  <span className="font-medium text-amber-500">
+                  <span className="font-medium text-warning">
                     Historical analysis unavailable:{' '}
                   </span>
                   {result.analysis_error}
                 </div>
                 {source === 'db' && (
                   <div className="text-xs text-muted-foreground">
-                    A real account usually holds something nobody has ingested.
-                    Switch the data source to <strong>Broker API</strong> and run
-                    again, slower and rate limited, but it covers every symbol you
-                    own. The figures above do not depend on this and are unaffected.
+                    A real account usually holds something nobody has ingested. Switch the data
+                    source to <strong>Broker API</strong> and run again, slower and rate limited,
+                    but it covers every symbol you own. The figures above do not depend on this and
+                    are unaffected.
                   </div>
                 )}
               </CardContent>

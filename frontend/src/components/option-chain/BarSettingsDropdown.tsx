@@ -27,9 +27,8 @@ export function BarSettingsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="h-9 w-9">
+        <Button variant="outline" size="icon" tooltip="Bar settings" className="h-9 w-9">
           <BarChart3 className="h-4 w-4" />
-          <span className="sr-only">Bar settings</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

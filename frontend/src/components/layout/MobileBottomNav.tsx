@@ -6,7 +6,7 @@ export function MobileBottomNav() {
   const location = useLocation()
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 safe-area-bottom">
       <div className="flex items-center justify-around h-16">
         {bottomNavItems.map((item) => {
           const active = isActiveRoute(location.pathname, item.href)
@@ -22,8 +22,8 @@ export function MobileBottomNav() {
               )}
               aria-current={active ? 'page' : undefined}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <item.icon className="size-6" />
+              <span className="text-[11px] font-medium">{item.label}</span>
             </Link>
           )
         })}

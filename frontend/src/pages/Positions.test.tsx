@@ -143,7 +143,7 @@ describe('Positions close button', () => {
 
     expect(quantityCell).toHaveTextContent('0')
     expect(quantityCell.className).toContain('text-muted-foreground')
-    expect(quantityCell.className).not.toContain('text-red-600')
+    expect(quantityCell.className).not.toContain('text-sell')
   })
 
   it('treats a string zero quantity as closed, not as open', async () => {

@@ -37,14 +37,14 @@ const WATCHLIST_OPTIONS: Array<{
     label: 'MyTrades',
     description: 'Live or intended-live positions',
     icon: Briefcase,
-    color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40',
+    color: 'bg-warning/10 text-warning border-warning/40',
   },
   {
     value: 'simulation',
     label: 'Simulation',
     description: 'Paper / what-if scenarios',
     icon: FlaskConical,
-    color: 'bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/40',
+    color: 'bg-chart-4/10 text-chart-4 border-chart-4/40',
   },
 ]
 
@@ -140,7 +140,7 @@ export function SaveStrategyDialog({
           </div>
 
           {error && (
-            <p className="rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-400">
+            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               {error}
             </p>
           )}

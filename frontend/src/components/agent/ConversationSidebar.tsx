@@ -343,7 +343,7 @@ export function ConversationSidebar({
           Conversations
         </span>
         {isFetching && !isLoadingList && (
-          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" aria-hidden />
+          <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
         )}
       </div>
 
@@ -359,7 +359,7 @@ export function ConversationSidebar({
           // failed history load must not take the page down with it.
           <div className="space-y-2 rounded-lg border border-destructive/40 bg-destructive/5 p-2.5">
             <p className="flex items-start gap-1.5 text-xs leading-relaxed text-destructive">
-              <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
+              <AlertCircle className="mt-px size-4 shrink-0" aria-hidden />
               <span>{agentErrorMessage(listError, 'Could not load your conversations')}</span>
             </p>
             <Button
@@ -422,10 +422,7 @@ export function ConversationSidebar({
                   </button>
                   <div className="absolute right-1 flex items-center">
                     {isOpening ? (
-                      <Loader2
-                        className="h-3.5 w-3.5 animate-spin text-muted-foreground"
-                        aria-hidden
-                      />
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
                     ) : (
                       <Button
                         type="button"
@@ -442,7 +439,7 @@ export function ConversationSidebar({
                         aria-label={`Delete ${label}`}
                         title="Delete this conversation"
                       >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                        <Trash2 className="size-4" aria-hidden />
                       </Button>
                     )}
                   </div>

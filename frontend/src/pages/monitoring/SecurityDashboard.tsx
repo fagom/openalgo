@@ -196,11 +196,11 @@ export default function SecurityDashboard() {
   }
 
   const SortIcon = ({ column, sort }: { column: string; sort: { key: string; dir: SortDir } }) => {
-    if (sort.key !== column) return <ArrowUpDown className="h-3 w-3 ml-1 inline opacity-40" />
+    if (sort.key !== column) return <ArrowUpDown className="size-4 ml-1 inline opacity-40" />
     return sort.dir === 'asc' ? (
-      <ArrowUp className="h-3 w-3 ml-1 inline" />
+      <ArrowUp className="size-4 ml-1 inline" />
     ) : (
-      <ArrowDown className="h-3 w-3 ml-1 inline" />
+      <ArrowDown className="size-4 ml-1 inline" />
     )
   }
 
@@ -809,19 +809,19 @@ export default function SecurityDashboard() {
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-yellow-500">{stats.permanent_bans}</p>
+                <p className="text-2xl font-bold text-warning">{stats.permanent_bans}</p>
                 <p className="text-sm text-muted-foreground">Permanent Bans</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-blue-500">{stats.suspicious_ips}</p>
+                <p className="text-2xl font-bold text-primary">{stats.suspicious_ips}</p>
                 <p className="text-sm text-muted-foreground">Suspicious IPs</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-purple-500">{stats.near_threshold}</p>
+                <p className="text-2xl font-bold text-chart-4">{stats.near_threshold}</p>
                 <p className="text-sm text-muted-foreground">Near Threshold</p>
               </CardContent>
             </Card>
@@ -987,7 +987,7 @@ export default function SecurityDashboard() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-green-600 hover:text-green-600"
+                              className="text-success hover:text-success"
                               onClick={() => setUnbanIP(ban.ip_address)}
                             >
                               Unban
@@ -1081,9 +1081,9 @@ export default function SecurityDashboard() {
                             >
                               <CollapsibleTrigger className="text-sm cursor-pointer hover:underline flex items-center gap-1">
                                 {expandedKeys.has(tracker.ip_address) ? (
-                                  <EyeOff className="h-3 w-3" />
+                                  <EyeOff className="size-4" />
                                 ) : (
-                                  <Eye className="h-3 w-3" />
+                                  <Eye className="size-4" />
                                 )}
                                 View Keys (Hashed)
                               </CollapsibleTrigger>
@@ -1195,9 +1195,9 @@ export default function SecurityDashboard() {
                             >
                               <CollapsibleTrigger className="text-sm cursor-pointer hover:underline flex items-center gap-1">
                                 {expandedPaths.has(tracker.ip_address) ? (
-                                  <EyeOff className="h-3 w-3" />
+                                  <EyeOff className="size-4" />
                                 ) : (
-                                  <Eye className="h-3 w-3" />
+                                  <Eye className="size-4" />
                                 )}
                                 View Paths
                               </CollapsibleTrigger>
@@ -1452,7 +1452,7 @@ export default function SecurityDashboard() {
             <AlertDialogAction
               onClick={handleUnban}
               disabled={isUnbanning}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-success hover:bg-success/90"
             >
               {isUnbanning ? 'Unbanning...' : 'Unban'}
             </AlertDialogAction>
@@ -1469,9 +1469,7 @@ export default function SecurityDashboard() {
               Clear 404 tracking data for IP address{' '}
               <span className="font-mono font-bold">{clearIP}</span>?
               <br />
-              <span className="text-yellow-600">
-                This will reset the 404 error count for this IP.
-              </span>
+              <span className="text-warning">This will reset the 404 error count for this IP.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1479,7 +1477,7 @@ export default function SecurityDashboard() {
             <AlertDialogAction
               onClick={handleClearTracker}
               disabled={isClearing}
-              className="bg-yellow-600 hover:bg-yellow-700"
+              className="bg-warning hover:bg-warning/90"
             >
               {isClearing ? 'Clearing...' : 'Clear'}
             </AlertDialogAction>

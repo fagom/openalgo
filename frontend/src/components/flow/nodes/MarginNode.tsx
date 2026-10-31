@@ -23,12 +23,12 @@ export const MarginNode = memo(({ data, selected }: MarginNodeProps) => {
   const positionCount = legs.length
 
   return (
-    <div className={cn('workflow-node min-w-[120px] border-l-amber-500', selected && 'selected')}>
+    <div className={cn('workflow-node min-w-[120px] border-l-warning/60', selected && 'selected')}>
       <Handle type="target" position={Position.Top} />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-amber-500/20 text-amber-500">
-            <Calculator className="h-3 w-3" />
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-warning/20 text-warning">
+            <Calculator className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Margin Calc</div>
@@ -43,7 +43,7 @@ export const MarginNode = memo(({ data, selected }: MarginNodeProps) => {
           {data.outputVariable && (
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Output:</span>
-              <span className="mono-data text-amber-500">{`{{${data.outputVariable}}}`}</span>
+              <span className="mono-data text-warning">{`{{${data.outputVariable}}}`}</span>
             </div>
           )}
         </div>

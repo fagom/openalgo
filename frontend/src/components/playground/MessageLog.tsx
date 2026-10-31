@@ -54,15 +54,15 @@ function tokenizeJson(json: string): SyntaxToken[] {
 function getTokenClassName(type: SyntaxToken['type']): string {
   switch (type) {
     case 'key':
-      return 'text-sky-400'
+      return 'text-info'
     case 'string':
-      return 'text-emerald-400'
+      return 'text-profit'
     case 'number':
-      return 'text-orange-400'
+      return 'text-warning'
     case 'boolean':
-      return 'text-purple-400'
+      return 'text-chart-4'
     case 'null':
-      return 'text-red-400'
+      return 'text-loss'
     default:
       return ''
   }
@@ -129,7 +129,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
         return (
           <Badge
             variant="outline"
-            className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-[10px] px-1.5 h-5"
+            className="bg-info/20 text-info border-info/30 text-[10px] px-1.5 h-5"
           >
             SENT
           </Badge>
@@ -138,7 +138,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
         return (
           <Badge
             variant="outline"
-            className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] px-1.5 h-5"
+            className="bg-profit/20 text-profit border-profit/30 text-[10px] px-1.5 h-5"
           >
             RECEIVED
           </Badge>
@@ -147,7 +147,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
         return (
           <Badge
             variant="outline"
-            className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px] px-1.5 h-5"
+            className="bg-loss/20 text-loss border-loss/30 text-[10px] px-1.5 h-5"
           >
             ERROR
           </Badge>
@@ -156,7 +156,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
         return (
           <Badge
             variant="outline"
-            className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-[10px] px-1.5 h-5"
+            className="bg-chart-4/20 text-chart-4 border-chart-4/30 text-[10px] px-1.5 h-5"
           >
             SYSTEM
           </Badge>
@@ -203,9 +203,9 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
             onClick={() => toggleExpanded(msg.id)}
           >
             {isExpanded ? (
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+              <ChevronDown className="size-4 text-muted-foreground" />
             ) : (
-              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+              <ChevronRight className="size-4 text-muted-foreground" />
             )}
           </button>
         )}
@@ -233,7 +233,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
             title="Clear messages"
             aria-label="Clear messages"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -244,7 +244,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
             title="Export messages"
             aria-label="Export messages"
           >
-            <Download className="h-3 w-3" />
+            <Download className="size-4" />
           </Button>
         </div>
       </div>
@@ -252,7 +252,7 @@ export function MessageLog({ messages, onClear, onExport }: MessageLogProps) {
       {/* Search */}
       <div className="p-2 border-b border-border bg-card/30">
         <div className="relative">
-          <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Filter messages..."
             value={searchQuery}

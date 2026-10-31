@@ -35,9 +35,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useOptionChainLive } from '@/hooks/useOptionChainLive'
 import { useOptionChainPreferences } from '@/hooks/useOptionChainPreferences'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import {
+  changeFromClose,
+  daysToExpiry,
+  isInTheMoney,
+  maxOiStrikes,
+  spotMarkerIndex,
+} from '@/lib/optionChainView'
 import { serverSentence } from '@/lib/serverSentence'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
@@ -175,6 +183,92 @@ interface OptionChainRowProps {
   barStyle: BarStyle
   optionExchange: string
   onPlaceOrder: (params: PlaceOrderParams) => void
+  /** Live underlying price: decides which side of this strike is in the money. */
+  spot: number
+  /** This strike carries the most call / put open interest in the chain. */
+  isMaxCeOi: boolean
+  isMaxPeOi: boolean
+}
+
+/**
+ * Buy / sell buttons for one leg. Revealed on row hover and on keyboard focus,
+ * so they are reachable without a mouse, and named in full for screen readers
+ * and the tooltip ("Buy NIFTY29SEP2623150CE"), since "B" alone says nothing.
+ */
+function LegOrderButtons({
+  symbol,
+  align,
+  onOrder,
+}: {
+  symbol: string
+  align: 'left' | 'right'
+  onOrder: (action: 'BUY' | 'SELL') => void
+}) {
+  return (
+    <div
+      className={cn(
+        'absolute top-1/2 z-20 flex -translate-y-1/2 gap-1',
+        align === 'right' ? 'right-1.5' : 'left-1.5',
+        'opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100'
+      )}
+    >
+      {(['BUY', 'SELL'] as const).map((action) => {
+        const label = `${action === 'BUY' ? 'Buy' : 'Sell'} ${symbol}`
+        return (
+          <Tooltip key={action}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={label}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onOrder(action)
+                }}
+                className={cn(
+                  'h-6 min-w-6 rounded-md px-1.5 text-[11px] font-bold shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  action === 'BUY'
+                    ? 'bg-buy text-buy-foreground hover:bg-buy/90'
+                    : 'bg-sell text-sell-foreground hover:bg-sell/90'
+                )}
+              >
+                {action === 'BUY' ? 'B' : 'S'}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{label}</TooltipContent>
+          </Tooltip>
+        )
+      })}
+    </div>
+  )
+}
+
+/** LTP with its change from the previous close underneath, as most chains show it. */
+function LtpCell({
+  ltp,
+  prevClose,
+  flashClass,
+}: {
+  ltp: number | undefined
+  prevClose: number | undefined
+  flashClass: string
+}) {
+  const chg = changeFromClose(ltp, prevClose)
+  return (
+    <span className={cn('inline-flex flex-col items-end leading-tight rounded px-1', flashClass)}>
+      <span className="font-mono text-xs font-semibold tabular-nums">{formatPrice(ltp)}</span>
+      {chg && (
+        <span
+          className={cn(
+            'font-mono text-[10px] tabular-nums',
+            chg.change > 0 ? 'text-profit' : chg.change < 0 ? 'text-loss' : 'text-muted-foreground'
+          )}
+        >
+          {chg.change > 0 ? '+' : ''}
+          {chg.percent.toFixed(2)}%
+        </span>
+      )}
+    </span>
+  )
 }
 
 // Memoized row component to prevent unnecessary re-renders
@@ -188,16 +282,19 @@ const OptionChainRow = React.memo(function OptionChainRow({
   barStyle,
   optionExchange,
   onPlaceOrder,
+  spot,
+  isMaxCeOi,
+  isMaxPeOi,
 }: OptionChainRowProps) {
   const ce = strike.ce
   const pe = strike.pe
   const label = ce?.label ?? pe?.label ?? ''
   const isATM = label === 'ATM'
 
-  // For CE: OTM means strike > ATM (label starts with OTM)
-  // For PE: OTM means strike < ATM (which is ITM for CE)
-  const isCeOTM = label.startsWith('OTM')
-  const isPeOTM = label.startsWith('ITM')
+  // Shade the in-the-money side, the convention every chain is read by: calls
+  // below spot, puts above it.
+  const isCeITM = isInTheMoney('ce', strike.strike, spot)
+  const isPeITM = isInTheMoney('pe', strike.strike, spot)
 
   // Flash animation for LTP changes
   const ceLtpChanged = previousStrike?.ce?.ltp !== undefined && previousStrike.ce.ltp !== ce?.ltp
@@ -205,22 +302,23 @@ const OptionChainRow = React.memo(function OptionChainRow({
 
   const ceFlashClass = ceLtpChanged
     ? ce && previousStrike?.ce && ce.ltp > previousStrike.ce.ltp
-      ? 'bg-green-500/30'
-      : 'bg-red-500/30'
+      ? 'bg-profit/30'
+      : 'bg-loss/30'
     : ''
   const peFlashClass = peLtpChanged
     ? pe && previousStrike?.pe && pe.ltp > previousStrike.pe.ltp
-      ? 'bg-green-500/30'
-      : 'bg-red-500/30'
+      ? 'bg-profit/30'
+      : 'bg-loss/30'
     : ''
 
   const ceSpread = ce && ce.bid > 0 && ce.ask > 0 ? ce.ask - ce.bid : 0
   const peSpread = pe && pe.bid > 0 && pe.ask > 0 ? pe.ask - pe.bid : 0
 
-  const ceSpreadClass =
-    ceSpread <= 1 ? 'text-green-500' : ceSpread <= 2 ? 'text-yellow-500' : 'text-red-500'
-  const peSpreadClass =
-    peSpread <= 1 ? 'text-green-500' : peSpread <= 2 ? 'text-yellow-500' : 'text-red-500'
+  // Tight, fair, wide: one scale for both sides.
+  const spreadClass = (spread: number) =>
+    spread <= 1 ? 'text-success' : spread <= 2 ? 'text-warning' : 'text-destructive'
+  const ceSpreadClass = spreadClass(ceSpread)
+  const peSpreadClass = spreadClass(peSpread)
 
   // Bar values based on data source
   const ceBarValue = barDataSource === 'oi' ? ce?.oi : ce?.volume
@@ -229,12 +327,14 @@ const OptionChainRow = React.memo(function OptionChainRow({
   const peBarPercent = peBarValue ? Math.min((peBarValue / maxBarValue) * 100, 100) : 0
 
   // Bar styles
+  // Kept light: the bar sits on top of the ITM shading, and at full strength
+  // the two blend into one muddy block in dark mode.
   const ceBarClass =
-    barStyle === 'gradient'
-      ? 'bg-gradient-to-r from-green-500/25 to-transparent'
-      : 'bg-green-500/20'
+    barStyle === 'gradient' ? 'bg-gradient-to-r from-success/20 to-transparent' : 'bg-success/12'
   const peBarClass =
-    barStyle === 'gradient' ? 'bg-gradient-to-l from-red-500/25 to-transparent' : 'bg-red-500/20'
+    barStyle === 'gradient'
+      ? 'bg-gradient-to-l from-destructive/20 to-transparent'
+      : 'bg-destructive/12'
 
   // Use tabular-nums for consistent number widths to prevent layout shifts
   const numClass = 'font-mono tabular-nums text-xs'
@@ -242,21 +342,21 @@ const OptionChainRow = React.memo(function OptionChainRow({
   const getCeColumnValue = (key: ColumnKey) => {
     switch (key) {
       case 'ce_oi':
-        return <span className={numClass}>{formatInLakhs(ce?.oi)}</span>
+        return (
+          <span className={cn(numClass, isMaxCeOi && 'font-bold text-foreground')}>
+            {formatInLakhs(ce?.oi)}
+          </span>
+        )
       case 'ce_volume':
         return <span className={numClass}>{formatInLakhs(ce?.volume)}</span>
       case 'ce_bid_qty':
         return <span className={numClass}>{ce?.bid_qty ?? 0}</span>
       case 'ce_bid':
-        return <span className={cn(numClass, 'text-red-500')}>{formatPrice(ce?.bid)}</span>
+        return <span className={cn(numClass, 'text-buy')}>{formatPrice(ce?.bid)}</span>
       case 'ce_ltp':
-        return (
-          <span className={cn(numClass, 'font-semibold', ceFlashClass)}>
-            {formatPrice(ce?.ltp)}
-          </span>
-        )
+        return <LtpCell ltp={ce?.ltp} prevClose={ce?.prev_close} flashClass={ceFlashClass} />
       case 'ce_ask':
-        return <span className={cn(numClass, 'text-green-500')}>{formatPrice(ce?.ask)}</span>
+        return <span className={cn(numClass, 'text-sell')}>{formatPrice(ce?.ask)}</span>
       case 'ce_ask_qty':
         return <span className={numClass}>{ce?.ask_qty ?? 0}</span>
       case 'ce_spread':
@@ -299,21 +399,21 @@ const OptionChainRow = React.memo(function OptionChainRow({
   const getPeColumnValue = (key: ColumnKey) => {
     switch (key) {
       case 'pe_oi':
-        return <span className={numClass}>{formatInLakhs(pe?.oi)}</span>
+        return (
+          <span className={cn(numClass, isMaxPeOi && 'font-bold text-foreground')}>
+            {formatInLakhs(pe?.oi)}
+          </span>
+        )
       case 'pe_volume':
         return <span className={numClass}>{formatInLakhs(pe?.volume)}</span>
       case 'pe_bid_qty':
         return <span className={numClass}>{pe?.bid_qty ?? 0}</span>
       case 'pe_bid':
-        return <span className={cn(numClass, 'text-red-500')}>{formatPrice(pe?.bid)}</span>
+        return <span className={cn(numClass, 'text-buy')}>{formatPrice(pe?.bid)}</span>
       case 'pe_ltp':
-        return (
-          <span className={cn(numClass, 'font-semibold', peFlashClass)}>
-            {formatPrice(pe?.ltp)}
-          </span>
-        )
+        return <LtpCell ltp={pe?.ltp} prevClose={pe?.prev_close} flashClass={peFlashClass} />
       case 'pe_ask':
-        return <span className={cn(numClass, 'text-green-500')}>{formatPrice(pe?.ask)}</span>
+        return <span className={cn(numClass, 'text-sell')}>{formatPrice(pe?.ask)}</span>
       case 'pe_ask_qty':
         return <span className={numClass}>{pe?.ask_qty ?? 0}</span>
       case 'pe_spread':
@@ -355,24 +455,13 @@ const OptionChainRow = React.memo(function OptionChainRow({
 
   return (
     <TableRow
-      className={cn(
-        'hover:bg-muted/50 relative group'
-        // No background for ATM and ITM, only OTM gets background
-        // CE OTM = strikes above ATM
-        // PE OTM = strikes below ATM (which is CE ITM)
-      )}
+      className="group relative hover:bg-accent/50 focus-within:bg-accent/50"
       data-strike={strike.strike}
       data-label={label}
     >
       {/* CE cells */}
       {visibleCeColumns.length > 0 && (
-        <TableCell
-          className={cn(
-            'p-0 relative',
-            // OTM Call options get background (strikes above ATM)
-            isCeOTM && !isATM && 'bg-amber-500/5'
-          )}
-        >
+        <TableCell className={cn('p-0 relative border-r border-border', isCeITM && 'bg-warning/8')}>
           {/* CE bar - spans the entire CE section */}
           <div
             className={cn(
@@ -381,48 +470,21 @@ const OptionChainRow = React.memo(function OptionChainRow({
             )}
             style={{ width: `${ceBarPercent}%` }}
           />
-          {/* CE Buy/Sell buttons - appear on hover (positioned near strike) */}
+          {/* Buy/Sell buttons, next to the strike column */}
           {ce && (
-            <div
-              className={cn(
-                'absolute right-1 top-1/2 -translate-y-1/2 z-20',
-                'flex gap-0.5',
-                'opacity-0 group-hover:opacity-100 transition-opacity'
-              )}
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPlaceOrder({
-                    symbol: ce.symbol,
-                    exchange: optionExchange,
-                    action: 'BUY',
-                    lotSize: ce.lotsize ?? 1,
-                    tickSize: ce.tick_size ?? 0.05,
-                  })
-                }}
-                className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-600 text-white hover:bg-green-700"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPlaceOrder({
-                    symbol: ce.symbol,
-                    exchange: optionExchange,
-                    action: 'SELL',
-                    lotSize: ce.lotsize ?? 1,
-                    tickSize: ce.tick_size ?? 0.05,
-                  })
-                }}
-                className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-600 text-white hover:bg-amber-700"
-              >
-                S
-              </button>
-            </div>
+            <LegOrderButtons
+              symbol={ce.symbol}
+              align="right"
+              onOrder={(action) =>
+                onPlaceOrder({
+                  symbol: ce.symbol,
+                  exchange: optionExchange,
+                  action,
+                  lotSize: ce.lotsize ?? 1,
+                  tickSize: ce.tick_size ?? 0.05,
+                })
+              }
+            />
           )}
           <div className="relative z-10 flex">
             {visibleCeColumns.map((key) => {
@@ -448,22 +510,33 @@ const OptionChainRow = React.memo(function OptionChainRow({
       {/* Strike cell - center column */}
       <TableCell
         className={cn(
-          'text-center font-bold px-2 py-1.5 text-sm w-20 min-w-20',
-          isATM ? 'bg-primary/15' : 'bg-muted/30'
+          'w-24 min-w-24 px-2 py-1.5 text-center font-mono text-sm font-semibold tabular-nums',
+          isATM ? 'bg-primary/12 text-primary' : 'bg-muted'
         )}
       >
-        {strike.strike}
+        <span className="inline-flex flex-col items-center leading-tight">
+          {strike.strike}
+          {(isATM || isMaxCeOi || isMaxPeOi) && (
+            <span className="font-sans text-[9px] font-semibold tracking-wide uppercase">
+              {isATM && <span className="text-primary">ATM</span>}
+              {isMaxCeOi && (
+                <span className="text-loss" title="Highest call OI: resistance">
+                  {isATM ? ' ' : ''}R
+                </span>
+              )}
+              {isMaxPeOi && (
+                <span className="text-profit" title="Highest put OI: support">
+                  {isATM || isMaxCeOi ? ' ' : ''}S
+                </span>
+              )}
+            </span>
+          )}
+        </span>
       </TableCell>
 
       {/* PE cells */}
       {visiblePeColumns.length > 0 && (
-        <TableCell
-          className={cn(
-            'p-0 relative',
-            // OTM Put options get background (strikes below ATM, which is ITM for CE)
-            isPeOTM && !isATM && 'bg-amber-500/5'
-          )}
-        >
+        <TableCell className={cn('p-0 relative border-l border-border', isPeITM && 'bg-warning/8')}>
           {/* PE bar - spans the entire PE section from right */}
           <div
             className={cn(
@@ -472,48 +545,21 @@ const OptionChainRow = React.memo(function OptionChainRow({
             )}
             style={{ width: `${peBarPercent}%` }}
           />
-          {/* PE Buy/Sell buttons - appear on hover (positioned near strike) */}
+          {/* Buy/Sell buttons, next to the strike column */}
           {pe && (
-            <div
-              className={cn(
-                'absolute left-1 top-1/2 -translate-y-1/2 z-20',
-                'flex gap-0.5',
-                'opacity-0 group-hover:opacity-100 transition-opacity'
-              )}
-            >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPlaceOrder({
-                    symbol: pe.symbol,
-                    exchange: optionExchange,
-                    action: 'BUY',
-                    lotSize: pe.lotsize ?? 1,
-                    tickSize: pe.tick_size ?? 0.05,
-                  })
-                }}
-                className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-600 text-white hover:bg-green-700"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPlaceOrder({
-                    symbol: pe.symbol,
-                    exchange: optionExchange,
-                    action: 'SELL',
-                    lotSize: pe.lotsize ?? 1,
-                    tickSize: pe.tick_size ?? 0.05,
-                  })
-                }}
-                className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-600 text-white hover:bg-amber-700"
-              >
-                S
-              </button>
-            </div>
+            <LegOrderButtons
+              symbol={pe.symbol}
+              align="left"
+              onOrder={(action) =>
+                onPlaceOrder({
+                  symbol: pe.symbol,
+                  exchange: optionExchange,
+                  action,
+                  lotSize: pe.lotsize ?? 1,
+                  tickSize: pe.tick_size ?? 0.05,
+                })
+              }
+            />
           )}
           <div className="relative z-10 flex">
             {visiblePeColumns.map((key) => {
@@ -538,6 +584,25 @@ const OptionChainRow = React.memo(function OptionChainRow({
     </TableRow>
   )
 })
+
+/**
+ * The line between the two strikes the underlying is trading between, with the
+ * spot price on it: where a trader's eye starts on any chain.
+ */
+function SpotMarkerRow({ label, spot, colSpan }: { label: string; spot: number; colSpan: number }) {
+  return (
+    <TableRow data-spot-marker className="border-0 hover:bg-transparent">
+      <TableCell colSpan={colSpan} className="relative h-0 p-0">
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-primary" />
+        <div className="relative z-10 my-1 flex justify-center">
+          <span className="rounded-full bg-primary px-3 py-0.5 font-mono text-xs font-semibold tabular-nums text-primary-foreground shadow-sm">
+            {label} {formatPrice(spot)}
+          </span>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
 
 export default function OptionChain() {
   const { apiKey } = useAuthStore()
@@ -756,6 +821,34 @@ export default function OptionChain() {
     () => (data?.chain ? getMaxValue(data.chain, barDataSource) : 1),
     [data?.chain, barDataSource]
   )
+  const spot = data?.underlying_ltp ?? 0
+  const oiLevels = useMemo(
+    () => (data?.chain ? maxOiStrikes(data.chain) : { ce: null, pe: null }),
+    [data?.chain]
+  )
+  const markerIndex = useMemo(
+    () => (data?.chain ? spotMarkerIndex(data.chain, spot) : -1),
+    [data?.chain, spot]
+  )
+  const spotChange = changeFromClose(data?.underlying_ltp, data?.underlying_prev_close)
+  const dte = selectedExpiry ? daysToExpiry(selectedExpiry) : null
+
+  // Open on the money. A chain of 20+ strikes is read outward from spot, so
+  // land there once per underlying and expiry, then leave the scroll to the
+  // trader: live updates must not yank the view back.
+  const tableScrollRef = useRef<HTMLDivElement | null>(null)
+  const centeredForRef = useRef('')
+  useEffect(() => {
+    const key = `${selectedExchange}:${selectedUnderlying}:${selectedExpiry}`
+    const el = tableScrollRef.current
+    if (!data?.chain?.length || !el || centeredForRef.current === key) return
+    const target =
+      el.querySelector<HTMLElement>('[data-spot-marker]') ??
+      el.querySelector<HTMLElement>('[data-label="ATM"]')
+    if (!target) return
+    centeredForRef.current = key
+    el.scrollTop = target.offsetTop - el.clientHeight / 2 + target.offsetHeight / 2
+  }, [data?.chain, selectedExchange, selectedUnderlying, selectedExpiry])
 
   // Get ordered visible columns for each side
   const visibleCeColumns = useMemo(() => {
@@ -777,7 +870,7 @@ export default function OptionChain() {
       <div className="flex items-center justify-center py-16">
         <Card className="max-w-md">
           <CardContent className="p-6">
-            <div className="text-center text-red-500">
+            <div className="text-center text-destructive">
               <h2 className="text-xl font-bold mb-2">Error Loading Option Chain</h2>
               <p>{error}</p>
               <Button onClick={handleRefresh} className="mt-4">
@@ -795,8 +888,8 @@ export default function OptionChain() {
     <div className="py-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-6 w-6" />
-          <h1 className="text-3xl font-bold">Option Chain</h1>
+          <TrendingUp className="size-6 text-primary" />
+          <h1 className="font-heading text-3xl font-bold tracking-tight">Option Chain</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <Select value={selectedExchange} onValueChange={handleExchangeChange}>
@@ -903,89 +996,120 @@ export default function OptionChain() {
 
       {data && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">{selectedUnderlying} Spot</div>
-                <div className="text-2xl font-bold text-primary">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Card className="gap-1 py-4">
+              <CardContent className="px-4">
+                <div className="text-sm text-muted-foreground">{selectedUnderlying} spot</div>
+                <div className="font-heading text-2xl font-bold tabular-nums">
                   {formatPrice(data.underlying_ltp)}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Prev Close: {formatPrice(data.underlying_prev_close)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">ATM Strike</div>
-                <div className="text-2xl font-bold">{data.atm_strike}</div>
-                <div className="text-xs text-muted-foreground">Expiry: {data.expiry_date}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">PCR</div>
                 <div
-                  className={`text-2xl font-bold ${pcr > 1 ? 'text-green-500' : 'text-yellow-500'}`}
+                  className={cn(
+                    'text-xs tabular-nums',
+                    spotChange && spotChange.change > 0 && 'text-profit',
+                    spotChange && spotChange.change < 0 && 'text-loss',
+                    (!spotChange || spotChange.change === 0) && 'text-muted-foreground'
+                  )}
                 >
-                  {pcr.toFixed(2)}
+                  {spotChange
+                    ? `${spotChange.change > 0 ? '+' : ''}${spotChange.change.toFixed(2)} (${spotChange.change > 0 ? '+' : ''}${spotChange.percent.toFixed(2)}%)`
+                    : `Prev close ${formatPrice(data.underlying_prev_close)}`}
                 </div>
-                <div className="text-xs text-muted-foreground">Put/Call Ratio</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Total OI</div>
-                <div className="text-sm mt-1">
-                  <span className="text-green-500 font-mono tabular-nums">
-                    {formatInLakhs(totals.ceOi)}
-                  </span>
-                  <span className="mx-2 text-muted-foreground">|</span>
-                  <span className="text-red-500 font-mono tabular-nums">
-                    {formatInLakhs(totals.peOi)}
-                  </span>
+            <Card className="gap-1 py-4">
+              <CardContent className="px-4">
+                <div className="text-sm text-muted-foreground">ATM strike</div>
+                <div className="font-heading text-2xl font-bold tabular-nums">
+                  {data.atm_strike}
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden mt-2">
+                <div className="text-xs text-muted-foreground">
+                  Expiry {data.expiry_date}
+                  {dte !== null &&
+                    dte >= 0 &&
+                    ` · ${dte === 0 ? 'expires today' : `${dte} day${dte === 1 ? '' : 's'} left`}`}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="gap-1 py-4">
+              <CardContent className="px-4">
+                <div className="text-sm text-muted-foreground">Put/call ratio (OI)</div>
+                <div className="font-heading text-2xl font-bold tabular-nums">{pcr.toFixed(2)}</div>
+                <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full bg-gradient-to-r from-green-500 to-primary transition-all duration-500"
+                    className="h-full bg-profit/70 transition-all duration-500"
                     style={{
                       width:
                         totals.ceOi + totals.peOi > 0
-                          ? `${(totals.ceOi / (totals.ceOi + totals.peOi)) * 100}%`
+                          ? `${(totals.peOi / (totals.ceOi + totals.peOi)) * 100}%`
                           : '0%',
                     }}
                   />
+                  <div className="h-full flex-1 bg-loss/70" />
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>PCR: {pcr.toFixed(2)}</span>
+                <div className="mt-1 flex justify-between text-xs tabular-nums text-muted-foreground">
+                  <span>Puts {formatInLakhs(totals.peOi)}</span>
+                  <span>Calls {formatInLakhs(totals.ceOi)}</span>
                 </div>
+              </CardContent>
+            </Card>
+            <Card className="gap-1 py-4">
+              <CardContent className="px-4">
+                <div className="text-sm text-muted-foreground">OI levels</div>
+                <div className="mt-1 space-y-1 text-sm">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-muted-foreground">Resistance</span>
+                    <span className="font-mono font-semibold tabular-nums text-loss">
+                      {oiLevels.ce ?? '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-muted-foreground">Support</span>
+                    <span className="font-mono font-semibold tabular-nums text-profit">
+                      {oiLevels.pe ?? '-'}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">Highest call / put OI</div>
               </CardContent>
             </Card>
           </div>
 
           <Card>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table className="w-full table-fixed">
-                  <TableHeader>
+              {/* One scroll box for both axes, so the header can stick while
+                  the strikes scroll. The Table's own wrapper is told not to
+                  scroll, or it would capture the sticky header instead. */}
+              <div
+                ref={tableScrollRef}
+                className="relative max-h-[calc(100vh-17rem)] min-h-80 overflow-auto [&>[data-slot=table-container]]:overflow-visible"
+              >
+                <Table className="w-full min-w-[900px] table-fixed">
+                  <TableHeader className="sticky top-0 z-30 bg-card shadow-[0_1px_0_var(--border)]">
                     {/* Section headers row */}
-                    <TableRow className="bg-muted/30 border-b-0">
+                    <TableRow className="border-b-0 bg-card hover:bg-card">
                       {visibleCeColumns.length > 0 && (
-                        <TableHead className="text-center text-green-500 font-bold text-sm border-r border-border">
+                        <TableHead className="border-r border-border bg-card text-center text-sm font-bold tracking-wide text-foreground normal-case">
                           CALLS
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            ITM shaded below spot
+                          </span>
                         </TableHead>
                       )}
-                      <TableHead className="text-center w-20 min-w-20" />
+                      <TableHead className="w-24 min-w-24 bg-card text-center" />
                       {visiblePeColumns.length > 0 && (
-                        <TableHead className="text-center text-red-500 font-bold text-sm border-l border-border">
+                        <TableHead className="border-l border-border bg-card text-center text-sm font-bold tracking-wide text-foreground normal-case">
                           PUTS
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            ITM shaded above spot
+                          </span>
                         </TableHead>
                       )}
                     </TableRow>
                     {/* Column headers row */}
-                    <TableRow className="bg-muted/50">
+                    <TableRow className="bg-muted hover:bg-muted">
                       {visibleCeColumns.length > 0 && (
-                        <TableHead className="p-0 border-r border-border">
+                        <TableHead className="border-r border-border bg-muted p-0">
                           <div className="flex">
                             {visibleCeColumns.map((key) => {
                               const colDef = COLUMN_DEFINITIONS.find((c) => c.key === key)
@@ -1006,11 +1130,11 @@ export default function OptionChain() {
                           </div>
                         </TableHead>
                       )}
-                      <TableHead className="text-center bg-muted/30 text-xs w-20 min-w-20">
+                      <TableHead className="w-24 min-w-24 bg-muted text-center text-xs">
                         Strike
                       </TableHead>
                       {visiblePeColumns.length > 0 && (
-                        <TableHead className="p-0 border-l border-border">
+                        <TableHead className="border-l border-border bg-muted p-0">
                           <div className="flex">
                             {visiblePeColumns.map((key) => {
                               const colDef = COLUMN_DEFINITIONS.find((c) => c.key === key)
@@ -1034,19 +1158,34 @@ export default function OptionChain() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.chain.map((strike) => (
-                      <OptionChainRow
-                        key={strike.strike}
-                        strike={strike}
-                        previousStrike={previousDataRef.current.get(strike.strike)}
-                        maxBarValue={maxBarValue}
-                        visibleCeColumns={visibleCeColumns}
-                        visiblePeColumns={visiblePeColumns}
-                        barDataSource={barDataSource}
-                        barStyle={barStyle}
-                        optionExchange={optionExchange}
-                        onPlaceOrder={handlePlaceOrder}
-                      />
+                    {data.chain.map((strike, i) => (
+                      <React.Fragment key={strike.strike}>
+                        {i === markerIndex && (
+                          <SpotMarkerRow
+                            label={selectedUnderlying}
+                            spot={spot}
+                            colSpan={
+                              1 +
+                              (visibleCeColumns.length > 0 ? 1 : 0) +
+                              (visiblePeColumns.length > 0 ? 1 : 0)
+                            }
+                          />
+                        )}
+                        <OptionChainRow
+                          strike={strike}
+                          previousStrike={previousDataRef.current.get(strike.strike)}
+                          maxBarValue={maxBarValue}
+                          visibleCeColumns={visibleCeColumns}
+                          visiblePeColumns={visiblePeColumns}
+                          barDataSource={barDataSource}
+                          barStyle={barStyle}
+                          optionExchange={optionExchange}
+                          onPlaceOrder={handlePlaceOrder}
+                          spot={spot}
+                          isMaxCeOi={oiLevels.ce === strike.strike}
+                          isMaxPeOi={oiLevels.pe === strike.strike}
+                        />
+                      </React.Fragment>
                     ))}
                   </TableBody>
                 </Table>
@@ -1058,7 +1197,7 @@ export default function OptionChain() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 {isStreaming ? (
-                  <Wifi className="h-4 w-4 text-green-500" />
+                  <Wifi className="h-4 w-4 text-success" />
                 ) : (
                   <WifiOff className="h-4 w-4 text-muted-foreground" />
                 )}

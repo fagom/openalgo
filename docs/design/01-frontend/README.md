@@ -46,7 +46,7 @@ The exact route list is in `frontend/src/App.tsx`; navigation visibility is defi
 | `authStore.ts` | User and OpenAlgo API key for client calls |
 | `brokerStore.ts` | Active broker capability metadata |
 | `sessionStore.ts` | Active app-session count |
-| `themeStore.ts` | Theme, accent, live/analyzer presentation mode |
+| `themeStore.ts` | Light/dark mode and live/analyzer presentation mode |
 | `flowWorkflowStore.ts` | Flow editor graph state |
 | `MarketDataContext.tsx` | Shared market-data manager lifecycle |
 

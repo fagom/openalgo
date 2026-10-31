@@ -478,7 +478,7 @@ export function RegisteredModelsTable() {
                         {model.tools_unreliable && (
                           <Badge
                             variant="outline"
-                            className="border-amber-500/50 font-normal text-amber-700 dark:text-amber-400"
+                            className="border-warning/50 font-normal text-warning"
                           >
                             Tools unreliable
                           </Badge>
@@ -496,7 +496,7 @@ export function RegisteredModelsTable() {
                         {model.last_test_ok === true ? (
                           <Badge
                             variant="outline"
-                            className="border-emerald-500/50 font-normal text-emerald-700 dark:text-emerald-400"
+                            className="border-success/50 font-normal text-success"
                           >
                             Passed
                           </Badge>
@@ -531,9 +531,9 @@ export function RegisteredModelsTable() {
                           className="mt-0.5 inline-flex items-center gap-0.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                         >
                           {detailOpen ? (
-                            <ChevronDown className="h-3 w-3" aria-hidden />
+                            <ChevronDown className="size-4" aria-hidden />
                           ) : (
-                            <ChevronRight className="h-3 w-3" aria-hidden />
+                            <ChevronRight className="size-4" aria-hidden />
                           )}
                           {detailOpen ? 'Hide details' : 'Details'}
                         </button>
@@ -588,9 +588,7 @@ export function RegisteredModelsTable() {
                           onClick={() => test.mutate(model.id)}
                           title={`Send one capped completion to ${providerLabel(model.provider_kind)}`}
                         >
-                          {testing ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                          ) : null}
+                          {testing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
                           {testing ? 'Testing' : 'Test'}
                         </Button>
                         <Button
@@ -630,7 +628,7 @@ export function RegisteredModelsTable() {
                         <div className="space-y-2 text-xs leading-relaxed">
                           {rowError && (
                             <p className="flex items-start gap-1.5 text-destructive">
-                              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
                               <span>{rowError}</span>
                             </p>
                           )}
@@ -716,12 +714,12 @@ export function RegisteredModelsTable() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {removing && models.length === 1 ? (
-            <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+            <p className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm leading-relaxed text-warning">
               This is the only model you have configured. Removing it leaves the agent unconfigured,
               and /agent goes back to the setup screen until another one is added and tested.
             </p>
           ) : removing?.is_default ? (
-            <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+            <p className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm leading-relaxed text-warning">
               This is the default model. The server hands the default to another enabled model that
               has passed a test, and the agent is unconfigured until it has one.
             </p>

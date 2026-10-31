@@ -21,21 +21,21 @@ export interface QuoteHeaderProps {
 function getExchangeBadgeClass(exchange: string): string {
   switch (exchange) {
     case 'NFO':
-      return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      return 'bg-chart-4/20 text-chart-4 border-chart-4/30'
     case 'BFO':
-      return 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+      return 'bg-warning/20 text-warning border-warning/30'
     case 'NSE':
-      return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+      return 'bg-primary/20 text-primary border-primary/30'
     case 'BSE':
-      return 'bg-pink-500/20 text-pink-400 border-pink-500/30'
+      return 'bg-primary/20 text-primary border-primary/30'
     case 'MCX':
-      return 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+      return 'bg-warning/20 text-warning border-warning/30'
     case 'CDS':
-      return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+      return 'bg-chart-3/20 text-chart-3 border-chart-3/30'
     case 'BCD':
-      return 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+      return 'bg-loss/20 text-loss border-loss/30'
     default:
-      return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+      return 'bg-muted-foreground/20 text-muted-foreground border-border'
   }
 }
 
@@ -77,9 +77,7 @@ export function QuoteHeader({
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold">{ltp !== undefined ? ltp.toFixed(2) : '-'}</span>
           {displayChange !== undefined && (
-            <span
-              className={cn('text-sm font-medium', isPositive ? 'text-green-500' : 'text-red-500')}
-            >
+            <span className={cn('text-sm font-medium', isPositive ? 'text-profit' : 'text-loss')}>
               {isPositive ? '+' : ''}
               {displayChange.toFixed(2)}
               {displayChangePercent !== undefined && (
@@ -97,7 +95,7 @@ export function QuoteHeader({
       <div className="flex items-center justify-between text-sm border-t border-border/50 pt-2">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">Bid:</span>
-          <span className="text-emerald-400 font-medium font-mono">
+          <span className="text-buy font-medium font-mono">
             {bidPrice !== undefined && bidPrice > 0 ? bidPrice.toFixed(2) : '-'}
           </span>
           {bidSize !== undefined && bidSize > 0 && (
@@ -107,7 +105,7 @@ export function QuoteHeader({
         <div className="text-muted-foreground">|</div>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">Ask:</span>
-          <span className="text-rose-400 font-medium font-mono">
+          <span className="text-sell font-medium font-mono">
             {askPrice !== undefined && askPrice > 0 ? askPrice.toFixed(2) : '-'}
           </span>
           {askSize !== undefined && askSize > 0 && (

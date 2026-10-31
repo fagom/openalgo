@@ -60,18 +60,18 @@ interface AnalyzerData {
 }
 
 const EXCHANGE_COLORS: Record<string, string> = {
-  NSE: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/30',
-  NFO: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
-  CDS: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
-  BSE: 'bg-gray-500/10 text-gray-600 border-gray-500/30',
-  BFO: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30',
-  BCD: 'bg-red-500/10 text-red-600 border-red-500/30',
+  NSE: 'bg-chart-3/10 text-chart-3 border-chart-3/30',
+  NFO: 'bg-chart-4/10 text-chart-4 border-chart-4/30',
+  CDS: 'bg-primary/10 text-primary border-primary/30',
+  BSE: 'bg-muted-foreground/10 text-muted-foreground border-border',
+  BFO: 'bg-warning/10 text-warning border-warning/30',
+  BCD: 'bg-destructive/10 text-destructive border-destructive/30',
   MCX: 'bg-primary/10 text-primary border-primary/30',
-  NCDEX: 'bg-green-500/10 text-green-600 border-green-500/30',
-  NCO: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
-  NSE_INDEX: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/30',
-  BSE_INDEX: 'bg-gray-500/10 text-gray-600 border-gray-500/30',
-  GLOBAL_INDEX: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
+  NCDEX: 'bg-success/10 text-success border-success/30',
+  NCO: 'bg-success/10 text-success border-success/30',
+  NSE_INDEX: 'bg-chart-3/10 text-chart-3 border-chart-3/30',
+  BSE_INDEX: 'bg-muted-foreground/10 text-muted-foreground border-border',
+  GLOBAL_INDEX: 'bg-info/10 text-info border-info/30',
 }
 
 export default function Analyzer() {
@@ -245,7 +245,7 @@ export default function Analyzer() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-yellow-500">{stats.issues.total}</div>
+            <div className="text-3xl font-bold text-warning">{stats.issues.total}</div>
             <Badge variant="secondary" className="mt-1">
               Needs Attention
             </Badge>
@@ -341,17 +341,17 @@ export default function Analyzer() {
                         {request.analysis.issues ? (
                           <Badge
                             variant="secondary"
-                            className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
+                            className="bg-warning/10 text-warning border-warning/30"
                           >
-                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            <AlertTriangle className="size-4 mr-1" />
                             Error
                           </Badge>
                         ) : (
                           <Badge
                             variant="secondary"
-                            className="bg-green-500/10 text-green-600 border-green-500/30"
+                            className="bg-success/10 text-success border-success/30"
                           >
-                            <CheckCircle className="h-3 w-3 mr-1" />
+                            <CheckCircle className="size-4 mr-1" />
                             Success
                           </Badge>
                         )}

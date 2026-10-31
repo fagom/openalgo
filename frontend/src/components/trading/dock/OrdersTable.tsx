@@ -152,7 +152,7 @@ export function OrdersTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-[11px] text-rose-600 hover:text-rose-600 dark:text-rose-400"
+                      className="h-6 px-2 text-[11px] text-destructive hover:text-destructive"
                       onClick={() => onCancel(order)}
                       aria-label={`Cancel order ${order.orderid} for ${order.symbol}`}
                     >

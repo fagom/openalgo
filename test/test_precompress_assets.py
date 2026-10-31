@@ -192,3 +192,32 @@ def test_serving_negotiates_the_generated_variant(dist, monkeypatch):
     assert "Content-Encoding" not in plain.headers
     assert plain.headers["Vary"] == "Accept-Encoding"
     assert plain.get_data() == (dist / "assets" / "app-abc123.js").read_bytes()
+
+
+def test_compressed_variant_does_not_name_the_gz_file(dist, monkeypatch):
+    """Safari types a module script by the Content-Disposition filename.
+
+    send_from_directory labels the response ``filename=app.js.gz``, and WebKit
+    then rejects the script as ``application/x-gzip`` despite the correct
+    Content-Type, leaving every iPhone browser on a blank page. Chromium
+    ignores the header, so desktop Chrome never showed it.
+    """
+    flask = pytest.importorskip("flask")
+    from blueprints import react_app
+
+    monkeypatch.setattr(react_app, "FRONTEND_DIST", dist)
+    ensure_precompressed_assets(dist)
+
+    app = flask.Flask(__name__)
+    app.register_blueprint(react_app.react_bp)
+    client = app.test_client()
+
+    for encoding in ("gzip", "br"):
+        got = client.get("/assets/app-abc123.js", headers={"Accept-Encoding": encoding})
+        if got.headers.get("Content-Encoding") != encoding:
+            continue  # no variant of this kind for the fixture
+        assert ".gz" not in got.headers.get("Content-Disposition", "")
+        assert ".br" not in got.headers.get("Content-Disposition", "")
+        assert got.headers["Content-Type"].startswith("application/javascript") or got.headers[
+            "Content-Type"
+        ].startswith("text/javascript")

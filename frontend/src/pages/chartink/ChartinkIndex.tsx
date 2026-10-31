@@ -171,7 +171,7 @@ export default function ChartinkIndex() {
               {/* Status indicator bar */}
               <div
                 className={`absolute top-0 left-0 right-0 h-1 ${
-                  strategy.is_active ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                  strategy.is_active ? 'bg-success' : 'bg-muted-foreground/50'
                 }`}
               />
 
@@ -218,9 +218,9 @@ export default function ChartinkIndex() {
                     onClick={() => copyWebhookUrl(strategy.webhook_id)}
                   >
                     {copiedId === strategy.webhook_id ? (
-                      <Check className="h-3 w-3 mr-2 text-green-500" />
+                      <Check className="size-4 mr-2 text-success" />
                     ) : (
-                      <Copy className="h-3 w-3 mr-2" />
+                      <Copy className="size-4 mr-2" />
                     )}
                     <span className="truncate">.../{strategy.webhook_id.slice(0, 8)}...</span>
                   </Button>
@@ -258,19 +258,19 @@ export default function ChartinkIndex() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <Badge className="bg-green-500">BUY</Badge>
+              <Badge className="bg-buy">BUY</Badge>
               <p className="text-sm text-muted-foreground">Open long position</p>
             </div>
             <div className="space-y-1">
-              <Badge className="bg-red-500">SELL</Badge>
+              <Badge className="bg-sell">SELL</Badge>
               <p className="text-sm text-muted-foreground">Close long position</p>
             </div>
             <div className="space-y-1">
-              <Badge className="bg-orange-500">SHORT</Badge>
+              <Badge className="bg-sell">SHORT</Badge>
               <p className="text-sm text-muted-foreground">Open short position</p>
             </div>
             <div className="space-y-1">
-              <Badge className="bg-blue-500">COVER</Badge>
+              <Badge className="bg-primary">COVER</Badge>
               <p className="text-sm text-muted-foreground">Close short position</p>
             </div>
           </div>

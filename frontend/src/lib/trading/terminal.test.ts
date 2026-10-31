@@ -20,6 +20,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { priceDp } from './format'
 import {
+  barCountdownValid,
+  barsCarryVolume,
   buildOrderTicket,
   dedupeIndicators,
   ORDER_COOLDOWN_MS,
@@ -831,9 +833,7 @@ describe('a chart with an armed alert stays awake when the tab is hidden', () =>
 
   it('does not decide visibility from the tab alone', () => {
     // The shape this replaces, which ignored every alert on the chart.
-    expect(source).not.toContain(
-      "this.data?.setVisible(document.visibilityState !== 'hidden')"
-    )
+    expect(source).not.toContain("this.data?.setVisible(document.visibilityState !== 'hidden')")
   })
 
   it('keeps the feed live while an alert is armed', () => {
@@ -857,5 +857,49 @@ describe('a chart with an armed alert stays awake when the tab is hidden', () =>
     // They are drawn, not watched. Nothing fires from a comparison, so keeping
     // one awake buys nothing.
     expect(source).toContain('this.comparisons?.setVisibleHost(visible)')
+  })
+})
+
+describe('barCountdownValid', () => {
+  // NIFTY's last 1m bar on a Friday: 15:29 IST, stored as real UTC.
+  const lastBar = Date.UTC(2026, 8, 25, 9, 59) / 1000
+
+  it('counts down while the last intraday bar is still forming', () => {
+    expect(barCountdownValid('1m', lastBar, lastBar + 20)).toBe(true)
+    expect(barCountdownValid('5m', lastBar, lastBar + 240)).toBe(true)
+  })
+
+  it('allows one interval of grace for an illiquid symbol between ticks', () => {
+    expect(barCountdownValid('1m', lastBar, lastBar + 90)).toBe(true)
+  })
+
+  it('hides after the close instead of cycling against a bar that will never come', () => {
+    // Sunday night: the modulo formula would still show a live-looking value.
+    expect(barCountdownValid('1m', lastBar, lastBar + 2.4 * 86400)).toBe(false)
+    expect(barCountdownValid('1h', lastBar, lastBar + 3 * 3600)).toBe(false)
+  })
+
+  it('never counts down a daily, weekly or monthly bar, stamped at midnight UTC', () => {
+    const dayBar = Date.UTC(2026, 8, 25) / 1000
+    for (const iv of ['D', '1d', 'W', 'M']) {
+      expect(barCountdownValid(iv, dayBar, dayBar + 4 * 3600)).toBe(false)
+    }
+  })
+
+  it('hides with no bars, and for a last bar stamped in the future', () => {
+    expect(barCountdownValid('1m', undefined, lastBar)).toBe(false)
+    expect(barCountdownValid('1m', lastBar, lastBar - 60)).toBe(false)
+  })
+})
+
+describe('barsCarryVolume', () => {
+  it('sees volume an index feed supplies (Dhan sends constituent turnover on NIFTY)', () => {
+    expect(barsCarryVolume([{ volume: 0 }, { volume: 15_710_943 }])).toBe(true)
+  })
+
+  it('reports none for a feed that sends zeros or leaves volume out', () => {
+    expect(barsCarryVolume([{ volume: 0 }, { volume: 0 }])).toBe(false)
+    expect(barsCarryVolume([{}, {}])).toBe(false)
+    expect(barsCarryVolume([])).toBe(false)
   })
 })

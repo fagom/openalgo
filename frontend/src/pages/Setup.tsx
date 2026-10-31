@@ -1,13 +1,13 @@
 import { Check, Info, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { fetchCSRFToken } from '@/api/client'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { fetchCSRFToken } from '@/api/client'
 import { cn } from '@/lib/utils'
 import { showToast } from '@/utils/toast'
 
@@ -72,9 +72,9 @@ export default function Setup() {
   const canSubmit = allRequirementsMet && passwordsMatch && allFieldsFilled
 
   const getStrengthLabel = () => {
-    if (passwordStrength >= 80) return { label: 'Strong', color: 'text-green-500' }
-    if (passwordStrength >= 50) return { label: 'Medium', color: 'text-yellow-500' }
-    if (passwordStrength > 0) return { label: 'Weak', color: 'text-red-500' }
+    if (passwordStrength >= 80) return { label: 'Strong', color: 'text-profit' }
+    if (passwordStrength >= 50) return { label: 'Medium', color: 'text-warning' }
+    if (passwordStrength > 0) return { label: 'Weak', color: 'text-loss' }
     return { label: '', color: '' }
   }
 
@@ -146,7 +146,7 @@ export default function Setup() {
     <div
       className={cn(
         'flex items-center gap-2 text-sm py-1 transition-colors',
-        met ? 'text-green-500' : 'text-muted-foreground'
+        met ? 'text-success' : 'text-muted-foreground'
       )}
     >
       <Check className={cn('h-4 w-4', met ? 'opacity-100' : 'opacity-0')} />
@@ -258,7 +258,7 @@ export default function Setup() {
                       <p
                         className={cn(
                           'text-xs',
-                          passwordsMatch ? 'text-green-500' : 'text-red-500'
+                          passwordsMatch ? 'text-success' : 'text-destructive'
                         )}
                       >
                         {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}

@@ -255,9 +255,9 @@ export default function NewPythonStrategy() {
                 placeholder="My Trading Strategy"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? 'border-loss/60' : ''}
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-loss">{errors.name}</p>}
               <p className="text-xs text-muted-foreground">A descriptive name for your strategy</p>
             </div>
 
@@ -266,7 +266,7 @@ export default function NewPythonStrategy() {
               <Label htmlFor="file">Python Script</Label>
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors ${
-                  errors.file ? 'border-red-500' : ''
+                  errors.file ? 'border-destructive/60' : ''
                 }`}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -280,7 +280,7 @@ export default function NewPythonStrategy() {
                 />
                 {file ? (
                   <div className="flex items-center justify-center gap-2">
-                    <FileCode className="h-8 w-8 text-green-500" />
+                    <FileCode className="h-8 w-8 text-success" />
                     <div className="text-left">
                       <p className="font-medium">{file.name}</p>
                       <p className="text-sm text-muted-foreground">
@@ -298,7 +298,7 @@ export default function NewPythonStrategy() {
                   </div>
                 )}
               </div>
-              {errors.file && <p className="text-sm text-red-500">{errors.file}</p>}
+              {errors.file && <p className="text-sm text-destructive">{errors.file}</p>}
             </div>
 
             {/* Exchange Section */}

@@ -203,7 +203,7 @@ export function IndicatorPickerDialog({
 
   return (
     <div
-      className="absolute inset-0 z-40 flex items-center justify-center bg-black/50"
+      className="absolute inset-0 z-40 flex items-center justify-center bg-overlay"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
       role="presentation"
     >
@@ -234,7 +234,7 @@ export function IndicatorPickerDialog({
           <div className="relative">
             <svg
               viewBox="0 0 24 24"
-              className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               strokeWidth={1.8}
@@ -306,7 +306,7 @@ export function IndicatorPickerDialog({
                   >
                     <svg
                       viewBox="0 0 24 24"
-                      className="h-3.5 w-3.5"
+                      className="size-4"
                       fill={favSet.has(d.id) ? 'currentColor' : 'none'}
                       stroke="currentColor"
                       strokeWidth={1.6}

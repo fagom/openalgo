@@ -149,15 +149,15 @@ function ClientCard({
           {!client.approved ? (
             <Button size="sm" onClick={onApprove} disabled={busy}>
               {busy ? (
-                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                <Loader2 className="size-4 mr-1 animate-spin" />
               ) : (
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                <CheckCircle2 className="size-4 mr-1" />
               )}
               Approve
             </Button>
           ) : null}
           <Button size="sm" variant="outline" onClick={onRevoke} disabled={busy}>
-            <Ban className="h-3.5 w-3.5 mr-1" />
+            <Ban className="size-4 mr-1" />
             Revoke
           </Button>
         </div>
@@ -417,7 +417,7 @@ export default function RemoteMcp() {
                     variant="outline"
                     onClick={() => handleCopyMcpUrl(pendingSettings.mcp_url)}
                   >
-                    <Copy className="h-3.5 w-3.5 mr-1" /> Copy
+                    <Copy className="size-4 mr-1" /> Copy
                   </Button>
                 </div>
                 <div className="text-xs text-muted-foreground mt-2">
@@ -533,8 +533,8 @@ export default function RemoteMcp() {
 
       {/* Restart-required banner — shown until the running process picks up the saved values */}
       {restartPending ? (
-        <Alert variant="default" className="border-amber-300 dark:border-amber-700">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
+        <Alert variant="default" className="border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertTitle>Restart required to apply changes</AlertTitle>
           <AlertDescription>
             Settings saved to <code>.env</code>. Run the following on your server to load them:
@@ -569,14 +569,14 @@ export default function RemoteMcp() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-xs uppercase text-muted-foreground">Pending</div>
-                <div className="text-3xl font-bold text-amber-600">{summary.pending}</div>
+                <div className="text-3xl font-bold text-warning">{summary.pending}</div>
                 <div className="text-xs text-muted-foreground">awaiting approval</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="text-xs uppercase text-muted-foreground">Approved</div>
-                <div className="text-3xl font-bold text-emerald-600">{summary.approved}</div>
+                <div className="text-3xl font-bold text-success">{summary.approved}</div>
                 <div className="text-xs text-muted-foreground">active clients</div>
               </CardContent>
             </Card>

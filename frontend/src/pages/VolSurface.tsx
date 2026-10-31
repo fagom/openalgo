@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot3D'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
@@ -80,21 +81,17 @@ export default function VolSurface() {
   // Send NFO/BFO directly — backend resolves correct exchange for index vs stock
 
   // Theme colors
-  const themeColors = useMemo(
-    () => ({
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.15)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
+      text: p.text,
+      grid: p.grid,
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
       colorscale: isAnalyzer ? 'Plasma' : isDark ? 'Viridis' : 'YlOrRd',
-    }),
-    [isDark, isAnalyzer]
-  )
+    }
+  }, [mode, appMode, isDark, isAnalyzer])
 
   // Fetch underlyings when exchange changes
   useEffect(() => {
@@ -227,7 +224,7 @@ export default function VolSurface() {
       autosize: true,
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       margin: { l: 0, r: 0, t: 0, b: 0 },
       scene: {
         aspectmode: 'manual' as const,

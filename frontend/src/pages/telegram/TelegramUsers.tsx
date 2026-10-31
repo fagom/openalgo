@@ -266,13 +266,13 @@ export default function TelegramUsers() {
                       </TableCell>
                       <TableCell>
                         {user.notifications_enabled ? (
-                          <Badge className="bg-green-500 hover:bg-green-600">
-                            <Bell className="h-3 w-3 mr-1" />
+                          <Badge className="bg-success hover:bg-success/90">
+                            <Bell className="size-4 mr-1" />
                             On
                           </Badge>
                         ) : (
                           <Badge variant="secondary">
-                            <BellOff className="h-3 w-3 mr-1" />
+                            <BellOff className="size-4 mr-1" />
                             Off
                           </Badge>
                         )}

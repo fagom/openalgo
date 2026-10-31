@@ -66,9 +66,9 @@ import { showToast } from '@/utils/toast'
 function StatusIcon({ status }: { status: string | null }) {
   switch (status) {
     case 'completed':
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />
+      return <CheckCircle2 className="h-4 w-4 text-profit" />
     case 'failed':
-      return <XCircle className="h-4 w-4 text-red-500" />
+      return <XCircle className="h-4 w-4 text-loss" />
     case 'running':
       return <Loader2 className="h-4 w-4 animate-spin text-primary" />
     case 'pending':
@@ -186,7 +186,7 @@ function WorkflowCard({ workflow }: { workflow: WorkflowListItem }) {
         className={cn(
           'group cursor-pointer transition-all duration-200 hover:border-primary/50',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          workflow.is_active && 'border-green-500/30'
+          workflow.is_active && 'border-profit/30'
         )}
         onClick={() => navigate(`/flow/editor/${workflow.id}`)}
         onKeyDown={(e) => {
@@ -202,7 +202,7 @@ function WorkflowCard({ workflow }: { workflow: WorkflowListItem }) {
               <div
                 className={cn(
                   'h-2 w-2 rounded-full',
-                  workflow.is_active ? 'bg-green-500' : 'bg-muted-foreground'
+                  workflow.is_active ? 'bg-success' : 'bg-muted-foreground'
                 )}
               />
               <CardTitle className="text-base">{workflow.name}</CardTitle>

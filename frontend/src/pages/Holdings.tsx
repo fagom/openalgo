@@ -11,10 +11,12 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { tradingApi } from '@/api/trading'
+import { PlaceOrderDialog } from '@/components/trading'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   Table,
   TableBody,
@@ -24,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { PlaceOrderDialog } from '@/components/trading'
 import { calculateLiveStats, useLivePrice } from '@/hooks/useLivePrice'
 import { useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
 import { usePageVisibility } from '@/hooks/usePageVisibility'
@@ -33,7 +34,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
 import type { Holding, HoldingsStats } from '@/types/trading'
 import { showToast } from '@/utils/toast'
-import { EmptyState } from '@/components/ui/empty-state'
 
 function formatPercent(value: number): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`
@@ -215,9 +215,9 @@ export default function Holdings() {
     <div className="space-y-6">
       {/* Stale Data Warning */}
       {showStaleWarning && (
-        <Alert variant="default" className="bg-amber-500/10 border-amber-500/30">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-700 dark:text-amber-400">
+        <Alert variant="default" className="bg-warning/10 border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
             Data is being refreshed after tab was inactive...
           </AlertDescription>
         </Alert>
@@ -231,17 +231,17 @@ export default function Holdings() {
             {isPaused ? (
               <Badge
                 variant="outline"
-                className="bg-amber-500/10 text-amber-600 border-amber-500/30 gap-1"
+                className="bg-warning/10 text-warning border-warning/30 gap-1"
               >
-                <Pause className="h-3 w-3" />
+                <Pause className="size-4" />
                 Paused
               </Badge>
             ) : isLive ? (
               <Badge
                 variant="outline"
-                className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1"
+                className="bg-success/10 text-success border-success/30 gap-1"
               >
-                <Radio className="h-3 w-3 animate-pulse" />
+                <Radio className="size-4 animate-pulse" />
                 Live
               </Badge>
             ) : null}
@@ -290,8 +290,8 @@ export default function Holdings() {
               className={cn(
                 'text-2xl',
                 enhancedStats && isProfit(enhancedStats.totalprofitandloss)
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? 'text-profit'
+                  : 'text-loss'
               )}
             >
               {enhancedStats ? (
@@ -316,8 +316,8 @@ export default function Holdings() {
               className={cn(
                 'text-2xl',
                 enhancedStats && isProfit(enhancedStats.totalpnlpercentage)
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? 'text-profit'
+                  : 'text-loss'
               )}
             >
               {enhancedStats ? formatPercent(enhancedStats.totalpnlpercentage) : '---'}
@@ -379,7 +379,7 @@ export default function Holdings() {
                       <TableCell
                         className={cn(
                           'text-right font-medium',
-                          isProfit(holding.pnl) ? 'text-green-600' : 'text-red-600'
+                          isProfit(holding.pnl) ? 'text-profit' : 'text-loss'
                         )}
                       >
                         <div className="flex items-center justify-end gap-1">
@@ -394,7 +394,7 @@ export default function Holdings() {
                       <TableCell
                         className={cn(
                           'text-right',
-                          isProfit(holding.pnlpercent) ? 'text-green-600' : 'text-red-600'
+                          isProfit(holding.pnlpercent) ? 'text-profit' : 'text-loss'
                         )}
                       >
                         {formatPercent(holding.pnlpercent)}
@@ -404,7 +404,7 @@ export default function Holdings() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 px-3 border-green-600/40 text-green-600 hover:bg-green-600/10"
+                            className="h-7 px-3 border-success/40 text-success hover:bg-success/10"
                             onClick={() =>
                               setOrderIntent({
                                 symbol: holding.symbol,
@@ -419,7 +419,7 @@ export default function Holdings() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 px-3 border-red-600/40 text-red-600 hover:bg-red-600/10"
+                            className="h-7 px-3 border-destructive/40 text-destructive hover:bg-destructive/10"
                             onClick={() =>
                               setOrderIntent({
                                 symbol: holding.symbol,
@@ -445,8 +445,8 @@ export default function Holdings() {
                       className={cn(
                         'text-right font-bold',
                         enhancedStats && isProfit(enhancedStats.totalprofitandloss)
-                          ? 'text-green-600'
-                          : 'text-red-600'
+                          ? 'text-profit'
+                          : 'text-loss'
                       )}
                     >
                       {enhancedStats
@@ -457,8 +457,8 @@ export default function Holdings() {
                       className={cn(
                         'text-right font-bold',
                         enhancedStats && isProfit(enhancedStats.totalpnlpercentage)
-                          ? 'text-green-600'
-                          : 'text-red-600'
+                          ? 'text-profit'
+                          : 'text-loss'
                       )}
                     >
                       {enhancedStats ? formatPercent(enhancedStats.totalpnlpercentage) : '-'}

@@ -121,8 +121,8 @@ export default function TelegramConfig() {
           </CardHeader>
           <CardContent className="space-y-4">
             {config?.has_token && (
-              <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <Check className="h-4 w-4 text-green-500" />
+              <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+                <Check className="h-4 w-4 text-success" />
                 <span className="text-sm">Token is configured</span>
               </div>
             )}
@@ -226,7 +226,7 @@ export default function TelegramConfig() {
           <CardTitle>Quick Setup Guide</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
             <p className="text-sm">
               <span className="font-semibold">Need detailed instructions?</span> Visit our complete{' '}
               <a

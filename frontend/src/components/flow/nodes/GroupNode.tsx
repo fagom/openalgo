@@ -19,11 +19,11 @@ interface GroupNodeProps {
 }
 
 const colorClasses: Record<string, string> = {
-  blue: 'border-blue-500/30 bg-blue-500/5',
+  blue: 'border-primary/30 bg-primary/5',
   green: 'border-buy/30 bg-buy/5',
   red: 'border-sell/30 bg-sell/5',
-  purple: 'border-purple-500/30 bg-purple-500/5',
-  orange: 'border-orange-500/30 bg-orange-500/5',
+  purple: 'border-chart-4/30 bg-chart-4/5',
+  orange: 'border-warning/30 bg-warning/5',
   default: 'border-border/50 bg-muted/20',
 }
 
@@ -47,7 +47,7 @@ export const GroupNode = memo(({ data, selected }: GroupNodeProps) => {
       />
       <Handle type="target" position={Position.Top} className="!top-0 !-translate-y-1/2" />
       <div className="absolute -top-3 left-3 flex items-center gap-1.5 rounded bg-background px-2 py-0.5">
-        <Layers className="h-3 w-3 text-muted-foreground" />
+        <Layers className="size-4 text-muted-foreground" />
         <span className="text-xs font-medium">{data.label || 'Group'}</span>
       </div>
       <Handle type="source" position={Position.Bottom} className="!bottom-0 !translate-y-1/2" />

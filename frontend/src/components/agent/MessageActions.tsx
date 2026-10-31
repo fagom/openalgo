@@ -124,21 +124,21 @@ export function MessageActions({
     >
       <ActionButton label={copied ? 'Copied' : 'Copy'} onClick={copy}>
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+          <Check className="size-4 text-success" aria-hidden />
         ) : (
-          <Copy className="h-3.5 w-3.5" aria-hidden />
+          <Copy className="size-4" aria-hidden />
         )}
       </ActionButton>
 
       {onRetry && (
         <ActionButton label="Try again" onClick={onRetry} disabled={disabled}>
-          <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+          <RotateCcw className="size-4" aria-hidden />
         </ActionButton>
       )}
 
       {onEdit && (
         <ActionButton label="Edit message" onClick={onEdit} disabled={disabled}>
-          <Pencil className="h-3.5 w-3.5" aria-hidden />
+          <Pencil className="size-4" aria-hidden />
         </ActionButton>
       )}
     </div>

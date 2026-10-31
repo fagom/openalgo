@@ -613,8 +613,8 @@ export function Tick({
     <span
       className={cn(
         'rounded-sm motion-safe:transition-colors motion-safe:duration-500',
-        flash === 'up' && 'bg-emerald-500/20',
-        flash === 'down' && 'bg-red-500/20',
+        flash === 'up' && 'bg-profit/20',
+        flash === 'down' && 'bg-loss/20',
         className
       )}
     >
@@ -720,7 +720,7 @@ export function Provenance({
     <span
       className={cn(
         'shrink-0 text-[10px] leading-4 tracking-wide uppercase',
-        source === 'tick' ? 'text-muted-foreground' : 'text-amber-600 dark:text-amber-500',
+        source === 'tick' ? 'text-muted-foreground' : 'text-warning',
         className
       )}
       title={

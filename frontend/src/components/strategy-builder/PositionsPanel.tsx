@@ -79,8 +79,8 @@ function MetricTile({
         className={cn(
           'font-semibold tabular-nums leading-tight',
           emphasize ? 'text-base' : 'text-sm',
-          tone === 'profit' && 'text-emerald-600 dark:text-emerald-400',
-          tone === 'loss' && 'text-rose-600 dark:text-rose-400'
+          tone === 'profit' && 'text-profit',
+          tone === 'loss' && 'text-loss'
         )}
       >
         {value}
@@ -133,8 +133,8 @@ export function PositionsPanel({
           while staying inline on wider screens. */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b bg-gradient-to-r from-muted/30 to-transparent px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-blue-600 dark:text-blue-400">
-            <Layers className="h-3.5 w-3.5" />
+          <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/15 to-chart-4/15 text-primary">
+            <Layers className="size-4" />
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold leading-none">Positions</h3>
@@ -150,7 +150,7 @@ export function PositionsPanel({
           className="h-7 text-[11px] text-muted-foreground hover:text-foreground"
           disabled={legs.length === 0}
         >
-          <RotateCw className="mr-1 h-3 w-3" />
+          <RotateCw className="mr-1 size-4" />
           Reset
         </Button>
       </div>
@@ -167,8 +167,8 @@ export function PositionsPanel({
             title={allSelected ? 'Exclude all legs' : 'Include all legs'}
             className={cn(
               'h-4 w-4 border-border',
-              'data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:text-white',
-              'data-[state=indeterminate]:border-emerald-500 data-[state=indeterminate]:bg-emerald-500 data-[state=indeterminate]:text-white'
+              'data-[state=checked]:border-success/60 data-[state=checked]:bg-success data-[state=checked]:text-success-foreground',
+              'data-[state=indeterminate]:border-success/60 data-[state=indeterminate]:bg-success data-[state=indeterminate]:text-success-foreground'
             )}
           />
           <label className="text-[11px] font-medium text-muted-foreground">Select all</label>
@@ -202,7 +202,7 @@ export function PositionsPanel({
                   className={cn(
                     'group flex items-center gap-2 border-b border-border/60 px-3 py-2.5 transition last:border-b-0',
                     'hover:bg-muted/40',
-                    isClosed && 'bg-rose-500/5',
+                    isClosed && 'bg-loss/5',
                     !leg.active && !isClosed && 'bg-muted/30'
                   )}
                 >
@@ -223,8 +223,8 @@ export function PositionsPanel({
                     aria-label={leg.active ? 'Exclude leg' : 'Include leg'}
                     className={cn(
                       'h-4 w-4 border-border',
-                      'data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500 data-[state=checked]:text-white',
-                      'hover:border-foreground/40 data-[state=checked]:hover:bg-emerald-600'
+                      'data-[state=checked]:border-success/60 data-[state=checked]:bg-success data-[state=checked]:text-success-foreground',
+                      'hover:border-foreground/40 data-[state=checked]:hover:bg-success/90'
                     )}
                   />
                   <button
@@ -240,10 +240,10 @@ export function PositionsPanel({
                     className={cn(
                       'inline-flex h-5 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase tracking-wider transition',
                       isClosed
-                        ? 'cursor-not-allowed bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                        ? 'cursor-not-allowed bg-destructive/15 text-destructive'
                         : leg.side === 'BUY'
-                          ? 'cursor-pointer bg-emerald-500/15 text-emerald-700 ring-1 ring-inset ring-emerald-500/20 hover:bg-emerald-500/25 dark:text-emerald-400'
-                          : 'cursor-pointer bg-rose-500/15 text-rose-700 ring-1 ring-inset ring-rose-500/20 hover:bg-rose-500/25 dark:text-rose-400'
+                          ? 'cursor-pointer bg-buy/15 text-buy ring-1 ring-inset ring-buy/20 hover:bg-buy/25'
+                          : 'cursor-pointer bg-destructive/15 text-destructive ring-1 ring-inset ring-destructive/20 hover:bg-destructive/25'
                     )}
                   >
                     {leg.side === 'BUY' ? 'B' : 'S'}
@@ -252,7 +252,7 @@ export function PositionsPanel({
                   <div
                     className={cn(
                       'min-w-0 flex-1',
-                      isClosed && 'text-rose-700/80 line-through dark:text-rose-400/80',
+                      isClosed && 'text-destructive/80 line-through',
                       !leg.active && !isClosed && 'text-muted-foreground line-through'
                     )}
                   >
@@ -266,9 +266,8 @@ export function PositionsPanel({
                           <span
                             className={cn(
                               'shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wider',
-                              m.kind === 'ATM' &&
-                                'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                              m.kind === 'ITM' && 'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+                              m.kind === 'ATM' && 'bg-warning/15 text-warning',
+                              m.kind === 'ITM' && 'bg-info/15 text-info',
                               m.kind === 'OTM' && 'bg-muted text-muted-foreground'
                             )}
                             title={
@@ -294,9 +293,7 @@ export function PositionsPanel({
                     <span
                       className={cn(
                         'shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums',
-                        realisedPnl >= 0
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                          : 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
+                        realisedPnl >= 0 ? 'bg-profit/10 text-profit' : 'bg-loss/10 text-loss'
                       )}
                       title={`Entry ${formatCurrency(leg.price)} → Exit ${formatCurrency(leg.exitPrice ?? 0)}`}
                     >
@@ -323,16 +320,16 @@ export function PositionsPanel({
                       onClick={() => onEditLeg(leg.id)}
                       aria-label="Edit position"
                     >
-                      <Pencil className="h-3 w-3" />
+                      <Pencil className="size-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 hover:text-rose-600"
+                      className="h-6 w-6 hover:text-destructive"
                       onClick={() => onRemoveLeg(leg.id)}
                       aria-label="Remove position"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
                 </li>
@@ -355,7 +352,7 @@ export function PositionsPanel({
               title={legs.length === 0 ? 'Add at least one leg to save' : ''}
               className="h-9 gap-1.5 text-xs font-semibold"
             >
-              <Save className="h-3.5 w-3.5" />
+              <Save className="size-4" />
               {isUpdating ? 'Update Strategy' : 'Save Strategy'}
             </Button>
           )}
@@ -373,7 +370,7 @@ export function PositionsPanel({
               }
               className="h-9 gap-1.5 text-xs font-semibold"
             >
-              <Send className="h-3.5 w-3.5" />
+              <Send className="size-4" />
               Execute
             </Button>
           )}

@@ -49,7 +49,7 @@ type GridChoice = 'both' | 'horizontal' | 'vertical' | 'none'
 
 const ROW =
   'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground'
-const ICON = 'h-3.5 w-3.5 opacity-70'
+const ICON = 'size-4 opacity-70'
 
 export function ChartContextMenu({
   widget,
@@ -156,7 +156,7 @@ export function ChartContextMenu({
         >
           <GridIcon className={ICON} />
           Grid
-          <ChevronDown className="-rotate-90 ml-auto h-3.5 w-3.5 opacity-60" />
+          <ChevronDown className="-rotate-90 ml-auto size-4 opacity-60" />
         </button>
         {gridOpen && (
           <div

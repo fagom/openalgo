@@ -15,7 +15,7 @@ interface SplitOrderNodeProps {
 }
 
 export const SplitOrderNode = memo(({ data, selected }: SplitOrderNodeProps) => {
-  const actionClass = data.action === 'BUY' ? 'text-green-500' : 'text-red-500'
+  const actionClass = data.action === 'BUY' ? 'text-buy' : 'text-destructive'
 
   return (
     <div className={cn('workflow-node node-action min-w-[120px]', selected && 'selected')}>
@@ -23,7 +23,7 @@ export const SplitOrderNode = memo(({ data, selected }: SplitOrderNodeProps) => 
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded">
-            <Split className="h-3 w-3" />
+            <Split className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Split Order</div>

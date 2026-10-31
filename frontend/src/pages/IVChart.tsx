@@ -526,18 +526,16 @@ export default function IVChart() {
                 <span className="font-medium">{chartData.underlying_ltp?.toFixed(2)}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-500" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-profit" />
                 <span className="text-muted-foreground">CE: </span>
                 <span className="font-medium">{chartData.ce_symbol}</span>
-                <span className="text-green-600 dark:text-green-400 font-medium ml-1">
-                  {getLatestValue('CE', 'iv')}
-                </span>
+                <span className="text-success font-medium ml-1">{getLatestValue('CE', 'iv')}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-destructive" />
                 <span className="text-muted-foreground">PE: </span>
                 <span className="font-medium">{chartData.pe_symbol}</span>
-                <span className="text-red-600 dark:text-red-400 font-medium ml-1">
+                <span className="text-destructive font-medium ml-1">
                   {getLatestValue('PE', 'iv')}
                 </span>
               </div>
@@ -566,7 +564,7 @@ export default function IVChart() {
                   {/* CE chart */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      <span className="text-sm font-medium text-success">
                         {chartData?.ce_symbol || 'CE'} {METRIC_CONFIG[metric].label}
                       </span>
                       <span className="text-sm tabular-nums text-muted-foreground">
@@ -582,7 +580,7 @@ export default function IVChart() {
                   {/* PE chart */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      <span className="text-sm font-medium text-destructive">
                         {chartData?.pe_symbol || 'PE'} {METRIC_CONFIG[metric].label}
                       </span>
                       <span className="text-sm tabular-nums text-muted-foreground">

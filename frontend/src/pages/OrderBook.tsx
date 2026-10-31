@@ -123,10 +123,10 @@ function formatTime(timestamp: string): string {
 }
 
 const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
-  complete: { icon: CheckCircle2, color: 'text-green-500', label: 'complete' },
-  rejected: { icon: XCircle, color: 'text-red-500', label: 'rejected' },
-  cancelled: { icon: XCircle, color: 'text-gray-500', label: 'cancelled' },
-  open: { icon: Clock, color: 'text-blue-500', label: 'open' },
+  complete: { icon: CheckCircle2, color: 'text-success', label: 'complete' },
+  rejected: { icon: XCircle, color: 'text-destructive', label: 'rejected' },
+  cancelled: { icon: XCircle, color: 'text-muted-foreground', label: 'cancelled' },
+  open: { icon: Clock, color: 'text-primary', label: 'open' },
 }
 
 export default function OrderBook() {
@@ -420,7 +420,7 @@ export default function OrderBook() {
       size="sm"
       className={cn(
         'rounded-full',
-        statusFilter.includes(status) && 'bg-pink-500 hover:bg-pink-600'
+        statusFilter.includes(status) && 'bg-primary hover:bg-primary/90'
       )}
       onClick={() => toggleStatusFilter(status)}
     >
@@ -460,7 +460,7 @@ export default function OrderBook() {
                   <Settings2 className="h-4 w-4 mr-2" />
                   Filters
                   {hasActiveFilters && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                   )}
                 </Button>
               </DialogTrigger>
@@ -538,7 +538,7 @@ export default function OrderBook() {
                 <Badge
                   key={status}
                   variant="secondary"
-                  className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+                  className="bg-primary/10 text-primary border-primary/30"
                 >
                   {status}
                 </Badge>
@@ -546,7 +546,7 @@ export default function OrderBook() {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-500 border-red-500/50 hover:bg-red-500/10"
+                className="text-destructive border-destructive/50 hover:bg-destructive/10"
                 onClick={clearFilters}
               >
                 Clear All
@@ -559,15 +559,13 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Buy Orders</CardDescription>
-                <CardTitle className="text-2xl text-green-600">
-                  {stats?.total_buy_orders ?? 0}
-                </CardTitle>
+                <CardTitle className="text-2xl text-buy">{stats?.total_buy_orders ?? 0}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Sell Orders</CardDescription>
-                <CardTitle className="text-2xl text-red-600">
+                <CardTitle className="text-2xl text-sell">
                   {stats?.total_sell_orders ?? 0}
                 </CardTitle>
               </CardHeader>
@@ -581,7 +579,7 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Open</CardDescription>
-                <CardTitle className="text-2xl text-blue-600">
+                <CardTitle className="text-2xl text-primary">
                   {stats?.total_open_orders ?? 0}
                 </CardTitle>
               </CardHeader>
@@ -589,7 +587,7 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Rejected</CardDescription>
-                <CardTitle className="text-2xl text-red-600">
+                <CardTitle className="text-2xl text-destructive">
                   {stats?.total_rejected_orders ?? 0}
                 </CardTitle>
               </CardHeader>
@@ -637,9 +635,9 @@ export default function OrderBook() {
                             Symbol
                             {sortConfig.key === 'symbol' &&
                               (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
+                                <ArrowUp className="size-4" />
                               ) : (
-                                <ArrowDown className="h-3 w-3" />
+                                <ArrowDown className="size-4" />
                               ))}
                           </div>
                         </TableHead>
@@ -652,9 +650,9 @@ export default function OrderBook() {
                             Action
                             {sortConfig.key === 'action' &&
                               (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
+                                <ArrowUp className="size-4" />
                               ) : (
-                                <ArrowDown className="h-3 w-3" />
+                                <ArrowDown className="size-4" />
                               ))}
                           </div>
                         </TableHead>
@@ -667,9 +665,9 @@ export default function OrderBook() {
                             Price
                             {sortConfig.key === 'price' &&
                               (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
+                                <ArrowUp className="size-4" />
                               ) : (
-                                <ArrowDown className="h-3 w-3" />
+                                <ArrowDown className="size-4" />
                               ))}
                           </div>
                         </TableHead>
@@ -685,9 +683,9 @@ export default function OrderBook() {
                             Status
                             {sortConfig.key === 'order_status' &&
                               (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
+                                <ArrowUp className="size-4" />
                               ) : (
-                                <ArrowDown className="h-3 w-3" />
+                                <ArrowDown className="size-4" />
                               ))}
                           </div>
                         </TableHead>
@@ -699,9 +697,9 @@ export default function OrderBook() {
                             Time
                             {sortConfig.key === 'timestamp' &&
                               (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
+                                <ArrowUp className="size-4" />
                               ) : (
-                                <ArrowDown className="h-3 w-3" />
+                                <ArrowDown className="size-4" />
                               ))}
                           </div>
                         </TableHead>
@@ -726,7 +724,7 @@ export default function OrderBook() {
                             <TableCell>
                               <Badge
                                 variant={order.action === 'BUY' ? 'default' : 'destructive'}
-                                className={order.action === 'BUY' ? 'bg-green-500' : ''}
+                                className={order.action === 'BUY' ? 'bg-buy' : ''}
                               >
                                 {order.action}
                               </Badge>
@@ -774,7 +772,7 @@ export default function OrderBook() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-blue-500 hover:text-blue-600"
+                                  className="h-8 w-8 text-primary hover:text-primary"
                                   onClick={() => openModifyDialog(order)}
                                   aria-label={`Modify order for ${order.symbol}`}
                                 >
@@ -806,7 +804,7 @@ export default function OrderBook() {
               <span>Modify Order</span>
               <Badge
                 variant={modifyingOrder?.action === 'BUY' ? 'default' : 'destructive'}
-                className={modifyingOrder?.action === 'BUY' ? 'bg-green-500' : ''}
+                className={modifyingOrder?.action === 'BUY' ? 'bg-buy' : ''}
               >
                 {modifyingOrder?.action}
               </Badge>
@@ -862,11 +860,11 @@ export default function OrderBook() {
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Bid</div>
-                  <div className="font-mono text-green-600">{formatCurrency(quotes.bid)}</div>
+                  <div className="font-mono text-buy">{formatCurrency(quotes.bid)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Ask</div>
-                  <div className="font-mono text-red-600">{formatCurrency(quotes.ask)}</div>
+                  <div className="font-mono text-sell">{formatCurrency(quotes.ask)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Prev Close</div>
@@ -878,11 +876,11 @@ export default function OrderBook() {
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">High</div>
-                  <div className="font-mono text-green-600">{formatCurrency(quotes.high)}</div>
+                  <div className="font-mono text-success">{formatCurrency(quotes.high)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Low</div>
-                  <div className="font-mono text-red-600">{formatCurrency(quotes.low)}</div>
+                  <div className="font-mono text-destructive">{formatCurrency(quotes.low)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Volume</div>

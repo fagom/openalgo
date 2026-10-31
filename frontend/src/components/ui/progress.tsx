@@ -17,16 +17,16 @@ function Progress({ className, value = 0, max = 100, ...props }: ProgressProps) 
       aria-valuemax={max}
       aria-valuenow={value}
       data-slot="progress"
-      className={cn('bg-secondary relative h-4 w-full overflow-hidden rounded-full', className)}
+      className={cn('bg-muted relative h-2 w-full overflow-hidden rounded-full', className)}
       {...props}
     >
       <div
         data-slot="progress-indicator"
         className={cn(
           'bg-primary h-full transition-all duration-300 ease-in-out',
-          percentage >= 80 && 'bg-green-500',
-          percentage >= 50 && percentage < 80 && 'bg-yellow-500',
-          percentage > 0 && percentage < 50 && 'bg-red-500'
+          percentage >= 80 && 'bg-success',
+          percentage >= 50 && percentage < 80 && 'bg-warning',
+          percentage > 0 && percentage < 50 && 'bg-loss'
         )}
         style={{ width: `${percentage}%` }}
       />

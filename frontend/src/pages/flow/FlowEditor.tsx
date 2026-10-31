@@ -562,7 +562,7 @@ function FlowEditorContent() {
   // Handle invalid ID - redirect to flow list
   if (!id || id === 'undefined' || Number.isNaN(Number(id))) {
     return (
-      <div className="flex h-screen flex-col bg-background text-foreground">
+      <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
         <div className="h-12 border-b border-border flex items-center px-2 bg-card/50">
           <div className="flex items-center gap-2 px-2">
             <img src="/images/android-chrome-192x192.png" alt="OpenAlgo" className="w-6 h-6" />
@@ -587,7 +587,7 @@ function FlowEditorContent() {
   // the name to the store default. Never render the canvas without its data.
   if (isError) {
     return (
-      <div className="flex h-screen flex-col bg-background text-foreground">
+      <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
         <div className="h-12 border-b border-border flex items-center px-2 bg-card/50">
           <div className="flex items-center gap-2 px-2">
             <img src="/images/android-chrome-192x192.png" alt="OpenAlgo" className="w-6 h-6" />
@@ -620,7 +620,7 @@ function FlowEditorContent() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen flex-col bg-background text-foreground">
+      <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
         {/* Top Header Bar */}
         <div className="h-12 border-b border-border flex items-center px-2 bg-card/50">
           <div className="flex items-center gap-2 px-2">
@@ -637,7 +637,7 @@ function FlowEditorContent() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
       {/* Top Header Bar */}
       <div className="h-12 border-b border-border flex items-center px-2 bg-card/50">
         {/* Left: Logo */}
@@ -658,7 +658,7 @@ function FlowEditorContent() {
             variant={appMode === 'live' ? 'default' : 'secondary'}
             className={cn(
               'text-xs',
-              appMode === 'analyzer' && 'bg-purple-500 hover:bg-purple-600 text-white'
+              appMode === 'analyzer' && 'bg-primary hover:bg-primary/90 text-primary-foreground'
             )}
           >
             <span className="hidden sm:inline">
@@ -701,7 +701,7 @@ function FlowEditorContent() {
 
           <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
             <Link to="/dashboard">
-              <Home className="h-3.5 w-3.5 mr-1.5" />
+              <Home className="size-4 mr-1.5" />
               Dashboard
             </Link>
           </Button>
@@ -949,13 +949,13 @@ function FlowEditorContent() {
               <div
                 className={cn(
                   'flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm',
-                  isActive && 'border-green-500/30 bg-green-500/5'
+                  isActive && 'border-success/30 bg-success/5'
                 )}
               >
                 <div
                   className={cn(
                     'h-2 w-2 rounded-full',
-                    isActive ? 'bg-green-500' : 'bg-muted-foreground'
+                    isActive ? 'bg-success' : 'bg-muted-foreground'
                   )}
                 />
                 <span className="text-muted-foreground">

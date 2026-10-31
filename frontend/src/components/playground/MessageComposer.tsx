@@ -393,12 +393,12 @@ export function MessageComposer({
             'h-8 px-4',
             disabled
               ? 'bg-muted text-muted-foreground cursor-not-allowed'
-              : 'bg-sky-600 hover:bg-sky-700 text-white'
+              : 'bg-info hover:bg-info/90 text-info-foreground'
           )}
           onClick={handleSend}
           disabled={disabled || !value.trim()}
         >
-          <Send className="h-3.5 w-3.5 mr-1.5" />
+          <Send className="size-4 mr-1.5" />
           Send Message
         </Button>
       </div>

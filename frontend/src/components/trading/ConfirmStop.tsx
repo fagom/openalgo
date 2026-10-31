@@ -54,7 +54,7 @@ export function ConfirmStop({ file, where, holding, busy, onCancel, onPause, onS
       className="flex flex-col gap-2 rounded border border-destructive/50 bg-destructive/5 p-2"
     >
       <div className="flex items-start gap-1.5">
-        <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden />
+        <AlertTriangle className="mt-px size-4 shrink-0 text-destructive" aria-hidden />
         <div className="text-[11px] leading-relaxed">
           <span className="font-medium">Stop closes this strategy's position.</span>{' '}
           <span className="text-muted-foreground">
@@ -82,7 +82,7 @@ export function ConfirmStop({ file, where, holding, busy, onCancel, onPause, onS
             >
               <span className="font-medium">{one.symbol}</span>
               <span className="text-muted-foreground">{one.exchange}</span>
-              <span className={one.side === 'short' ? 'text-destructive' : 'text-emerald-500'}>
+              <span className={one.side === 'short' ? 'text-destructive' : 'text-success'}>
                 {one.side === 'short' ? '-' : '+'}
                 {one.quantity}
               </span>

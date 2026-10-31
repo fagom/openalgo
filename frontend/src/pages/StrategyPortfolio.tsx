@@ -158,8 +158,8 @@ function PriceCell({ value }: { value: number | undefined }) {
     <span
       className={cn(
         'inline-block rounded px-1.5 py-0.5 tabular-nums transition-colors duration-300',
-        flash === 'up' && 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
-        flash === 'down' && 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+        flash === 'up' && 'bg-profit/20 text-profit',
+        flash === 'down' && 'bg-loss/20 text-loss'
       )}
     >
       ₹{value.toFixed(2)}
@@ -181,10 +181,10 @@ function PnlCell({
     <span
       className={cn(
         'inline-block rounded px-1.5 py-0.5 font-semibold tabular-nums transition-colors duration-300',
-        value > 0 && 'text-emerald-600 dark:text-emerald-400',
-        value < 0 && 'text-rose-600 dark:text-rose-400',
-        flash === 'up' && 'bg-emerald-500/20',
-        flash === 'down' && 'bg-rose-500/20'
+        value > 0 && 'text-profit',
+        value < 0 && 'text-loss',
+        flash === 'up' && 'bg-profit/20',
+        flash === 'down' && 'bg-loss/20'
       )}
     >
       {`${value >= 0 ? '+' : '-'}₹${Math.abs(value).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
@@ -424,13 +424,13 @@ export default function StrategyPortfolio() {
     mytrades: {
       label: 'MyTrades',
       icon: Briefcase,
-      accent: 'text-amber-600 dark:text-amber-400',
+      accent: 'text-warning',
       items: myTrades,
     },
     simulation: {
       label: 'Simulation',
       icon: FlaskConical,
-      accent: 'text-violet-600 dark:text-violet-400',
+      accent: 'text-chart-4',
       items: simulation,
     },
   }
@@ -445,36 +445,36 @@ export default function StrategyPortfolio() {
             onClick={() => navigate('/strategybuilder')}
             className="mt-1"
           >
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+            <ArrowLeft className="mr-1.5 size-4" />
             Back
           </Button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">Strategy Portfolio</h1>
               {streamingState === 'streaming' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
                   </span>
                   Live
                 </span>
               )}
               {streamingState === 'paused' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                  <Radio className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-warning">
+                  <Radio className="size-4" />
                   Paused
                 </span>
               )}
               {streamingState === 'fallback' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
-                  <Wifi className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-info/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-info">
+                  <Wifi className="size-4" />
                   Polling
                 </span>
               )}
               {streamingState === 'connecting' && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <WifiOff className="h-2.5 w-2.5" />
+                  <WifiOff className="size-4" />
                   Connecting
                 </span>
               )}
@@ -493,7 +493,7 @@ export default function StrategyPortfolio() {
             const Icon = cfg.icon
             return (
               <TabsTrigger key={key} value={key} className="gap-2">
-                <Icon className={cn('h-3.5 w-3.5', tab === key && cfg.accent)} />
+                <Icon className={cn('size-4', tab === key && cfg.accent)} />
                 {cfg.label}
                 <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold">
                   {cfg.items.length}
@@ -526,11 +526,7 @@ export default function StrategyPortfolio() {
                     let cum = 0
                     for (const e of cfg.items) cum += getEntryMetrics(e).pnl
                     const tone =
-                      cum > 0
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : cum < 0
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : 'text-muted-foreground'
+                      cum > 0 ? 'text-profit' : cum < 0 ? 'text-loss' : 'text-muted-foreground'
                     const sign = cum > 0 ? '+' : cum < 0 ? '-' : ''
                     return (
                       <div className="flex items-center justify-between gap-3 rounded-md border bg-card px-4 py-2.5 text-xs">
@@ -635,12 +631,9 @@ export default function StrategyPortfolio() {
                                 }
                                 className={cn(
                                   'rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-                                  status === 'open' &&
-                                    'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
-                                  status === 'partial' &&
-                                    'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                                  status === 'closed' &&
-                                    'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                                  status === 'open' && 'bg-success/15 text-success',
+                                  status === 'partial' && 'bg-warning/15 text-warning',
+                                  status === 'closed' && 'bg-destructive/15 text-destructive'
                                 )}
                               >
                                 {status}
@@ -648,8 +641,8 @@ export default function StrategyPortfolio() {
                               <span
                                 className={cn(
                                   'min-w-[80px] text-right text-sm font-semibold tabular-nums',
-                                  pnl > 0 && 'text-emerald-600 dark:text-emerald-400',
-                                  pnl < 0 && 'text-rose-600 dark:text-rose-400',
+                                  pnl > 0 && 'text-profit',
+                                  pnl < 0 && 'text-loss',
                                   pnl === 0 && 'text-muted-foreground'
                                 )}
                               >
@@ -673,20 +666,20 @@ export default function StrategyPortfolio() {
                                   openInBuilder(entry)
                                 }}
                               >
-                                <Play className="mr-1 h-3 w-3" />
+                                <Play className="mr-1 size-4" />
                                 View
                               </Button>
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 aria-label="Delete"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setPendingDelete(entry)
                                 }}
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="size-4" />
                               </Button>
                             </div>
                           </div>
@@ -718,7 +711,7 @@ export default function StrategyPortfolio() {
                                     const qty = leg.lots * leg.lotSize
                                     const pnl = legPnl(leg, currentLtp)
                                     return (
-                                      <tr key={i} className={cn(isClosed && 'bg-rose-500/5')}>
+                                      <tr key={i} className={cn(isClosed && 'bg-loss/5')}>
                                         <td className="px-4 py-2 font-medium">
                                           <div className="flex flex-col">
                                             <span
@@ -738,8 +731,8 @@ export default function StrategyPortfolio() {
                                             className={cn(
                                               'inline-flex items-center justify-center rounded px-2 py-0.5 text-[10px] font-semibold uppercase',
                                               leg.side === 'BUY'
-                                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                                                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                                                ? 'bg-buy/15 text-buy'
+                                                : 'bg-destructive/15 text-destructive'
                                             )}
                                           >
                                             {leg.side}
@@ -777,10 +770,10 @@ export default function StrategyPortfolio() {
                                             className={cn(
                                               'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase',
                                               isClosed
-                                                ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                                                ? 'bg-destructive/15 text-destructive'
                                                 : legExpired
                                                   ? 'bg-muted text-muted-foreground'
-                                                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                                                  : 'bg-success/15 text-success'
                                             )}
                                             title={
                                               legExpired
@@ -832,7 +825,7 @@ export default function StrategyPortfolio() {
                 confirmDelete()
               }}
               disabled={isDeleting}
-              className="bg-rose-500 text-white hover:bg-rose-600"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? 'Deleting…' : 'Delete'}
             </AlertDialogAction>

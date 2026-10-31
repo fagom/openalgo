@@ -56,13 +56,13 @@ interface ModifyForm {
 }
 
 const gttStatusColor: Record<string, string> = {
-  active: 'bg-blue-500',
-  triggered: 'bg-green-500',
-  cancelled: 'bg-gray-500',
-  expired: 'bg-gray-500',
-  rejected: 'bg-red-500',
-  disabled: 'bg-amber-500',
-  deleted: 'bg-gray-500',
+  active: 'bg-primary',
+  triggered: 'bg-success',
+  cancelled: 'bg-muted-foreground',
+  expired: 'bg-muted-foreground',
+  rejected: 'bg-destructive',
+  disabled: 'bg-warning',
+  deleted: 'bg-muted-foreground',
 }
 
 function formatPrices(prices: number[], formatCurrency: (n: number) => string): string {
@@ -374,7 +374,7 @@ export default function GttTab({ refuse }: GttTabProps = {}) {
                 <TableBody>
                   {gtts.map((g) => {
                     const statusClass =
-                      gttStatusColor[(g.status || '').toLowerCase()] || 'bg-slate-500'
+                      gttStatusColor[(g.status || '').toLowerCase()] || 'bg-muted-foreground'
                     return (
                       <TableRow key={g.trigger_id}>
                         <TableCell className="font-mono text-xs">{g.trigger_id}</TableCell>
@@ -406,7 +406,7 @@ export default function GttTab({ refuse }: GttTabProps = {}) {
                                   }
                                   className={cn(
                                     'h-5 px-1.5 text-[10px]',
-                                    leg.action.toUpperCase() === 'BUY' && 'bg-green-500'
+                                    leg.action.toUpperCase() === 'BUY' && 'bg-buy'
                                   )}
                                 >
                                   {leg.action.toUpperCase()}
@@ -442,7 +442,7 @@ export default function GttTab({ refuse }: GttTabProps = {}) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-blue-500 hover:text-blue-600"
+                              className="h-8 w-8 text-primary hover:text-primary"
                               onClick={() => openModify(g)}
                               aria-label={`Modify GTT ${g.trigger_id}`}
                             >
@@ -532,7 +532,7 @@ export default function GttTab({ refuse }: GttTabProps = {}) {
                   <div className="flex items-center gap-2">
                     <Badge
                       variant={modifyForm.action === 'BUY' ? 'default' : 'destructive'}
-                      className={modifyForm.action === 'BUY' ? 'bg-green-500' : ''}
+                      className={modifyForm.action === 'BUY' ? 'bg-buy' : ''}
                     >
                       {modifyForm.action}
                     </Badge>

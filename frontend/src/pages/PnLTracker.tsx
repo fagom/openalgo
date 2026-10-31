@@ -474,13 +474,11 @@ export default function PnLTracker() {
             </CardHeader>
             <CardContent>
               <div
-                className={`text-2xl font-bold font-mono ${metrics.currentMtm >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                className={`text-2xl font-bold font-mono ${metrics.currentMtm >= 0 ? 'text-profit' : 'text-loss'}`}
               >
                 {formatCurrency(metrics.currentMtm)}
               </div>
-              <div
-                className={`text-sm ${metrics.currentMtm >= 0 ? 'text-green-500' : 'text-red-500'}`}
-              >
+              <div className={`text-sm ${metrics.currentMtm >= 0 ? 'text-profit' : 'text-loss'}`}>
                 {metrics.currentMtm >= 0 ? '+' : ''}
                 {((metrics.currentMtm / 100000) * 100).toFixed(2)}%
               </div>
@@ -491,12 +489,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-profit" />
                 Max MTM
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-green-500">
+              <div className="text-2xl font-bold font-mono text-success">
                 {formatCurrency(metrics.maxMtm)}
               </div>
               <div className="text-sm text-muted-foreground">at {metrics.maxMtmTime}</div>
@@ -507,12 +505,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <TrendingDown className="h-4 w-4 text-loss" />
                 Min MTM
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500">
+              <div className="text-2xl font-bold font-mono text-destructive">
                 {formatCurrency(metrics.minMtm)}
               </div>
               <div className="text-sm text-muted-foreground">at {metrics.minMtmTime}</div>
@@ -523,12 +521,12 @@ export default function PnLTracker() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <AlertTriangle className="h-4 w-4 text-warning" />
                 Max Drawdown
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-yellow-500">
+              <div className="text-2xl font-bold font-mono text-warning">
                 {formatCurrency(Math.abs(metrics.maxDrawdown))}
               </div>
               <div className="text-sm text-muted-foreground">Peak to trough</div>
@@ -545,13 +543,13 @@ export default function PnLTracker() {
                 <span className="flex items-center gap-1.5">
                   {/* Split swatch: the MTM curve is green above break-even, red below */}
                   <span className="inline-flex h-3 w-3 overflow-hidden rounded-full">
-                    <span className="h-full w-1/2 bg-green-500" />
-                    <span className="h-full w-1/2 bg-red-500" />
+                    <span className="h-full w-1/2 bg-profit" />
+                    <span className="h-full w-1/2 bg-loss" />
                   </span>
                   MTM PnL
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-full bg-yellow-500"></span>
+                  <span className="inline-block w-3 h-3 rounded-full bg-warning"></span>
                   Drawdown
                 </span>
               </div>

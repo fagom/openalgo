@@ -21,6 +21,7 @@ import {
   strategyChartApi,
 } from '@/api/strategy-chart'
 import { createMultiStrikeOIFeed, type StrategyFeedRequest } from '@/lib/chart/feeds/strategyFeed'
+import { getChartPalette } from '@/lib/chartTheme'
 import type { StrategyLeg } from '@/lib/strategyMath'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/themeStore'
@@ -147,10 +148,7 @@ export default function MultiStrikeOITab({
   const [widget, setWidget] = useState<Widget | null>(null)
   const [hidden, setHidden] = useState<Record<string, boolean>>({})
 
-  const underlyingColor = useMemo(
-    () => (mode === 'dark' || appMode === 'analyzer' ? '#fbbf24' : '#d97706'),
-    [mode, appMode]
-  )
+  const underlyingColor = useMemo(() => getChartPalette(mode, appMode).warning, [mode, appMode])
 
   const payloadLegs = useMemo(
     () =>
@@ -397,18 +395,18 @@ export default function MultiStrikeOITab({
       notices={
         <>
           {loadError ? (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-700 dark:text-red-400">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-[11px] text-destructive">
               {loadError}
             </div>
           ) : null}
           {missingOI > 0 ? (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+            <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-1.5 text-[11px] text-warning">
               {missingOI} leg{missingOI === 1 ? '' : 's'} returned no OI history. Your broker may
               not report historical open interest for options.
             </div>
           ) : null}
           {chartData && !chartData.underlying_available ? (
-            <div className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-[11px] text-blue-700 dark:text-blue-400">
+            <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
               Your broker does not return {interval} candles for the underlying index, so only leg
               OI is drawn. Try a coarser interval to see the underlying.
             </div>

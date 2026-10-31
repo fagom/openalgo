@@ -334,7 +334,7 @@ function LegCard({
               ) : expiry.date ? (
                 <p className="font-mono text-[10px] text-muted-foreground">{expiry.date}</p>
               ) : (
-                <p className="text-[10px] text-amber-600">not listed</p>
+                <p className="text-[10px] text-warning">not listed</p>
               )}
             </div>
           )}
@@ -763,7 +763,7 @@ function SignalLegCard({ leg, tab, index, onChange, onRemove, removable }: Signa
               ) : resolvedExpiry ? (
                 <p className="font-mono text-[10px] text-muted-foreground">{resolvedExpiry}</p>
               ) : (
-                <p className="text-[10px] text-amber-600">not listed</p>
+                <p className="text-[10px] text-warning">not listed</p>
               )}
             </div>
           )}
@@ -833,7 +833,7 @@ function SignalLegCard({ leg, tab, index, onChange, onRemove, removable }: Signa
                   )
                 )
               }
-              className={cn('h-9', partLot && 'border-amber-500')}
+              className={cn('h-9', partLot && 'border-warning/60')}
             />
             {qtyMode === 'lots' ? (
               lot.isLoading ? (
@@ -847,14 +847,14 @@ function SignalLegCard({ leg, tab, index, onChange, onRemove, removable }: Signa
                   and a saved quantity would silently become a different number of lots.
                 </p>
               ) : (
-                <p className="text-[10px] text-amber-600">
+                <p className="text-[10px] text-warning">
                   {leg.symbol?.trim()
                     ? 'Lot size unknown, so the quantity cannot be shown. The master contract may not be downloaded; the engine resolves it at entry.'
                     : 'Pick a symbol to see what this sends.'}
                 </p>
               )
             ) : partLot ? (
-              <p className="text-[10px] text-amber-600">
+              <p className="text-[10px] text-warning">
                 <span className="font-mono">{qty}</span> is not a whole number of lots
                 {lot.lotSize ? ` (lot size ${lot.lotSize})` : ''}. The broker refuses a part lot.
               </p>
@@ -1691,11 +1691,11 @@ export default function StrategyWizard({ editing }: StrategyWizardProps = {}) {
           </div>
 
           {strategyType === 'intraday' ? (
-            <p className="rounded-md bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+            <p className="rounded-md bg-warning/10 p-2 text-xs text-warning">
               Intraday signals only execute after your entry time and auto-exit at exit time.
             </p>
           ) : (
-            <p className="rounded-md bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+            <p className="rounded-md bg-warning/10 p-2 text-xs text-warning">
               Positional strategies activate on signal and exit automatically at contract expiry.
             </p>
           )}

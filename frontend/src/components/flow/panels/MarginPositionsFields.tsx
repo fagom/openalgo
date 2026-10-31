@@ -266,7 +266,7 @@ export function MarginPositionsFields({ value, onChange }: MarginPositionsFields
             disabled={legs.length >= MAX_LEGS}
             onClick={addLeg}
           >
-            <Plus className="mr-1 h-3 w-3" />
+            <Plus className="mr-1 size-4" />
             Add Position
           </Button>
           {basketProblems.length > 0 && (
@@ -349,7 +349,7 @@ function LegRow({ leg, index, lot, onRetryLookup, onUpdate, onRemove }: LegRowPr
           onClick={onRemove}
           aria-label={`Remove leg ${index + 1}`}
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="size-4" />
         </Button>
       </div>
 
@@ -449,8 +449,8 @@ function LegRow({ leg, index, lot, onRetryLookup, onUpdate, onRemove }: LegRowPr
               'rounded-lg border py-1.5 text-xs font-semibold',
               leg.action === a.value
                 ? a.value === 'BUY'
-                  ? 'border-green-500 bg-green-500/20 text-green-600'
-                  : 'border-red-500 bg-red-500/20 text-red-600'
+                  ? 'border-buy/60 bg-buy/20 text-buy'
+                  : 'border-destructive/60 bg-destructive/20 text-destructive'
                 : 'border-border bg-muted'
             )}
           >

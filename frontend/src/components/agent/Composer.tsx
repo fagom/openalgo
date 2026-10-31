@@ -441,7 +441,7 @@ export function Composer({
                   onSelect={() => fileInputRef.current?.click()}
                   className="text-xs"
                 >
-                  <Paperclip className="h-3.5 w-3.5" aria-hidden />
+                  <Paperclip className="size-4" aria-hidden />
                   Attach files
                 </DropdownMenuItem>
                 {/* Only where there is a chart. A menu item that cannot do its
@@ -452,7 +452,7 @@ export function Composer({
                     onSelect={() => void captureChart()}
                     className="text-xs"
                   >
-                    <Camera className="h-3.5 w-3.5" aria-hidden />
+                    <Camera className="size-4" aria-hidden />
                     Attach chart screenshot
                   </DropdownMenuItem>
                 )}
@@ -470,7 +470,7 @@ export function Composer({
                   onCheckedChange={(next) => setWebSearch(next === true)}
                   className="text-xs"
                 >
-                  <Globe className="h-3.5 w-3.5" aria-hidden />
+                  <Globe className="size-4" aria-hidden />
                   Web search
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
@@ -486,7 +486,7 @@ export function Composer({
               aria-label="Stop the running turn"
               title="Stop"
             >
-              <Square className="h-3.5 w-3.5 fill-current" aria-hidden />
+              <Square className="size-4 fill-current" aria-hidden />
             </Button>
           ) : (
             <Button
@@ -497,7 +497,7 @@ export function Composer({
               aria-label="Send the message"
               title="Send"
             >
-              <Send className="h-3.5 w-3.5" aria-hidden />
+              <Send className="size-4" aria-hidden />
             </Button>
           )}
         </div>
@@ -525,7 +525,7 @@ export function Composer({
       <p className="px-1 text-[11px] text-muted-foreground">
         {running ? (
           <span className="inline-flex items-center gap-1.5">
-            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+            <Loader2 className="size-4 animate-spin" aria-hidden />
             Running. Stop ends the turn on the server, not just here.
           </span>
         ) : attachments.length > 0 && !hasText ? (

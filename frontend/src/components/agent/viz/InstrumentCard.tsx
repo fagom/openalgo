@@ -704,11 +704,7 @@ export function InstrumentCard({ spec, title, source, className }: InstrumentCar
             </span>
             <Chip>{parsed.exchange}</Chip>
             {details?.instrumentType && <Chip>{details.instrumentType}</Chip>}
-            {parsed.analyze && (
-              <Chip className="border-amber-500/40 text-amber-600 dark:text-amber-400">
-                Analyze
-              </Chip>
-            )}
+            {parsed.analyze && <Chip className="border-warning/40 text-warning">Analyze</Chip>}
           </div>
           {subtitle && (
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{subtitle}</p>
@@ -796,9 +792,7 @@ export function InstrumentCard({ spec, title, source, className }: InstrumentCar
           <div
             className={cn(
               'rounded-md border px-2.5 py-2',
-              pnlTone === 'down'
-                ? 'border-red-500/40 bg-red-500/5'
-                : 'border-emerald-500/40 bg-emerald-500/5'
+              pnlTone === 'down' ? 'border-loss/40 bg-loss/5' : 'border-profit/40 bg-profit/5'
             )}
           >
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -868,7 +862,7 @@ export function InstrumentCard({ spec, title, source, className }: InstrumentCar
             size="sm"
             variant="outline"
             onClick={handleBuy}
-            className="h-7 border-emerald-500/40 px-3 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-400"
+            className="h-7 border-success/40 px-3 text-success hover:bg-success/10 hover:text-success"
           >
             Buy
           </Button>
@@ -877,7 +871,7 @@ export function InstrumentCard({ spec, title, source, className }: InstrumentCar
             size="sm"
             variant="outline"
             onClick={handleSell}
-            className="h-7 border-red-500/40 px-3 text-red-700 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-400"
+            className="h-7 border-destructive/40 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             Sell
           </Button>
