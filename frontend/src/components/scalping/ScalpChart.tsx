@@ -33,7 +33,6 @@ import { type Chart, compactVolume, createChart, type SeriesApi } from 'openalgo
 import { useEffect, useRef, useState } from 'react'
 import { scalpingApi } from '@/api/scalping'
 import { useMarketData } from '@/hooks/useMarketData'
-import { getChartPalette, withAlpha } from '@/lib/chartTheme'
 import { priceDecimals } from '@/lib/scalpingPrice'
 import { buildChartTheme, quietVolumeStyle } from '@/lib/trading/chartTheme'
 import { buildChartLegend, legendHtml } from '@/lib/trading/legend'
