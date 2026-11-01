@@ -17,6 +17,24 @@ interface OrderEventData {
   is_last_order?: boolean
 }
 
+interface GttEventData {
+  event:
+    | 'placed'
+    | 'failed'
+    | 'modified'
+    | 'modify_failed'
+    | 'cancelled'
+    | 'cancel_failed'
+    | 'triggered'
+    | 'expired'
+  symbol: string
+  exchange: string
+  trigger_id: string
+  triggered_order_id: string
+  error_message: string
+  mode: 'live'
+}
+
 interface CancelOrderEventData {
   orderid: string
   batch_order?: boolean
@@ -217,6 +235,27 @@ export function useSocket() {
         showCategoryToast('success', message, 'orders')
       } else {
         showCategoryToast('error', message, 'orders')
+      }
+    })
+
+    // GTT placement and trigger notifications. Cancel/modify already toast
+    // locally from the GTT tab's own request handlers, and this dialog's own
+    // placement failure already toasts with the server's validation message,
+    // so only the events nothing else surfaces are handled here: a GTT taking
+    // effect (placed) and a resting GTT firing (triggered).
+    socket.on('gtt_event', (data: GttEventData) => {
+      if (data.event === 'placed') {
+        playAlertSound('orders')
+        showCategoryToast(
+          'success',
+          `GTT placed for ${data.symbol} (Trigger ID: ${data.trigger_id}) — see it in the GTT tab`,
+          'orders'
+        )
+      } else if (data.event === 'triggered') {
+        playAlertSound('orders')
+        showCategoryToast('success', `GTT triggered for ${data.symbol}`, 'orders')
+      } else if (data.event === 'expired') {
+        showCategoryToast('warning', `GTT expired for ${data.symbol}`, 'orders')
       }
     })
 

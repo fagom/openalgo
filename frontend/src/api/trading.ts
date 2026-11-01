@@ -287,6 +287,33 @@ export const tradingApi = {
   },
 
   /**
+   * Place a GTT (Good Till Triggered) order — single trigger, or a two-leg
+   * OCO bracket (stoploss + target). GTT supports only CNC/NRML, never MIS.
+   */
+  placeGttOrder: async (payload: {
+    apikey: string
+    strategy: string
+    trigger_type: 'SINGLE' | 'OCO'
+    exchange: string
+    symbol: string
+    action: 'BUY' | 'SELL'
+    product: 'CNC' | 'NRML'
+    quantity: number
+    pricetype: 'LIMIT' | 'MARKET'
+    price: number
+    triggerprice_sl?: number
+    triggerprice_tg?: number
+    stoploss?: number | null
+    target?: number | null
+  }): Promise<ApiResponse<void> & { trigger_id?: string }> => {
+    const response = await apiClient.post<ApiResponse<void> & { trigger_id?: string }>(
+      '/placegttorder',
+      payload
+    )
+    return response.data
+  },
+
+  /**
    * Get the GTT (Good Till Triggered) order book — active triggers + recent history.
    */
   getGttOrderbook: async (

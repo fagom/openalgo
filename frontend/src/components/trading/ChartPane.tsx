@@ -37,7 +37,7 @@ import {
   chartTypeIcon,
   isBoxChartType,
 } from '@/lib/trading/chartTypes'
-import { MOD_KEY } from '@/lib/trading/drawingKeys'
+import { chartMayTakeKey, MOD_KEY } from '@/lib/trading/drawingKeys'
 import { ChromeIcon, chromeStroke, lineStroke24 } from '@/lib/trading/glyphs'
 import { chartTimeframePreferences } from '@/lib/trading/timeframePreferences'
 import { TimeframeMenu } from './TimeframeMenu'
@@ -157,6 +157,30 @@ const ChartSettingsDialog = lazy(() =>
 const BoxChartSettingsDialog = lazy(() =>
   import('./BoxChartSettingsDialog').then((m) => ({ default: m.BoxChartSettingsDialog }))
 )
+const OptionChainDialog = lazy(() =>
+  import('./OptionChainDialog').then((m) => ({ default: m.OptionChainDialog }))
+)
+const OITrackerDialog = lazy(() =>
+  import('./OITrackerDialog').then((m) => ({ default: m.OITrackerDialog }))
+)
+const StrikeProfileDialog = lazy(() =>
+  import('./StrikeProfileDialog').then((m) => ({ default: m.StrikeProfileDialog }))
+)
+const StraddleDialog = lazy(() =>
+  import('./StraddleDialog').then((m) => ({ default: m.StraddleDialog }))
+)
+
+/** NSE/BSE cash symbols trade their options on NFO/BFO; everything else (NFO,
+ * BFO, MCX, CDS, BCD) already names its own FnO exchange. */
+function fnoExchangeFor(exchange: string): string {
+  if (exchange === 'NSE' || exchange === 'NSE_INDEX') return 'NFO'
+  if (exchange === 'BSE' || exchange === 'BSE_INDEX') return 'BFO'
+  return exchange
+}
+
+type AnalyticsTool = 'optionChain' | 'oiTracker' | 'strikeProfile' | 'straddle'
+/** Survives a reload, so Alt+Shift+A still opens what the trader reached for last time. */
+const LAST_ANALYTICS_TOOL_KEY = 'oa-trading-last-analytics-tool'
 const IndicatorSettingsDialog = lazy(() =>
   import('./IndicatorSettingsDialog').then((m) => ({ default: m.IndicatorSettingsDialog }))
 )
@@ -420,6 +444,7 @@ export function ChartPane({
   const [grid, setGrid] = useState({ vertical: true, horizontal: true })
   const [fullscreen, setFullscreen] = useState(false)
   const [gridSub, setGridSub] = useState(false)
+  const [analyticsSub, setAnalyticsSub] = useState(false)
   const [volumeOn, setVolumeOn] = useState(true)
   /**
    * The snapshot menu: saving and pasting are both wanted, so the camera asks.
@@ -491,6 +516,40 @@ export function ChartPane({
   const [replayLoading, setReplayLoading] = useState(false)
   /** The confirm shown on leaving: the playhead is the only record of the walk. */
   const [confirmLeave, setConfirmLeave] = useState(false)
+  /** The analytics tools opened from the right-click menu, each seeded with this pane's symbol. */
+  const [optionChainOpen, setOptionChainOpen] = useState(false)
+  const [oiTrackerOpen, setOiTrackerOpen] = useState(false)
+  const [strikeProfileOpen, setStrikeProfileOpen] = useState(false)
+  const [straddleOpen, setStraddleOpen] = useState(false)
+  /**
+   * Alt+Shift+A reopens whichever of the four a trader reached for last, so a
+   * repeated look doesn't need the submenu a second time. Persisted across
+   * reloads; read once per mount rather than on every keypress.
+   */
+  const lastAnalyticsToolRef = useRef<AnalyticsTool>(
+    (() => {
+      try {
+        return (
+          (localStorage.getItem(LAST_ANALYTICS_TOOL_KEY) as AnalyticsTool | null) ?? 'optionChain'
+        )
+      } catch {
+        return 'optionChain'
+      }
+    })()
+  )
+  const openAnalyticsTool = useCallback((tool: AnalyticsTool) => {
+    lastAnalyticsToolRef.current = tool
+    try {
+      localStorage.setItem(LAST_ANALYTICS_TOOL_KEY, tool)
+    } catch {
+      // Private mode or a full quota: the shortcut still opens the right
+      // tool this visit, it just forgets the choice on reload.
+    }
+    if (tool === 'optionChain') setOptionChainOpen(true)
+    else if (tool === 'oiTracker') setOiTrackerOpen(true)
+    else if (tool === 'strikeProfile') setStrikeProfileOpen(true)
+    else setStraddleOpen(true)
+  }, [])
 
   /* ── boot this pane's terminal once ───────────────────────────────────── */
   useEffect(() => {
@@ -503,6 +562,7 @@ export function ChartPane({
       onContextMenu: (menu) => {
         if (!current) return
         setGridSub(false)
+        setAnalyticsSub(false)
         setCtx({
           ...menu,
           x: Math.max(0, Math.min(menu.x, window.innerWidth - 240)),
@@ -733,6 +793,7 @@ export function ChartPane({
     if (!ctx) return
     const close = () => {
       setGridSub(false)
+      setAnalyticsSub(false)
       setCtx(null)
     }
     const onKeyDown = (e: KeyboardEvent) => {
@@ -814,6 +875,7 @@ export function ChartPane({
   // Menu is w-56 (224) and the submenu w-36 (144); opening right needs both
   // plus the gap, so near the right edge it opens left instead.
   const gridSubLeft = ctx !== null && ctx.x + 224 + 4 + 144 > window.innerWidth
+  const analyticsSubLeft = ctx !== null && ctx.x + 224 + 4 + 224 > window.innerWidth
 
   /** One row of the right-click menu. */
   const ctxRow =
@@ -822,6 +884,7 @@ export function ChartPane({
   const run = (fn: () => void) => {
     fn()
     setGridSub(false)
+    setAnalyticsSub(false)
     setCtx(null)
   }
   /**
@@ -1006,7 +1069,28 @@ export function ChartPane({
     ticket !== null ||
     confirmLeave ||
     intervalBox !== null ||
-    dataExport !== null
+    dataExport !== null ||
+    optionChainOpen ||
+    oiTrackerOpen ||
+    strikeProfileOpen ||
+    straddleOpen
+
+  // Alt+Shift+A reopens whichever analytics tool was used last, without going
+  // through the right-click menu. Only the focused pane answers it, the same
+  // scope useQuickEntry uses, and chartMayTakeKey refuses it to a field, an
+  // open dialog or menu, or a pane dialog this one already owns.
+  useEffect(() => {
+    if (!focused) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'a' || !e.altKey || !e.shiftKey || e.ctrlKey || e.metaKey) return
+      if (e.repeat || !sym || paneDialogOpen || ctx !== null) return
+      if (!chartMayTakeKey(e)) return
+      e.preventDefault()
+      openAnalyticsTool(lastAnalyticsToolRef.current)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [focused, sym, paneDialogOpen, ctx, openAnalyticsTool])
 
   const replayTitle =
     workspaceReplay && workspaceReplay.phase !== 'idle'
@@ -1612,6 +1696,46 @@ export function ChartPane({
             <AlertsDialog handle={alertsHandle} onClose={() => setAlertsHandle(null)} />
           </Suspense>
         )}
+        {optionChainOpen && sym && (
+          <Suspense fallback={null}>
+            <OptionChainDialog
+              open={optionChainOpen}
+              onOpenChange={setOptionChainOpen}
+              exchange={fnoExchangeFor(sym.exchange)}
+              underlying={sym.symbol}
+            />
+          </Suspense>
+        )}
+        {oiTrackerOpen && sym && (
+          <Suspense fallback={null}>
+            <OITrackerDialog
+              open={oiTrackerOpen}
+              onOpenChange={setOiTrackerOpen}
+              exchange={fnoExchangeFor(sym.exchange)}
+              underlying={sym.symbol}
+            />
+          </Suspense>
+        )}
+        {strikeProfileOpen && sym && (
+          <Suspense fallback={null}>
+            <StrikeProfileDialog
+              open={strikeProfileOpen}
+              onOpenChange={setStrikeProfileOpen}
+              exchange={fnoExchangeFor(sym.exchange)}
+              underlying={sym.symbol}
+            />
+          </Suspense>
+        )}
+        {straddleOpen && sym && (
+          <Suspense fallback={null}>
+            <StraddleDialog
+              open={straddleOpen}
+              onOpenChange={setStraddleOpen}
+              exchange={fnoExchangeFor(sym.exchange)}
+              underlying={sym.symbol}
+            />
+          </Suspense>
+        )}
         {indSettings && (
           <Suspense fallback={null}>
             <IndicatorSettingsDialog
@@ -2135,6 +2259,84 @@ export function ChartPane({
                 occasional, and the row they used to occupy is chart height. */}
             {(ctx.items.length > 0 || ctxDrawingRows.length > 0) && (
               <div className="my-1 h-px bg-border" />
+            )}
+            {sym && (
+              <div className="relative" onMouseLeave={() => setAnalyticsSub(false)}>
+                <button
+                  type="button"
+                  className={ctxRow}
+                  // Opens on hover, the way a nested menu is expected to. The
+                  // click also has to stop propagating, the same reason Grid's does.
+                  onMouseEnter={() => setAnalyticsSub(true)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setAnalyticsSub((v) => !v)
+                  }}
+                  aria-expanded={analyticsSub}
+                >
+                  <ChromeIcon id="chart-histogram" size={14} className="opacity-70" />
+                  Analytics for {sym.symbol}
+                  <span className="ml-auto text-xs text-muted-foreground">Alt+Shift+A</span>
+                  <ChromeIcon id="chevron-right" size={14} className="opacity-60" />
+                </button>
+                {analyticsSub && (
+                  <div
+                    className={cn(
+                      'absolute top-0 w-56 rounded-md border bg-popover p-1 shadow-lg',
+                      analyticsSubLeft ? 'right-full mr-1' : 'left-full ml-1'
+                    )}
+                  >
+                    <button
+                      type="button"
+                      className={ctxRow}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openAnalyticsTool('optionChain')
+                        setCtx(null)
+                      }}
+                    >
+                      <ChromeIcon id="dom-ladder" size={14} className="opacity-70" />
+                      Option chain
+                    </button>
+                    <button
+                      type="button"
+                      className={ctxRow}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openAnalyticsTool('oiTracker')
+                        setCtx(null)
+                      }}
+                    >
+                      <ChromeIcon id="chart-bar" size={14} className="opacity-70" />
+                      OI tracker
+                    </button>
+                    <button
+                      type="button"
+                      className={ctxRow}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openAnalyticsTool('strikeProfile')
+                        setCtx(null)
+                      }}
+                    >
+                      <ChromeIcon id="chart-histogram" size={14} className="opacity-70" />
+                      Strike profile (GEX/DEX)
+                    </button>
+                    <button
+                      type="button"
+                      className={ctxRow}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openAnalyticsTool('straddle')
+                        setCtx(null)
+                      }}
+                    >
+                      <ChromeIcon id="chart-line" size={14} className="opacity-70" />
+                      Straddle chart
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             <button
               type="button"

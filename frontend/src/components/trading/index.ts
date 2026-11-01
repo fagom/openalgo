@@ -3,6 +3,8 @@
 
 export type { DepthLevel, MarketDepthPanelProps } from './MarketDepthPanel'
 export { MarketDepthPanel } from './MarketDepthPanel'
+export type { OptionChainDialogProps } from './OptionChainDialog'
+export { OptionChainDialog } from './OptionChainDialog'
 export type { PlaceOrderDialogProps } from './PlaceOrderDialog'
 export { PlaceOrderDialog } from './PlaceOrderDialog'
 export type { QuoteHeaderProps } from './QuoteHeader'
