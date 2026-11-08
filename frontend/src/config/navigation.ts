@@ -16,6 +16,7 @@ import {
   Key,
   Layers,
   LayoutDashboard,
+  LineChart,
   type LucideIcon,
   MessageCircle,
   MessageSquare,
@@ -51,6 +52,7 @@ export const navItems: NavItem[] = [
   { href: '/orderbook', label: 'Orderbook', icon: ClipboardList },
   { href: '/tradebook', label: 'Tradebook', icon: FileText, collapseBelow: 'lg' },
   { href: '/positions', label: 'Positions', icon: TrendingUp },
+  { href: '/instrument', label: 'Instrument', icon: LineChart, collapseBelow: 'lg' },
   { href: '/trading', label: 'Trading', icon: CandlestickChart, collapseBelow: 'lg' },
 ]
 

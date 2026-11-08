@@ -146,4 +146,11 @@ export const tools: Tool[] = [
     href: '/arbitrage',
     color: 'bg-buy',
   },
+  {
+    title: 'Instrument',
+    description:
+      'Option chain, price action, PCR, Max Pain, ATM IV, realized vol, VRP and IV Rank for one underlying in a single view',
+    href: '/instrument',
+    color: 'bg-info',
+  },
 ]

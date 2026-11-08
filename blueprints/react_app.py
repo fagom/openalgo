@@ -375,6 +375,12 @@ def react_oiprofile():
     return serve_react_app()
 
 
+# Instrument - option chain, price action and IV analytics for one instrument
+@react_bp.route("/instrument", strict_slashes=False)
+def react_instrument():
+    return serve_react_app()
+
+
 # Arbitrage - Futures calendar-spread scanner
 @react_bp.route("/arbitrage")
 def react_arbitrage():

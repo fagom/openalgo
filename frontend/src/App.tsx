@@ -81,6 +81,7 @@ const GEXDashboard = lazy(() => import('@/pages/GEXDashboard'))
 const StrikeProfile = lazy(() => import('@/pages/StrikeProfile'))
 const IVSmile = lazy(() => import('@/pages/IVSmile'))
 const OIProfile = lazy(() => import('@/pages/OIProfile'))
+const InstrumentOverview = lazy(() => import('@/pages/InstrumentOverview'))
 const Arbitrage = lazy(() => import('@/pages/Arbitrage'))
 const StrategyBuilder = lazy(() => import('@/pages/StrategyBuilder'))
 const StrategyPortfolio = lazy(() => import('@/pages/StrategyPortfolio'))
@@ -238,6 +239,7 @@ function App() {
                 <Route path="/strikeprofile" element={<StrikeProfile />} />
                 <Route path="/ivsmile" element={<IVSmile />} />
                 <Route path="/oiprofile" element={<OIProfile />} />
+                <Route path="/instrument" element={<InstrumentOverview />} />
                 <Route path="/arbitrage" element={<Arbitrage />} />
                 <Route path="/strategybuilder" element={<StrategyBuilder />} />
                 <Route path="/strategybuilder/portfolio" element={<StrategyPortfolio />} />
