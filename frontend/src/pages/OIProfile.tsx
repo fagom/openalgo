@@ -230,6 +230,13 @@ export default function OIProfile() {
       peOI: p.down,
       ceChange: withAlpha(p.up, 0.55),
       peChange: withAlpha(p.down, 0.55),
+      // Buildup quadrant colors: a strengthening side gets the full tone, a
+      // side merely unwinding gets a muted one, so Long Buildup and Short
+      // Covering don't read as the same bar despite both being green.
+      longBuildup: p.up,
+      shortCovering: withAlpha(p.up, 0.4),
+      shortBuildup: p.down,
+      longUnwinding: withAlpha(p.down, 0.4),
       atmLine: withAlpha(p.text, 0.55),
       hoverBg: p.tooltipBg,
       hoverFont: p.tooltipText,
@@ -282,6 +289,26 @@ export default function OIProfile() {
     const peOIAbs = oiChain.map((item) => item.pe_oi)
     const peOIChangeAbs = oiChain.map((item) => item.pe_oi_change)
 
+    const buildupColor = (tag: string | null | undefined, fallback: string) => {
+      switch (tag) {
+        case 'Long Buildup':
+          return themeColors.longBuildup
+        case 'Short Covering':
+          return themeColors.shortCovering
+        case 'Short Buildup':
+          return themeColors.shortBuildup
+        case 'Long Unwinding':
+          return themeColors.longUnwinding
+        default:
+          return fallback
+      }
+    }
+    const ceBuildup = oiChain.map((item) => item.ce_buildup ?? null)
+    const peBuildup = oiChain.map((item) => item.pe_buildup ?? null)
+    const ceBuildupColors = ceBuildup.map((tag) => buildupColor(tag, themeColors.ceChange))
+    const peBuildupColors = peBuildup.map((tag) => buildupColor(tag, themeColors.peChange))
+    const peChangeCustom = peBuildup.map((tag, i) => [peOIChangeAbs[i], tag ?? '—'])
+
     // Tick labels for candle x-axis (show every Nth)
     const total = candleTimes.length
     const tickStep = Math.max(1, Math.floor(total / 10))
@@ -330,31 +357,33 @@ export default function OIProfile() {
         hovertemplate: '<b>%{y} PE</b><br>OI: %{customdata:,.0f}<extra></extra>',
         showlegend: false,
       },
-      // Column 3: CE OI Change (right side)
+      // Column 3: CE OI Change (right side), colored by buildup quadrant
       {
         y: strikes,
         x: ceOIChange,
         type: 'bar' as const,
         orientation: 'h' as const,
         name: 'CE Change',
-        marker: { color: themeColors.ceChange },
+        marker: { color: ceBuildupColors },
         xaxis: 'x3',
         yaxis: 'y',
-        hovertemplate: '<b>%{y} CE</b><br>Change: %{x:,.0f}<extra></extra>',
+        customdata: ceBuildup.map((tag) => tag ?? '—'),
+        hovertemplate: '<b>%{y} CE</b><br>Change: %{x:,.0f}<br>%{customdata}<extra></extra>',
         showlegend: false,
       },
-      // Column 3: PE OI Change (left side - negative)
+      // Column 3: PE OI Change (left side - negative), colored by buildup quadrant
       {
         y: strikes,
         x: peOIChange,
         type: 'bar' as const,
         orientation: 'h' as const,
         name: 'PE Change',
-        marker: { color: themeColors.peChange },
+        marker: { color: peBuildupColors },
         xaxis: 'x3',
         yaxis: 'y',
-        customdata: peOIChangeAbs,
-        hovertemplate: '<b>%{y} PE</b><br>Change: %{customdata:,.0f}<extra></extra>',
+        customdata: peChangeCustom,
+        hovertemplate:
+          '<b>%{y} PE</b><br>Change: %{customdata[0]:,.0f}<br>%{customdata[1]}<extra></extra>',
         showlegend: false,
       },
     ]
@@ -595,13 +624,48 @@ export default function OIProfile() {
               Loading OI Profile data...
             </div>
           ) : profilePlot.data.length > 0 ? (
-            <Plot
-              data={profilePlot.data}
-              layout={profilePlot.layout}
-              config={plotConfig}
-              useResizeHandler
-              style={{ width: '100%', height: '700px' }}
-            />
+            <>
+              <Plot
+                data={profilePlot.data}
+                layout={profilePlot.layout}
+                config={plotConfig}
+                useResizeHandler
+                style={{ width: '100%', height: '700px' }}
+              />
+              {/* OI Change (column 3) is colored by buildup quadrant: price
+                  move crossed with OI move, the read every strike's bar
+                  already carries in its hover text too. */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-2 pb-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: themeColors.longBuildup }}
+                  />
+                  Long Buildup
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: themeColors.shortCovering }}
+                  />
+                  Short Covering
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: themeColors.shortBuildup }}
+                  />
+                  Short Buildup
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: themeColors.longUnwinding }}
+                  />
+                  Long Unwinding
+                </span>
+              </div>
+            </>
           ) : (
             <div className="flex items-center justify-center h-[700px] text-muted-foreground">
               {selectedExpiry
