@@ -56,10 +56,13 @@ describe('Navbar', () => {
 
     const sheet = await screen.findByRole('dialog', { name: 'Navigation Menu' })
     const trading = within(sheet).getByRole('link', { name: 'Trading' })
-    const platforms = within(sheet).getByRole('link', { name: 'Platforms' })
+    // Profile is the quick-access (profile menu) item the mock supplies --
+    // Platforms/Strategies/Logs/Tools moved out of navItems entirely, so
+    // Trading is now the only item left in the sheet's Navigation section.
+    const profile = within(sheet).getByRole('link', { name: 'Profile' })
 
     expect(trading).toHaveAttribute('aria-current', 'page')
-    expect(platforms).not.toHaveAttribute('aria-current')
+    expect(profile).not.toHaveAttribute('aria-current')
     expect(currentLinks(sheet)).toEqual([trading])
   })
 
@@ -111,35 +114,31 @@ describe('Navbar More menu', () => {
       .map((item) => item.textContent)
   }
 
-  it('lists only the pages a small laptop bar leaves out', async () => {
+  it('renders no More trigger once every item fits the bar', () => {
     screenWidth(1024)
     renderNavbar('/dashboard')
 
-    expect(await moreMenuLabels()).toEqual(['Platforms', 'Strategies', 'Logs', 'Tools'])
+    // Platforms/Strategies/Logs/Tools moved to the profile menu, so nothing
+    // collapses at lg and above -- an empty, always-present More button would
+    // read as broken chrome rather than a tab.
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument()
   })
 
-  it('takes Tradebook and Trading as well below lg', async () => {
+  it('takes Tradebook and Trading below lg', async () => {
     screenWidth(800)
     renderNavbar('/dashboard')
 
-    expect(await moreMenuLabels()).toEqual([
-      'Tradebook',
-      'Trading',
-      'Platforms',
-      'Strategies',
-      'Logs',
-      'Tools',
-    ])
+    expect(await moreMenuLabels()).toEqual(['Tradebook', 'Trading'])
   })
 
   it('is underlined only when the current page is inside it', () => {
-    screenWidth(1024)
-    const { unmount } = renderNavbar('/logs')
+    screenWidth(800)
+    const { unmount } = renderNavbar('/trading')
     expect(screen.getByRole('button', { name: 'More' })).toHaveClass('text-foreground')
     unmount()
 
-    // Tradebook is in the bar at this width, so More is not the current tab.
-    renderNavbar('/tradebook')
+    // Dashboard is always in the bar, so More is not the current tab.
+    renderNavbar('/dashboard')
     expect(screen.getByRole('button', { name: 'More' })).not.toHaveClass('text-foreground')
   })
 })

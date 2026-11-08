@@ -214,12 +214,15 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         {/* Desktop Navigation: text tabs, the current page underlined on the
             bar's bottom edge.
 
-            Labels only, no icons. Nine icon-and-label items were 986px and
-            overflowed twice (issues #1384 and #1507); before that the bar fell
-            back to bare icons below xl, which nobody could tell apart. Instead
-            each item names the breakpoint it needs (`collapseBelow` in
-            config/navigation.ts) and below that it moves under More: three
-            items from md, five from lg, all nine from xl, where More goes away.
+            Labels only, no icons. Nine icon-and-label items once overflowed
+            at 986px (issues #1384 and #1507); before that the bar fell back
+            to bare icons below xl, which nobody could tell apart. The fix was
+            each item naming the breakpoint it needs (`collapseBelow` in
+            config/navigation.ts) and moving under More below that. The bar
+            has since been trimmed to five core trading tabs (Platforms,
+            Strategies, Logs and Tools moved into the profile menu), so only
+            Tradebook and Trading still name a breakpoint (lg) and More now
+            renders only when something has actually collapsed into it.
 
             Inside Layout the bar shares the page `container`, which Tailwind
             caps at 1280px for every viewport from 1280px to 1535px, so xl is
@@ -270,42 +273,46 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
             )
           })}
 
-          {/* Hidden by CSS from xl, where every item is in the bar. Its list is
-              worked out from the same breakpoints in script, so the menu never
-              holds an entry that is also showing in the bar. */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className={cn(TAB, 'gap-1 xl:hidden', moreActive ? TAB_CURRENT : TAB_IDLE)}
-              >
-                More
-                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
-              {overflowItems.map((item) => {
-                const active = isActive(item.href)
-                const className = cn(
-                  'cursor-pointer',
-                  active && 'bg-accent font-medium text-accent-foreground'
-                )
-                return (
-                  <DropdownMenuItem key={item.href} asChild className={className}>
-                    {item.external ? (
-                      <a href={item.href} aria-current={active ? 'page' : undefined}>
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link to={item.href} aria-current={active ? 'page' : undefined}>
-                        {item.label}
-                      </Link>
-                    )}
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Only two items (Tradebook, Trading) ever collapse below lg, and
+              nothing collapses at or above it, so there is nothing left to
+              hide at xl. Render the trigger only when there is something in
+              it -- an always-visible, always-empty "More" reads as broken
+              chrome, not as a tab. */}
+          {overflowItems.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(TAB, 'gap-1 xl:hidden', moreActive ? TAB_CURRENT : TAB_IDLE)}
+                >
+                  More
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                {overflowItems.map((item) => {
+                  const active = isActive(item.href)
+                  const className = cn(
+                    'cursor-pointer',
+                    active && 'bg-accent font-medium text-accent-foreground'
+                  )
+                  return (
+                    <DropdownMenuItem key={item.href} asChild className={className}>
+                      {item.external ? (
+                        <a href={item.href} aria-current={active ? 'page' : undefined}>
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link to={item.href} aria-current={active ? 'page' : undefined}>
+                          {item.label}
+                        </Link>
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
 
         {/* Right Side: shared with the charting terminal's toolbar row. */}

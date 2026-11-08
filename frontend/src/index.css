@@ -154,25 +154,29 @@
 /* Dark: graphite page. The blue is lifted so it reads on graphite, and its
    label turns graphite because white on the lifted blue fails AA. */
 .dark {
-  --background: oklch(0.205 0.008 17);
+  /* Deepened toward a near-black page, matched against Groww's dark theme:
+     card stays barely lighter than the page (a hairline border does the
+     separating, not a lightness jump), so the ~0.03 deltas below carry over
+     from the previous palette rather than being redrawn from scratch. */
+  --background: oklch(0.13 0.006 17);
   --foreground: oklch(0.965 0.004 75);
-  --card: oklch(0.235 0.008 17);
+  --card: oklch(0.16 0.006 17);
   --card-foreground: oklch(0.965 0.004 75);
-  --popover: oklch(0.25 0.008 17);
+  --popover: oklch(0.175 0.006 17);
   --popover-foreground: oklch(0.965 0.004 75);
   --primary: oklch(0.68 0.16 258);
   --primary-hover: oklch(0.74 0.14 258);
   --primary-foreground: oklch(0.18 0.008 17);
-  --secondary: oklch(0.27 0.008 17);
+  --secondary: oklch(0.195 0.006 17);
   --secondary-foreground: oklch(0.965 0.004 75);
-  --muted: oklch(0.27 0.008 17);
-  --muted-foreground: oklch(0.72 0.01 70);
-  --accent: oklch(0.3 0.008 17);
+  --muted: oklch(0.195 0.006 17);
+  --muted-foreground: oklch(0.68 0.01 70);
+  --accent: oklch(0.22 0.006 17);
   --accent-foreground: oklch(0.965 0.004 75);
   --destructive: oklch(0.68 0.18 22);
   --destructive-foreground: oklch(0.18 0.008 17);
-  --border: oklch(0.32 0.008 17);
-  --input: oklch(0.37 0.008 17);
+  --border: oklch(0.24 0.006 17);
+  --input: oklch(0.29 0.006 17);
   --ring: oklch(0.68 0.16 258);
   --overlay: oklch(0.1 0.005 17 / 0.7);
   --tooltip: oklch(0.965 0.004 75);
@@ -199,13 +203,13 @@
   --chart-4: oklch(0.72 0.12 320);
   --chart-5: oklch(0.82 0.14 75);
 
-  --sidebar: oklch(0.235 0.008 17);
+  --sidebar: oklch(0.16 0.006 17);
   --sidebar-foreground: oklch(0.965 0.004 75);
   --sidebar-primary: oklch(0.68 0.16 258);
   --sidebar-primary-foreground: oklch(0.18 0.008 17);
-  --sidebar-accent: oklch(0.3 0.008 17);
+  --sidebar-accent: oklch(0.22 0.006 17);
   --sidebar-accent-foreground: oklch(0.965 0.004 75);
-  --sidebar-border: oklch(0.32 0.008 17);
+  --sidebar-border: oklch(0.24 0.006 17);
   --sidebar-ring: oklch(0.68 0.16 258);
 }
 

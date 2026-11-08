@@ -9,22 +9,14 @@ import {
 
 describe('Navigation Config', () => {
   describe('navItems', () => {
-    it('contains the expected main navigation items', () => {
-      expect(navItems).toHaveLength(9)
+    it('contains only the core trading tabs', () => {
+      // Trimmed to Groww's pattern: a handful of primary tabs, nothing
+      // configuration-shaped. Platforms, Strategies, Logs and Tools moved to
+      // profileMenuItems.
+      expect(navItems).toHaveLength(5)
 
       const labels = navItems.map((item) => item.label)
-      expect(labels).toContain('Dashboard')
-      expect(labels).toContain('Tools')
-      expect(labels).toContain('Orderbook')
-      expect(labels).toContain('Positions')
-      expect(labels).toContain('Platforms')
-      expect(labels).toContain('Trading')
-      expect(labels).toContain('Strategies')
-
-      // Strategies sits directly after Platforms. Asserting the position, not
-      // just its presence, is the point: it is where the user expects to find
-      // it, and a later insertion that pushed it elsewhere should fail here.
-      expect(labels.indexOf('Strategies')).toBe(labels.indexOf('Platforms') + 1)
+      expect(labels).toEqual(['Dashboard', 'Orderbook', 'Tradebook', 'Positions', 'Trading'])
     })
 
     it('all items have required properties', () => {
@@ -59,11 +51,12 @@ describe('Navigation Config', () => {
       })
     })
 
-    it('contains remaining nav items', () => {
+    it('contains the remaining nav item (Trading)', () => {
+      // Dashboard, Orderbook, Tradebook, Positions are already in
+      // bottomNavItems; Platforms/Strategies/Logs/Tools now live in the
+      // profile menu, not navItems, so Trading is the only one left over.
       const sheetLabels = mobileSheetItems.map((item) => item.label)
-      expect(sheetLabels).toContain('Trading')
-      expect(sheetLabels).toContain('Platforms')
-      expect(sheetLabels).toContain('Logs')
+      expect(sheetLabels).toEqual(['Trading'])
     })
   })
 
@@ -77,6 +70,13 @@ describe('Navigation Config', () => {
       // positioned right after API Key.
       expect(labels).toContain('Action Center')
       expect(labels.indexOf('Action Center')).toBe(labels.indexOf('API Key') + 1)
+    })
+
+    it('holds the surfaces trimmed out of navItems', () => {
+      const labels = profileMenuItems.map((item) => item.label)
+      expect(labels).toEqual(
+        expect.arrayContaining(['Platforms', 'Strategies', 'Tools', 'Logs'])
+      )
     })
   })
 
