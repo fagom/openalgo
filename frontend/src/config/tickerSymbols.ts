@@ -546,4 +546,25 @@ export const INDEX_TICKER_SYMBOLS: readonly TickerSymbol[] = [
   { symbol: 'MIDCPNIFTY', exchange: 'NSE_INDEX', label: 'MIDCAP SELECT' },
   { symbol: 'NIFTYNXT50', exchange: 'NSE_INDEX', label: 'NIFTY NEXT 50' },
   { symbol: 'BANKEX', exchange: 'BSE_INDEX', label: 'BANKEX' },
+  // Zerodha-only, quote-only (CLAUDE.md, Symbol Format): every other plugin
+  // simply has no GLOBAL_INDEX feed, which the strip already treats like any
+  // other broker gap -- it just does not show for that user.
+  { symbol: 'GIFTNIFTY', exchange: 'GLOBAL_INDEX', label: 'GIFT NIFTY' },
+]
+
+/**
+ * MCX commodities for the Dashboard's "Commodities" tab, bare underlying
+ * names with no expiry suffix -- the same convention `INDEX_SYMBOLS` in
+ * `lib/flow/constants.ts` already uses for MCX options underlyings. A quote
+ * or history request for one of these resolves server-side to the current
+ * contract; a broker or symbol master that cannot resolve it simply leaves
+ * that card showing no data, same as any other missing symbol.
+ */
+export const COMMODITY_TICKER_SYMBOLS: readonly TickerSymbol[] = [
+  { symbol: 'GOLD', exchange: 'MCX', label: 'GOLD' },
+  { symbol: 'SILVER', exchange: 'MCX', label: 'SILVER' },
+  { symbol: 'CRUDEOIL', exchange: 'MCX', label: 'CRUDE OIL' },
+  { symbol: 'NATURALGAS', exchange: 'MCX', label: 'NATURAL GAS' },
+  { symbol: 'COPPER', exchange: 'MCX', label: 'COPPER' },
+  { symbol: 'ZINC', exchange: 'MCX', label: 'ZINC' },
 ]
