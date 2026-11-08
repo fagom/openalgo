@@ -12,6 +12,7 @@ from flask import Blueprint, jsonify, request, session
 from flask_cors import cross_origin
 
 from database.auth_db import get_api_key_for_tradingview
+from services.iv_analytics_service import get_iv_analytics
 from services.iv_smile_service import get_iv_smile_data
 from utils.logging import get_logger
 from utils.session import check_session_validity
@@ -67,6 +68,25 @@ def iv_smile_data():
             expiry_date=expiry_date,
             api_key=api_key,
         )
+
+        if success:
+            # Realized vol / VRP / IV Rank build on the ATM IV smile just
+            # computed above; a failure here must not cost the smile itself.
+            # Use the exchange the chain actually resolved for the underlying
+            # (e.g. NSE_INDEX for a NIFTY chain requested on NFO) -- the
+            # request's own `exchange` is the options exchange, which the
+            # underlying's daily history is never quoted on.
+            try:
+                response.update(
+                    get_iv_analytics(
+                        underlying=response.get("underlying_symbol", underlying),
+                        exchange=response.get("underlying_exchange", exchange),
+                        atm_iv=response.get("atm_iv"),
+                        api_key=api_key,
+                    )
+                )
+            except Exception:
+                logger.exception("Error computing IV analytics (rank/VRP)")
 
         return jsonify(response), status_code
 

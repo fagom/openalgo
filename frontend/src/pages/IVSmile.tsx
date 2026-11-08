@@ -470,6 +470,73 @@ export default function IVSmile() {
         </div>
       )}
 
+      {/* IV Analytics: realized vol, VRP and IV Rank/Percentile. Realized vol
+          and VRP need only the underlying's own daily history, so they show
+          immediately; IV Rank/Percentile need a stored history of past daily
+          ATM IV readings this platform itself builds up one day at a time,
+          so they read "Building history" rather than a number until there
+          is enough of it to mean something. */}
+      {ivData && ivData.status === 'success' && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6 space-y-1">
+              <p className="text-sm text-muted-foreground">Realized Vol (20d)</p>
+              <p className="text-xl font-bold">
+                {ivData.realized_vol_close != null ? `${ivData.realized_vol_close}%` : '--'}
+              </p>
+              {ivData.realized_vol_parkinson != null && (
+                <p className="text-xs text-muted-foreground">
+                  Parkinson: {ivData.realized_vol_parkinson}%
+                </p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 space-y-1">
+              <p className="text-sm text-muted-foreground">Variance Risk Premium</p>
+              <p
+                className={`text-xl font-bold ${ivData.vrp != null ? (ivData.vrp >= 0 ? 'text-profit' : 'text-loss') : ''}`}
+              >
+                {ivData.vrp != null ? `${ivData.vrp > 0 ? '+' : ''}${ivData.vrp}` : '--'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {ivData.vrp != null
+                  ? ivData.vrp >= 0
+                    ? 'IV richer than realized -- edge to the seller'
+                    : 'IV cheaper than realized -- edge to the buyer'
+                  : 'ATM IV minus realized vol'}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 space-y-1">
+              <p className="text-sm text-muted-foreground">IV Rank</p>
+              <p className="text-xl font-bold">
+                {ivData.iv_rank != null ? `${ivData.iv_rank}` : '--'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {ivData.iv_rank != null
+                  ? "Today's position in its own stored range"
+                  : `Building history (${ivData.iv_history_days ?? 0} day${ivData.iv_history_days === 1 ? '' : 's'} so far)`}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 space-y-1">
+              <p className="text-sm text-muted-foreground">IV Percentile</p>
+              <p className="text-xl font-bold">
+                {ivData.iv_percentile != null ? `${ivData.iv_percentile}` : '--'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {ivData.iv_percentile != null
+                  ? 'Share of stored days at or below today'
+                  : 'Needs 20 days of stored history'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Chart */}
       <Card>
         <CardContent className="p-2 sm:p-4">
