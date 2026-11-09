@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Search,
   Settings,
+  Table2,
   TrendingUp,
   User,
   Workflow,
@@ -52,6 +53,7 @@ export const navItems: NavItem[] = [
   { href: '/orderbook', label: 'Orderbook', icon: ClipboardList },
   { href: '/tradebook', label: 'Tradebook', icon: FileText, collapseBelow: 'lg' },
   { href: '/positions', label: 'Positions', icon: TrendingUp },
+  { href: '/optionchain', label: 'Option Chain', icon: Table2, collapseBelow: 'lg' },
   { href: '/instrument', label: 'Instrument', icon: LineChart, collapseBelow: 'lg' },
   { href: '/trading', label: 'Trading', icon: CandlestickChart, collapseBelow: 'lg' },
 ]

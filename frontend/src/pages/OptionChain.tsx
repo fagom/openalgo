@@ -326,15 +326,15 @@ const OptionChainRow = React.memo(function OptionChainRow({
   const ceBarPercent = ceBarValue ? Math.min((ceBarValue / maxBarValue) * 100, 100) : 0
   const peBarPercent = peBarValue ? Math.min((peBarValue / maxBarValue) * 100, 100) : 0
 
-  // Bar styles
-  // Kept light: the bar sits on top of the ITM shading, and at full strength
-  // the two blend into one muddy block in dark mode.
+  // Bar styles. CE/PE get their own hues (chart-2 warm, chart-4 cool) rather
+  // than reusing success/destructive, which already carries the ITM shading
+  // on these same cells -- same color family at low opacity made the two
+  // indistinguishable and the bar nearly invisible. Distinct hues read as
+  // their own signal, the way a call/put OI bar does on most chain UIs.
   const ceBarClass =
-    barStyle === 'gradient' ? 'bg-gradient-to-r from-success/20 to-transparent' : 'bg-success/12'
+    barStyle === 'gradient' ? 'bg-gradient-to-r from-chart-2/35 to-transparent' : 'bg-chart-2/20'
   const peBarClass =
-    barStyle === 'gradient'
-      ? 'bg-gradient-to-l from-destructive/20 to-transparent'
-      : 'bg-destructive/12'
+    barStyle === 'gradient' ? 'bg-gradient-to-l from-chart-4/35 to-transparent' : 'bg-chart-4/20'
 
   // Use tabular-nums for consistent number widths to prevent layout shifts
   const numClass = 'font-mono tabular-nums text-xs'
@@ -1089,7 +1089,7 @@ export default function OptionChain() {
                     {/* Section headers row */}
                     <TableRow className="border-b-0 bg-card hover:bg-card">
                       {visibleCeColumns.length > 0 && (
-                        <TableHead className="border-r border-border bg-card text-center text-sm font-bold tracking-wide text-foreground normal-case">
+                        <TableHead className="border-r border-border bg-card text-center text-sm font-bold tracking-wide text-chart-2 normal-case">
                           CALLS
                           <span className="ml-2 font-normal text-muted-foreground">
                             ITM shaded below spot
@@ -1098,7 +1098,7 @@ export default function OptionChain() {
                       )}
                       <TableHead className="w-24 min-w-24 bg-card text-center" />
                       {visiblePeColumns.length > 0 && (
-                        <TableHead className="border-l border-border bg-card text-center text-sm font-bold tracking-wide text-foreground normal-case">
+                        <TableHead className="border-l border-border bg-card text-center text-sm font-bold tracking-wide text-chart-4 normal-case">
                           PUTS
                           <span className="ml-2 font-normal text-muted-foreground">
                             ITM shaded above spot
