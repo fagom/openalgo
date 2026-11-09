@@ -41,14 +41,6 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type OrderEventType, useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
 // Note: AlertDialog still used for Cancel All Orders
@@ -127,6 +119,36 @@ const statusConfig: Record<string, { color: StatusDotColor; label: string }> = {
   open: { color: 'primary', label: 'open' },
 }
 
+function formatDateLabel(timestamp: string): string {
+  const timeValue = parseTimestamp(timestamp)
+  if (timeValue === 0) return 'Undated'
+  return new Date(timeValue).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
+ * Consecutive rows sharing a date are grouped under one heading -- Groww's
+ * order-list layout. Groups by adjacency rather than re-sorting, so whatever
+ * sort the trader picked (by symbol, price, status, ...) is respected; equal
+ * dates that land next to each other still get one heading.
+ */
+function groupByDate<T extends { timestamp: string }>(items: T[]): { label: string; items: T[] }[] {
+  const groups: { label: string; items: T[] }[] = []
+  for (const item of items) {
+    const label = formatDateLabel(item.timestamp)
+    const last = groups[groups.length - 1]
+    if (last && last.label === label) {
+      last.items.push(item)
+    } else {
+      groups.push({ label, items: [item] })
+    }
+  }
+  return groups
+}
+
 export default function OrderBook() {
   const { apiKey, user } = useAuthStore()
   const { isCrypto } = useSupportedExchanges()
@@ -198,6 +220,8 @@ export default function OrderBook() {
       return 0
     })
   }, [orders, statusFilter, sortConfig])
+
+  const dateGroups = useMemo(() => groupByDate(sortedAndFilteredOrders), [sortedAndFilteredOrders])
 
   const requestSort = (key: SortKey) => {
     setSortConfig((prev) => ({
@@ -621,166 +645,154 @@ export default function OrderBook() {
                   />
                 )
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead
-                          className="w-[120px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('symbol')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Symbol
-                            {sortConfig.key === 'symbol' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="size-4" />
-                              ) : (
-                                <ArrowDown className="size-4" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[80px]">Exchange</TableHead>
-                        <TableHead
-                          className="w-[70px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('action')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Action
-                            {sortConfig.key === 'action' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="size-4" />
-                              ) : (
-                                <ArrowDown className="size-4" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[70px] text-right">Qty</TableHead>
-                        <TableHead
-                          className="w-[100px] text-right cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('price')}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            Price
-                            {sortConfig.key === 'price' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="size-4" />
-                              ) : (
-                                <ArrowDown className="size-4" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[100px] text-right">Trigger</TableHead>
-                        <TableHead className="w-[80px]">Type</TableHead>
-                        {!isCrypto && <TableHead className="w-[70px]">Product</TableHead>}
-                        <TableHead className="w-[140px]">Order ID</TableHead>
-                        <TableHead
-                          className="w-[100px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('order_status')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Status
-                            {sortConfig.key === 'order_status' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="size-4" />
-                              ) : (
-                                <ArrowDown className="size-4" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="w-[100px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('timestamp')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Time
-                            {sortConfig.key === 'timestamp' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="size-4" />
-                              ) : (
-                                <ArrowDown className="size-4" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[60px]">Cancel</TableHead>
-                        <TableHead className="w-[60px]">Modify</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedAndFilteredOrders.map((order, index) => {
-                        const status = statusConfig[order.order_status] || statusConfig.open
-                        const canCancel = order.order_status === 'open'
+                <div>
+                  {/* Column labels -- plain text, not a table header; sort toggles stay but
+                      lose the grid-cell look Groww's own order list doesn't have. */}
+                  <div className="hidden sm:flex items-center gap-4 px-1 pb-2 text-xs font-medium text-muted-foreground border-b">
+                    <button
+                      type="button"
+                      className="flex-1 flex items-center gap-1 text-left hover:text-foreground"
+                      onClick={() => requestSort('symbol')}
+                    >
+                      Symbol
+                      {sortConfig.key === 'symbol' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp className="size-3" />
+                        ) : (
+                          <ArrowDown className="size-3" />
+                        ))}
+                    </button>
+                    <button
+                      type="button"
+                      className="w-24 flex items-center justify-end gap-1 text-right hover:text-foreground"
+                      onClick={() => requestSort('price')}
+                    >
+                      Qty / Price
+                      {sortConfig.key === 'price' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp className="size-3" />
+                        ) : (
+                          <ArrowDown className="size-3" />
+                        ))}
+                    </button>
+                    <button
+                      type="button"
+                      className="w-28 flex items-center gap-1 hover:text-foreground"
+                      onClick={() => requestSort('order_status')}
+                    >
+                      Status
+                      {sortConfig.key === 'order_status' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp className="size-3" />
+                        ) : (
+                          <ArrowDown className="size-3" />
+                        ))}
+                    </button>
+                    <button
+                      type="button"
+                      className="w-20 flex items-center justify-end gap-1 text-right hover:text-foreground"
+                      onClick={() => requestSort('timestamp')}
+                    >
+                      Time
+                      {sortConfig.key === 'timestamp' &&
+                        (sortConfig.direction === 'asc' ? (
+                          <ArrowUp className="size-3" />
+                        ) : (
+                          <ArrowDown className="size-3" />
+                        ))}
+                    </button>
+                    <div className="w-16" />
+                  </div>
 
-                        return (
-                          <TableRow key={`${order.orderid}-${index}`}>
-                            <TableCell className="font-medium">
-                              <ChartSymbolLink symbol={order.symbol} exchange={order.exchange} />
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{order.exchange}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <span
-                                className={cn(
-                                  'text-sm font-medium',
-                                  order.action === 'BUY' ? 'text-buy' : 'text-sell'
+                  {dateGroups.map((group) => (
+                    <div key={group.label}>
+                      <div className="px-1 pt-4 pb-1 text-xs font-medium text-muted-foreground">
+                        {group.label}
+                      </div>
+                      <div className="divide-y divide-border">
+                        {group.items.map((order, index) => {
+                          const status = statusConfig[order.order_status] || statusConfig.open
+                          const canCancel = order.order_status === 'open'
+                          const meta = [
+                            order.pricetype,
+                            !isCrypto ? order.product : null,
+                            order.exchange,
+                            order.trigger_price
+                              ? `Trigger ${formatCurrency(order.trigger_price)}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')
+
+                          return (
+                            <div
+                              key={`${order.orderid}-${index}`}
+                              className="flex items-center gap-4 py-3 px-1 hover:bg-muted/30 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium truncate">
+                                  <ChartSymbolLink
+                                    symbol={order.symbol}
+                                    exchange={order.exchange}
+                                  />
+                                </div>
+                                <div className="text-xs text-muted-foreground truncate">
+                                  <span
+                                    className={cn(
+                                      'font-medium',
+                                      order.action === 'BUY' ? 'text-buy' : 'text-sell'
+                                    )}
+                                  >
+                                    {order.action === 'BUY' ? 'Buy' : 'Sell'}
+                                  </span>{' '}
+                                  &middot; {meta}
+                                </div>
+                              </div>
+                              <div className="w-24 text-right shrink-0">
+                                <div className="font-mono text-sm">{order.quantity}</div>
+                                <div className="font-mono text-xs text-muted-foreground">
+                                  {formatCurrency(order.price)}
+                                </div>
+                              </div>
+                              <div className="w-28 shrink-0 space-y-0.5">
+                                <StatusDot color={status.color} label={status.label} />
+                                <div className="font-mono text-xs text-muted-foreground truncate">
+                                  {order.orderid}
+                                </div>
+                              </div>
+                              <div className="w-20 text-right shrink-0 text-xs text-muted-foreground">
+                                {formatTime(order.timestamp)}
+                              </div>
+                              <div className="w-16 flex items-center justify-end gap-0.5 shrink-0">
+                                {canCancel && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-primary hover:text-primary"
+                                      onClick={() => openModifyDialog(order)}
+                                      aria-label={`Modify order for ${order.symbol}`}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => handleCancelOrder(order.orderid)}
+                                      aria-label={`Cancel order ${order.orderid}`}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </>
                                 )}
-                              >
-                                {order.action}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right font-mono">{order.quantity}</TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(order.price)}
-                            </TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(order.trigger_price)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">{order.pricetype}</Badge>
-                            </TableCell>
-                            {!isCrypto && (
-                              <TableCell>
-                                <Badge variant="outline">{order.product}</Badge>
-                              </TableCell>
-                            )}
-                            <TableCell className="font-mono text-xs">{order.orderid}</TableCell>
-                            <TableCell>
-                              <StatusDot color={status.color} label={status.label} />
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {formatTime(order.timestamp)}
-                            </TableCell>
-                            <TableCell>
-                              {canCancel && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => handleCancelOrder(order.orderid)}
-                                  aria-label={`Cancel order ${order.orderid}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {canCancel && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-primary hover:text-primary"
-                                  onClick={() => openModifyDialog(order)}
-                                  aria-label={`Modify order for ${order.symbol}`}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>

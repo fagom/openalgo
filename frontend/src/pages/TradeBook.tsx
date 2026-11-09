@@ -24,14 +24,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
 import { cn, makeFormatCurrency, sanitizeCSV } from '@/lib/utils'
@@ -99,6 +91,31 @@ function formatTime(timestamp: string): string {
   })
 }
 
+function formatDateLabel(timestamp: string): string {
+  const timeValue = parseTimestamp(timestamp)
+  if (timeValue === 0) return 'Undated'
+  return new Date(timeValue).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/** Same adjacency grouping as OrderBook -- groups consecutive same-date rows without re-sorting. */
+function groupByDate<T extends { timestamp: string }>(items: T[]): { label: string; items: T[] }[] {
+  const groups: { label: string; items: T[] }[] = []
+  for (const item of items) {
+    const label = formatDateLabel(item.timestamp)
+    const last = groups[groups.length - 1]
+    if (last && last.label === label) {
+      last.items.push(item)
+    } else {
+      groups.push({ label, items: [item] })
+    }
+  }
+  return groups
+}
+
 export default function TradeBook() {
   const { apiKey, user } = useAuthStore()
   const { isCrypto } = useSupportedExchanges()
@@ -149,6 +166,8 @@ export default function TradeBook() {
       return 0
     })
   }, [trades, filters, sortConfig])
+
+  const dateGroups = useMemo(() => groupByDate(sortedAndFilteredTrades), [sortedAndFilteredTrades])
 
   const requestSort = (key: SortKey) => {
     setSortConfig((prev) => ({
@@ -491,104 +510,93 @@ export default function TradeBook() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead
-                      onClick={() => requestSort('symbol')}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        Symbol
-                        {sortConfig.key === 'symbol' &&
-                          (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="size-4" />
-                          ) : (
-                            <ArrowDown className="size-4" />
-                          ))}
-                      </div>
-                    </TableHead>
-                    <TableHead>Exchange</TableHead>
-                    {!isCrypto && <TableHead>Product</TableHead>}
-                    <TableHead
-                      onClick={() => requestSort('action')}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        Action
-                        {sortConfig.key === 'action' &&
-                          (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="size-4" />
-                          ) : (
-                            <ArrowDown className="size-4" />
-                          ))}
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Trade Value</TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead
-                      onClick={() => requestSort('timestamp')}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        Time
-                        {sortConfig.key === 'timestamp' &&
-                          (sortConfig.direction === 'asc' ? (
-                            <ArrowUp className="size-4" />
-                          ) : (
-                            <ArrowDown className="size-4" />
-                          ))}
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedAndFilteredTrades.map((trade, index) => (
-                    <TableRow key={`${trade.orderid}-${index}`}>
-                      <TableCell className="font-medium">
-                        <ChartSymbolLink symbol={trade.symbol} exchange={trade.exchange} />
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{trade.exchange}</Badge>
-                      </TableCell>
-                      {!isCrypto && (
-                        <TableCell>
-                          <Badge variant="secondary">{trade.product}</Badge>
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 text-sm font-medium',
-                            trade.action === 'BUY' ? 'text-buy' : 'text-sell'
-                          )}
+            <div>
+              <div className="hidden sm:flex items-center gap-4 px-1 pb-2 text-xs font-medium text-muted-foreground border-b">
+                <button
+                  type="button"
+                  className="flex-1 flex items-center gap-1 text-left hover:text-foreground"
+                  onClick={() => requestSort('symbol')}
+                >
+                  Symbol
+                  {sortConfig.key === 'symbol' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    ))}
+                </button>
+                <div className="w-28 text-right">Qty / Price</div>
+                <div className="w-28 text-right">Trade Value</div>
+                <button
+                  type="button"
+                  className="w-20 text-right flex items-center justify-end gap-1 hover:text-foreground"
+                  onClick={() => requestSort('timestamp')}
+                >
+                  Time
+                  {sortConfig.key === 'timestamp' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    ))}
+                </button>
+              </div>
+
+              {dateGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="px-1 pt-4 pb-1 text-xs font-medium text-muted-foreground">
+                    {group.label}
+                  </div>
+                  <div className="divide-y divide-border">
+                    {group.items.map((trade, index) => {
+                      const meta = [trade.exchange, !isCrypto ? trade.product : null]
+                        .filter(Boolean)
+                        .join(' · ')
+
+                      return (
+                        <div
+                          key={`${trade.orderid}-${index}`}
+                          className="flex items-center gap-4 py-3 px-1 hover:bg-muted/30 transition-colors"
                         >
-                          {trade.action === 'BUY' ? (
-                            <TrendingUp className="size-4" />
-                          ) : (
-                            <TrendingDown className="size-4" />
-                          )}
-                          {trade.action}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">{trade.quantity}</TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatCurrency(trade.average_price)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {formatCurrency(trade.trade_value)}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{trade.orderid}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatTime(trade.timestamp)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">
+                              <ChartSymbolLink symbol={trade.symbol} exchange={trade.exchange} />
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate">
+                              <span
+                                className={cn(
+                                  'inline-flex items-center gap-1 font-medium',
+                                  trade.action === 'BUY' ? 'text-buy' : 'text-sell'
+                                )}
+                              >
+                                {trade.action === 'BUY' ? (
+                                  <TrendingUp className="size-3" />
+                                ) : (
+                                  <TrendingDown className="size-3" />
+                                )}
+                                {trade.action === 'BUY' ? 'Buy' : 'Sell'}
+                              </span>{' '}
+                              &middot; {meta} &middot; {trade.orderid}
+                            </div>
+                          </div>
+                          <div className="w-28 text-right shrink-0">
+                            <div className="font-mono text-sm">{trade.quantity}</div>
+                            <div className="font-mono text-xs text-muted-foreground">
+                              {formatCurrency(trade.average_price)}
+                            </div>
+                          </div>
+                          <div className="w-28 text-right shrink-0 font-mono text-sm">
+                            {formatCurrency(trade.trade_value)}
+                          </div>
+                          <div className="w-20 text-right shrink-0 text-xs text-muted-foreground">
+                            {formatTime(trade.timestamp)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
