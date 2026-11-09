@@ -276,6 +276,11 @@
     @apply border-border outline-ring/50;
   }
   html {
+    /* 90% of the browser default (16px -> 14.4px) so every rem-based size in
+       the app -- Tailwind's text-sm/base/lg/etc, spacing, icons -- scales
+       down together, the same effect as 90% browser zoom but independent of
+       whatever zoom level the viewer's own browser happens to be at. */
+    font-size: 90%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
