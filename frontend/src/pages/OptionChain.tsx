@@ -271,6 +271,41 @@ function LtpCell({
   )
 }
 
+/**
+ * A number with a thin horizontal progress line underneath it, scaled to
+ * the row's share of the column's max value -- the same shape as the
+ * Trading terminal's option chain panel, not a background wash behind the
+ * whole cell.
+ */
+function ValueWithBar({
+  value,
+  show,
+  percent,
+  trackClass,
+  fillClass,
+  align,
+}: {
+  value: React.ReactNode
+  show: boolean
+  percent: number
+  trackClass: string
+  fillClass: string
+  align: 'end' | 'start'
+}) {
+  return (
+    <div
+      className={cn('flex w-full flex-col gap-1', align === 'end' ? 'items-end' : 'items-start')}
+    >
+      {value}
+      {show && (
+        <div className={cn('h-[3px] w-full rounded-full overflow-hidden', trackClass)}>
+          <div className={cn('h-full rounded-full', fillClass)} style={{ width: `${percent}%` }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Memoized row component to prevent unnecessary re-renders
 const OptionChainRow = React.memo(function OptionChainRow({
   strike,
@@ -326,29 +361,47 @@ const OptionChainRow = React.memo(function OptionChainRow({
   const ceBarPercent = ceBarValue ? Math.min((ceBarValue / maxBarValue) * 100, 100) : 0
   const peBarPercent = peBarValue ? Math.min((peBarValue / maxBarValue) * 100, 100) : 0
 
-  // Bar styles. CE/PE get their own hues (chart-2 warm, chart-4 cool) rather
-  // than reusing success/destructive, which already carries the ITM shading
-  // on these same cells -- same color family at low opacity made the two
-  // indistinguishable and the bar nearly invisible. Distinct hues read as
-  // their own signal, the way a call/put OI bar does on most chain UIs.
-  const ceBarClass =
-    barStyle === 'gradient' ? 'bg-gradient-to-r from-chart-2/35 to-transparent' : 'bg-chart-2/20'
-  const peBarClass =
-    barStyle === 'gradient' ? 'bg-gradient-to-l from-chart-4/35 to-transparent' : 'bg-chart-4/20'
-
   // Use tabular-nums for consistent number widths to prevent layout shifts
   const numClass = 'font-mono tabular-nums text-xs'
+
+  // A thin progress line under the OI/Volume figure, in place of the old
+  // full-cell background wash (which read as a flat color block, not a
+  // bar). CE/PE get their own hues (chart-2 warm, chart-4 cool) rather than
+  // success/destructive, which already carries the ITM shading on these
+  // same cells.
+  const ceFillClass =
+    barStyle === 'gradient' ? 'bg-gradient-to-r from-chart-2 to-chart-2/40' : 'bg-chart-2'
+  const peFillClass =
+    barStyle === 'gradient' ? 'bg-gradient-to-l from-chart-4 to-chart-4/40' : 'bg-chart-4'
 
   const getCeColumnValue = (key: ColumnKey) => {
     switch (key) {
       case 'ce_oi':
         return (
-          <span className={cn(numClass, isMaxCeOi && 'font-bold text-foreground')}>
-            {formatInLakhs(ce?.oi)}
-          </span>
+          <ValueWithBar
+            align="end"
+            show={barDataSource === 'oi'}
+            percent={ceBarPercent}
+            trackClass="bg-chart-2/15"
+            fillClass={ceFillClass}
+            value={
+              <span className={cn(numClass, isMaxCeOi && 'font-bold text-foreground')}>
+                {formatInLakhs(ce?.oi)}
+              </span>
+            }
+          />
         )
       case 'ce_volume':
-        return <span className={numClass}>{formatInLakhs(ce?.volume)}</span>
+        return (
+          <ValueWithBar
+            align="end"
+            show={barDataSource === 'volume'}
+            percent={ceBarPercent}
+            trackClass="bg-chart-2/15"
+            fillClass={ceFillClass}
+            value={<span className={numClass}>{formatInLakhs(ce?.volume)}</span>}
+          />
+        )
       case 'ce_bid_qty':
         return <span className={numClass}>{ce?.bid_qty ?? 0}</span>
       case 'ce_bid':
@@ -400,12 +453,30 @@ const OptionChainRow = React.memo(function OptionChainRow({
     switch (key) {
       case 'pe_oi':
         return (
-          <span className={cn(numClass, isMaxPeOi && 'font-bold text-foreground')}>
-            {formatInLakhs(pe?.oi)}
-          </span>
+          <ValueWithBar
+            align="start"
+            show={barDataSource === 'oi'}
+            percent={peBarPercent}
+            trackClass="bg-chart-4/15"
+            fillClass={peFillClass}
+            value={
+              <span className={cn(numClass, isMaxPeOi && 'font-bold text-foreground')}>
+                {formatInLakhs(pe?.oi)}
+              </span>
+            }
+          />
         )
       case 'pe_volume':
-        return <span className={numClass}>{formatInLakhs(pe?.volume)}</span>
+        return (
+          <ValueWithBar
+            align="start"
+            show={barDataSource === 'volume'}
+            percent={peBarPercent}
+            trackClass="bg-chart-4/15"
+            fillClass={peFillClass}
+            value={<span className={numClass}>{formatInLakhs(pe?.volume)}</span>}
+          />
+        )
       case 'pe_bid_qty':
         return <span className={numClass}>{pe?.bid_qty ?? 0}</span>
       case 'pe_bid':
@@ -462,14 +533,6 @@ const OptionChainRow = React.memo(function OptionChainRow({
       {/* CE cells */}
       {visibleCeColumns.length > 0 && (
         <TableCell className={cn('p-0 relative border-r border-border', isCeITM && 'bg-warning/8')}>
-          {/* CE bar - spans the entire CE section */}
-          <div
-            className={cn(
-              'absolute left-0 top-0 bottom-0 pointer-events-none z-0 transition-all duration-300',
-              ceBarClass
-            )}
-            style={{ width: `${ceBarPercent}%` }}
-          />
           {/* Buy/Sell buttons, next to the strike column */}
           {ce && (
             <LegOrderButtons
@@ -537,14 +600,6 @@ const OptionChainRow = React.memo(function OptionChainRow({
       {/* PE cells */}
       {visiblePeColumns.length > 0 && (
         <TableCell className={cn('p-0 relative border-l border-border', isPeITM && 'bg-warning/8')}>
-          {/* PE bar - spans the entire PE section from right */}
-          <div
-            className={cn(
-              'absolute right-0 top-0 bottom-0 pointer-events-none z-0 transition-all duration-300',
-              peBarClass
-            )}
-            style={{ width: `${peBarPercent}%` }}
-          />
           {/* Buy/Sell buttons, next to the strike column */}
           {pe && (
             <LegOrderButtons
