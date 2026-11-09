@@ -1,9 +1,7 @@
 import {
   ArrowDown,
   ArrowUp,
-  CheckCircle2,
   ClipboardList,
-  Clock,
   Download,
   FilterX,
   Loader2,
@@ -11,12 +9,12 @@ import {
   RefreshCw,
   Settings2,
   X,
-  XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type QuotesData, tradingApi } from '@/api/trading'
 import { ChartSymbolLink } from '@/components/trading/ChartSymbolLink'
 import GttTab from '@/components/trading/GttTab'
+import { StatusDot, type StatusDotColor } from '@/components/trading/StatusDot'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,11 +120,11 @@ function formatTime(timestamp: string): string {
   })
 }
 
-const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
-  complete: { icon: CheckCircle2, color: 'text-success', label: 'complete' },
-  rejected: { icon: XCircle, color: 'text-destructive', label: 'rejected' },
-  cancelled: { icon: XCircle, color: 'text-muted-foreground', label: 'cancelled' },
-  open: { icon: Clock, color: 'text-primary', label: 'open' },
+const statusConfig: Record<string, { color: StatusDotColor; label: string }> = {
+  complete: { color: 'success', label: 'complete' },
+  rejected: { color: 'destructive', label: 'rejected' },
+  cancelled: { color: 'muted', label: 'cancelled' },
+  open: { color: 'primary', label: 'open' },
 }
 
 export default function OrderBook() {
@@ -710,7 +708,6 @@ export default function OrderBook() {
                     <TableBody>
                       {sortedAndFilteredOrders.map((order, index) => {
                         const status = statusConfig[order.order_status] || statusConfig.open
-                        const StatusIcon = status.icon
                         const canCancel = order.order_status === 'open'
 
                         return (
@@ -722,12 +719,14 @@ export default function OrderBook() {
                               <Badge variant="outline">{order.exchange}</Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge
-                                variant={order.action === 'BUY' ? 'default' : 'destructive'}
-                                className={order.action === 'BUY' ? 'bg-buy' : ''}
+                              <span
+                                className={cn(
+                                  'text-sm font-medium',
+                                  order.action === 'BUY' ? 'text-buy' : 'text-sell'
+                                )}
                               >
                                 {order.action}
-                              </Badge>
+                              </span>
                             </TableCell>
                             <TableCell className="text-right font-mono">{order.quantity}</TableCell>
                             <TableCell className="text-right font-mono">
@@ -746,10 +745,7 @@ export default function OrderBook() {
                             )}
                             <TableCell className="font-mono text-xs">{order.orderid}</TableCell>
                             <TableCell>
-                              <div className={cn('flex items-center gap-1', status.color)}>
-                                <StatusIcon className="h-4 w-4" />
-                                <span className="text-sm">{status.label}</span>
-                              </div>
+                              <StatusDot color={status.color} label={status.label} />
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {formatTime(order.timestamp)}

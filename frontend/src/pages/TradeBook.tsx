@@ -560,9 +560,11 @@ export default function TradeBook() {
                         </TableCell>
                       )}
                       <TableCell>
-                        <Badge
-                          variant={trade.action === 'BUY' ? 'default' : 'destructive'}
-                          className={cn('gap-1', trade.action === 'BUY' ? 'bg-buy' : '')}
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-sm font-medium',
+                            trade.action === 'BUY' ? 'text-buy' : 'text-sell'
+                          )}
                         >
                           {trade.action === 'BUY' ? (
                             <TrendingUp className="size-4" />
@@ -570,7 +572,7 @@ export default function TradeBook() {
                             <TrendingDown className="size-4" />
                           )}
                           {trade.action}
-                        </Badge>
+                        </span>
                       </TableCell>
                       <TableCell className="text-right font-mono">{trade.quantity}</TableCell>
                       <TableCell className="text-right font-mono">
