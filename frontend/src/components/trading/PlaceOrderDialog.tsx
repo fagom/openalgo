@@ -2,7 +2,7 @@
 // Reusable order placement dialog with real-time quotes and market depth
 // Uses WebSocket for real-time data with REST API fallback (like Holdings/Positions)
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { tradingApi } from '@/api/trading'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useLiveQuote } from '@/hooks/useLiveQuote'
-import { cn } from '@/lib/utils'
+import { cn, makeFormatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { showToast } from '@/utils/toast'
 import { MarketDepthPanel } from './MarketDepthPanel'
@@ -208,7 +208,13 @@ export function PlaceOrderDialog({
   onSuccess,
   onError,
 }: PlaceOrderDialogProps) {
-  const { apiKey } = useAuthStore()
+  const { apiKey, user } = useAuthStore()
+  const formatCurrency = useMemo(() => makeFormatCurrency(user?.broker), [user?.broker])
+
+  // Available cash, fetched fresh each time the dialog opens so the cost
+  // check below reflects the balance at the moment of placing this order,
+  // not a stale figure from whenever the page last loaded.
+  const [availableCash, setAvailableCash] = useState<number | null>(null)
 
   // Form state
   const [formAction, setFormAction] = useState<'BUY' | 'SELL'>(initialAction)
@@ -306,6 +312,32 @@ export function PlaceOrderDialog({
     exchange,
   ])
 
+  // Available cash for the cost check below. Fetched once per open rather
+  // than on every keystroke -- it only needs to be fresh as of opening the
+  // ticket, and the funds endpoint is a broker round trip.
+  useEffect(() => {
+    if (!open || !apiKey) {
+      setAvailableCash(null)
+      return
+    }
+    let cancelled = false
+    tradingApi
+      .getFunds(apiKey)
+      .then((res) => {
+        if (!cancelled && res.status === 'success' && res.data) {
+          setAvailableCash(Number(res.data.availablecash) || 0)
+        }
+      })
+      .catch(() => {
+        // Silent: the cost estimate below just stays hidden without a
+        // balance to compare against, and placing the order still works --
+        // this is a convenience check, not something to block the ticket on.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, apiKey])
+
   // Use data from centralized hook
   const mergedData = {
     ltp: liveData.ltp,
@@ -377,6 +409,24 @@ export function PlaceOrderDialog({
   // SL (Stop Loss Limit): both price and trigger price
   const needsPrice = formPriceType === 'LIMIT' || formPriceType === 'SL'
   const needsTrigger = formPriceType === 'SL-M' || formPriceType === 'SL'
+
+  // The price this order is actually going to fill or trigger near: the
+  // entry price for a bracket, the typed price for LIMIT/SL, and the live
+  // LTP for MARKET/SL-M, which carry no price field of their own.
+  const referencePrice =
+    orderMode === 'bracket' ? formPrice : needsPrice ? formPrice : (mergedData.ltp ?? formPrice)
+
+  // Order value, not a margin figure: for CNC equity (cash settlement, no
+  // leverage) this IS the amount blocked, so the comparison below is a
+  // direct accept/reject check. For MIS/NRML -- leveraged -- the broker's
+  // actual margin requirement is a SPAN+exposure calculation this platform
+  // has no generic API to reproduce, and is usually well under this number,
+  // so leveraged tickets get the same figure labeled as an upper bound
+  // rather than a prediction.
+  const orderValue = referencePrice > 0 && formQuantity > 0 ? referencePrice * formQuantity : null
+  const isLeveraged = formProduct !== 'CNC'
+  const exceedsBalance =
+    !isLeveraged && orderValue !== null && availableCash !== null && orderValue > availableCash
 
   const isValid = useCallback(() => {
     if (!symbol || !exchange_) return false
@@ -809,6 +859,42 @@ export function PlaceOrderDialog({
                 />
               )}
             </>
+          )}
+
+          {/* Cost check: order value against available cash. Exact only for
+              CNC (no leverage); MIS/NRML show the same number as an upper
+              bound, since the broker's real margin requirement is usually
+              lower and this platform has no generic way to compute it. */}
+          {orderValue !== null && (
+            <div
+              className={cn(
+                'rounded-md border p-2 text-xs space-y-1',
+                exceedsBalance ? 'border-destructive/40 bg-destructive/5' : 'bg-muted/30'
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {isLeveraged ? 'Order value (before leverage)' : 'Order value'}
+                </span>
+                <span className="font-mono font-medium">{formatCurrency(orderValue)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Available balance</span>
+                <span className="font-mono">
+                  {availableCash !== null ? formatCurrency(availableCash) : '...'}
+                </span>
+              </div>
+              {exceedsBalance && (
+                <p className="text-destructive">
+                  Order value exceeds your available balance -- the broker is likely to reject this.
+                </p>
+              )}
+              {isLeveraged && (
+                <p className="text-muted-foreground">
+                  {formProduct} trades on margin -- the broker will likely block less than this.
+                </p>
+              )}
+            </div>
           )}
         </div>
 
