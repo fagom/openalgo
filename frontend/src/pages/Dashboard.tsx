@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { TopInstrumentCard } from '@/components/dashboard/TopInstrumentCard'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { COMMODITY_TICKER_SYMBOLS, INDEX_TICKER_SYMBOLS } from '@/config/tickerSymbols'
 import { useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
-import { cn } from '@/lib/utils'
+import { cn, makeFormatCurrency } from '@/lib/utils'
+import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
 
 // "Top traded" asset classes, Groww's Equity/Commodities toggle. Every index
@@ -32,29 +33,6 @@ interface MasterContractStatus {
   total_symbols?: number
 }
 
-// Format number in Indian format with Cr/L suffixes
-function formatIndianNumber(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  if (Number.isNaN(num)) return '0.00'
-
-  const isNegative = num < 0
-  const absNum = Math.abs(num)
-
-  let formatted: string
-  if (absNum >= 10000000) {
-    // 1 Crore or more
-    formatted = `${(absNum / 10000000).toFixed(2)}Cr`
-  } else if (absNum >= 100000) {
-    // 1 Lakh or more
-    formatted = `${(absNum / 100000).toFixed(2)}L`
-  } else {
-    // Less than 1 Lakh - just decimal format
-    formatted = absNum.toFixed(2)
-  }
-
-  return isNegative ? `-${formatted}` : formatted
-}
-
 // Get color class based on P&L value
 function getPnLColor(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value
@@ -71,6 +49,8 @@ function getPnLBadgeVariant(value: string | number): 'default' | 'destructive' |
 }
 
 export default function Dashboard() {
+  const { user } = useAuthStore()
+  const formatCurrency = useMemo(() => makeFormatCurrency(user?.broker), [user?.broker])
   const [marginData, setMarginData] = useState<MarginData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -329,7 +309,7 @@ export default function Dashboard() {
                 {isLoading
                   ? '...'
                   : marginData
-                    ? formatIndianNumber(marginData.availablecash)
+                    ? formatCurrency(Number(marginData.availablecash))
                     : '0.00'}
               </p>
               <Badge variant="secondary" className="mt-1.5">
@@ -343,7 +323,7 @@ export default function Dashboard() {
                 {isLoading
                   ? '...'
                   : marginData
-                    ? formatIndianNumber(marginData.collateral)
+                    ? formatCurrency(Number(marginData.collateral))
                     : '0.00'}
               </p>
               <Badge variant="secondary" className="mt-1.5">
@@ -362,7 +342,7 @@ export default function Dashboard() {
                 {isLoading
                   ? '...'
                   : marginData
-                    ? formatIndianNumber(marginData.m2munrealized)
+                    ? formatCurrency(Number(marginData.m2munrealized))
                     : '0.00'}
               </p>
               <Badge
@@ -384,7 +364,7 @@ export default function Dashboard() {
                 {isLoading
                   ? '...'
                   : marginData
-                    ? formatIndianNumber(marginData.m2mrealized)
+                    ? formatCurrency(Number(marginData.m2mrealized))
                     : '0.00'}
               </p>
               <Badge
@@ -401,7 +381,7 @@ export default function Dashboard() {
                 {isLoading
                   ? '...'
                   : marginData
-                    ? formatIndianNumber(marginData.utiliseddebits)
+                    ? formatCurrency(Number(marginData.utiliseddebits))
                     : '0.00'}
               </p>
               <Badge variant="outline" className="mt-1.5 border-chart-3/50 text-chart-3">
