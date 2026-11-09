@@ -677,24 +677,11 @@ export default function OrderBook() {
                     </button>
                     <button
                       type="button"
-                      className="w-28 flex items-center gap-1 hover:text-foreground"
+                      className="w-32 flex items-center justify-end gap-1 text-right hover:text-foreground"
                       onClick={() => requestSort('order_status')}
                     >
-                      Status
-                      {sortConfig.key === 'order_status' &&
-                        (sortConfig.direction === 'asc' ? (
-                          <ArrowUp className="size-3" />
-                        ) : (
-                          <ArrowDown className="size-3" />
-                        ))}
-                    </button>
-                    <button
-                      type="button"
-                      className="w-20 flex items-center justify-end gap-1 text-right hover:text-foreground"
-                      onClick={() => requestSort('timestamp')}
-                    >
-                      Time
-                      {sortConfig.key === 'timestamp' &&
+                      Status / Time
+                      {(sortConfig.key === 'order_status' || sortConfig.key === 'timestamp') &&
                         (sortConfig.direction === 'asc' ? (
                           <ArrowUp className="size-3" />
                         ) : (
@@ -720,6 +707,7 @@ export default function OrderBook() {
                             order.trigger_price
                               ? `Trigger ${formatCurrency(order.trigger_price)}`
                               : null,
+                            order.orderid,
                           ]
                             .filter(Boolean)
                             .join(' · ')
@@ -754,14 +742,13 @@ export default function OrderBook() {
                                   {formatCurrency(order.price)}
                                 </div>
                               </div>
-                              <div className="w-28 shrink-0 space-y-0.5">
-                                <StatusDot color={status.color} label={status.label} />
-                                <div className="font-mono text-xs text-muted-foreground truncate">
-                                  {order.orderid}
+                              <div className="w-32 shrink-0 text-right space-y-0.5">
+                                <div className="flex items-center justify-end">
+                                  <StatusDot color={status.color} label={status.label} />
                                 </div>
-                              </div>
-                              <div className="w-20 text-right shrink-0 text-xs text-muted-foreground">
-                                {formatTime(order.timestamp)}
+                                <div className="text-xs text-muted-foreground">
+                                  {formatTime(order.timestamp)}
+                                </div>
                               </div>
                               <div className="w-16 flex items-center justify-end gap-0.5 shrink-0">
                                 {canCancel && (
