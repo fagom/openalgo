@@ -275,6 +275,8 @@ class ScalpingRiskMonitor:
         finally:
             self._remove_session("database.scalping_db")
 
+        rows = self._drop_flat_rows(rows)
+
         # Update in-memory state + compute the subscription diff under the lock; the
         # actual subscribe/unsubscribe (blocking WS calls) happen OUTSIDE the lock so
         # they never block tick processing (_on_tick).
@@ -637,6 +639,80 @@ class ScalpingRiskMonitor:
             logger.debug("scalping_sl_update emit failed: %s", e)
 
     # ------------------------------------------------------------------ helpers
+    def _drop_flat_rows(self, rows: list[dict]) -> list[dict]:
+        """Reconciles active SL rows against the real broker position book,
+        clearing (DB delete + unsubscribe + 'scalping_sl_update' emit, via
+        _clear_state) any row whose leg has zero live quantity behind it.
+
+        An order accepted by the broker but rejected moments later leaves
+        exactly this kind of orphan: attachPredefinedSL (frontend) writes the
+        SL row as soon as the order is accepted, well before an async
+        rejection can arrive, and nothing else in the system ever retracts
+        it. Previously the only place a real position was ever consulted was
+        _live_net_qty, deep inside the exit-trigger path — so an orphaned row
+        for a leg price never breaches sat "protected" (ScalpingRiskMonitor.
+        protected_count()) indefinitely, which is what utils/broker_switch.py
+        checks before allowing a login to another broker.
+
+        A positionbook fetch failure leaves `rows` untouched: never clear
+        protection on an inconclusive check.
+        """
+        if not rows:
+            return rows
+        try:
+            auth = self._resolve_auth()
+        except Exception as e:
+            logger.debug("Scalping risk monitor: auth resolve for reconcile failed: %s", e)
+            return rows
+        if auth is None:
+            return rows
+        api_key, auth_token, broker = auth
+        from services.positionbook_service import get_positionbook
+
+        try:
+            ok, resp, _code = get_positionbook(
+                api_key=api_key, auth_token=auth_token, broker=broker
+            )
+        except Exception as e:
+            logger.debug("Scalping risk monitor: positionbook reconcile failed: %s", e)
+            return rows
+        finally:
+            self._remove_sessions()
+        if not ok or not isinstance(resp, dict):
+            return rows
+
+        live_qty: dict[tuple, int] = {}
+        for p in resp.get("data") or []:
+            try:
+                qty = int(float(p.get("quantity") or 0))
+            except (TypeError, ValueError):
+                qty = 0
+            pkey = (
+                p.get("symbol"),
+                (p.get("exchange") or "").upper(),
+                (p.get("product") or "").upper(),
+            )
+            live_qty[pkey] = qty
+
+        kept = []
+        for r in rows:
+            rkey = (r["symbol"], (r["exchange"] or "").upper(), (r["product"] or "").upper())
+            if live_qty.get(rkey, 0) == 0:
+                logger.info(
+                    "Scalping SL for %s has no live position behind it — clearing orphaned protection",
+                    r["symbol"],
+                )
+                self._clear_state(
+                    _slkey(r["symbol"], r["exchange"], r["product"]),
+                    r["symbol"],
+                    r["exchange"],
+                    r["product"],
+                    r.get("mode"),
+                )
+            else:
+                kept.append(r)
+        return kept
+
     def _live_net_qty(self, symbol, exchange, product, api_key, auth_token, broker) -> int:
         from services.positionbook_service import get_positionbook
 
