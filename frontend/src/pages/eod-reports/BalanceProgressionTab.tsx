@@ -12,7 +12,6 @@ import { buildChartTheme } from '@/lib/trading/chartTheme'
 import { makeFormatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { useThemeStore } from '@/stores/themeStore'
-import PnlCalendar from './PnlCalendar'
 
 interface BalancePoint {
   date: string
@@ -129,7 +128,6 @@ export default function BalanceProgressionTab({ refreshToken = 0 }: Props) {
           <div ref={containerRef} style={{ height: CHART_HEIGHT, width: '100%' }} />
         </CardContent>
       </Card>
-      <PnlCalendar refreshToken={refreshToken} />
     </div>
   )
 }

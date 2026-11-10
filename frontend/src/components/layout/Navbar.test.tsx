@@ -124,11 +124,17 @@ describe('Navbar More menu', () => {
     expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument()
   })
 
-  it('takes Tradebook, Option Chain, Instrument and Trading below lg', async () => {
+  it('takes Tradebook, Option Chain, Instrument, Trading and Scalping below lg', async () => {
     screenWidth(800)
     renderNavbar('/dashboard')
 
-    expect(await moreMenuLabels()).toEqual(['Tradebook', 'Option Chain', 'Instrument', 'Trading'])
+    expect(await moreMenuLabels()).toEqual([
+      'Tradebook',
+      'Option Chain',
+      'Instrument',
+      'Trading',
+      'Scalping',
+    ])
   })
 
   it('is underlined only when the current page is inside it', () => {

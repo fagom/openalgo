@@ -13,8 +13,10 @@ describe('Navigation Config', () => {
       // Trimmed to Groww's pattern: a handful of primary tabs, nothing
       // configuration-shaped. Platforms, Strategies, Logs and Tools moved to
       // profileMenuItems. Option Chain and Instrument (chain + price action +
-      // IV in one view) sit between Positions and Trading.
-      expect(navItems).toHaveLength(7)
+      // IV in one view) sit between Positions and Trading. Scalping sits
+      // after Trading - both are keyboard/time-sensitive trading surfaces,
+      // not configuration.
+      expect(navItems).toHaveLength(8)
 
       const labels = navItems.map((item) => item.label)
       expect(labels).toEqual([
@@ -25,6 +27,7 @@ describe('Navigation Config', () => {
         'Option Chain',
         'Instrument',
         'Trading',
+        'Scalping',
       ])
     })
 
@@ -60,13 +63,13 @@ describe('Navigation Config', () => {
       })
     })
 
-    it('contains the remaining nav items (Option Chain, Instrument, Trading)', () => {
+    it('contains the remaining nav items (Option Chain, Instrument, Trading, Scalping)', () => {
       // Dashboard, Orderbook, Tradebook, Positions are already in
       // bottomNavItems; Platforms/Strategies/Logs/Tools now live in the
-      // profile menu, not navItems, so Option Chain, Instrument and Trading
-      // are what's left over.
+      // profile menu, not navItems, so Option Chain, Instrument, Trading and
+      // Scalping are what's left over.
       const sheetLabels = mobileSheetItems.map((item) => item.label)
-      expect(sheetLabels).toEqual(['Option Chain', 'Instrument', 'Trading'])
+      expect(sheetLabels).toEqual(['Option Chain', 'Instrument', 'Trading', 'Scalping'])
     })
   })
 

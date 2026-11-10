@@ -303,6 +303,13 @@ export default function Scalping() {
   const [product, setProduct] = useState<ScalpingProduct>('NRML')
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null)
 
+  // The terminal's persistent "current note" box: whatever is typed here is
+  // attached to whichever order fires next (by keypress), so a thesis can be
+  // typed once and cover several legs fired under it. Cleared manually, not
+  // automatically after a fire -- most scalps share one thesis across entry
+  // and exit legs.
+  const [noteText, setNoteText] = useState('')
+
   // Live charts are opt-in (default off) and heavy — when off, the ScalpChart
   // components don't mount, so they open no feed subscriptions. Both this toggle
   // and the timeframe below persist browser-side so the terminal reopens the way
@@ -765,6 +772,7 @@ export default function Scalping() {
     appMode,
     segment,
     equityShares,
+    noteText,
   })
   stateRef.current = {
     armed,
@@ -776,6 +784,7 @@ export default function Scalping() {
     appMode,
     segment,
     equityShares,
+    noteText,
   }
 
   // Min gap between two order fires. Bounds the rate (prevents accidental
@@ -868,6 +877,7 @@ export default function Scalping() {
           product: s.product,
           lots: sentLots,
           ltp: legLtp != null && legLtp > 0 ? legLtp : undefined,
+          note: s.noteText.trim() || undefined,
         })
         setLastLatencyMs(Math.round(performance.now() - t0))
         if (res.status === 'success') {
@@ -1561,6 +1571,32 @@ export default function Scalping() {
                 </span>
               </span>
             </div>
+          </div>
+
+          {/* Persistent thesis note -- whatever's typed here is attached to
+              whichever order fires next (by arrow-key/click), so a thesis can
+              be typed once and cover several legs under it. Typing here is
+              exempt from the keyboard-shortcut handler (it ignores keydowns
+              while an input/textarea has focus), so it never fires an order. */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground shrink-0">Thesis</span>
+            <Input
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Why this trade -- attached to the next order(s) you fire"
+              maxLength={500}
+              className="flex-1"
+            />
+            {noteText && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNoteText('')}
+                tooltip="Clear thesis note"
+              >
+                Clear
+              </Button>
+            )}
           </div>
 
           {isSingle ? (

@@ -98,6 +98,30 @@ class ScalpingTrackedSymbol(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class ScalpingOrderNote(Base):
+    """A trader's own thesis for a scalping order, captured at the moment it
+    fires (not after the fact) from the terminal's persistent note box.
+
+    Matched to that day's EOD-computed ClosedTrade rows (database/
+    eod_reports_db.py) by symbol/exchange/product/time proximity, the same
+    orderid-less matching ClosedTrade's own reasoning-carryover key already
+    relies on — no order placed here carries an orderid back to this table.
+    """
+
+    __tablename__ = "scalping_order_note"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(80), nullable=False, index=True)
+    broker = Column(String(50), nullable=True)
+    symbol = Column(String(60), nullable=False)
+    exchange = Column(String(10), nullable=False)
+    product = Column(String(10), nullable=False)
+    action = Column(String(4), nullable=False)  # BUY | SELL
+    quantity = Column(Integer, nullable=False, default=0)
+    note_text = Column(String(500), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 def init_db():
     """Create the scalping tables if they don't exist."""
     from database.db_init_helper import init_db_with_logging
@@ -368,5 +392,80 @@ def clear_tracked_symbols(mode: str | None = None) -> bool:
         return True
     except Exception as e:
         logger.exception(f"Error clearing scalping tracked symbols: {e}")
+        db_session.rollback()
+        return False
+
+
+def get_order_notes_in_window(
+    user_id: str, broker: str | None, start_epoch: float, end_epoch: float
+) -> list[dict]:
+    """Thesis notes written in [start_epoch, end_epoch], for matching against
+    that window's EOD-computed closed trades (database.eod_reports_db -
+    there is no orderid anywhere in this system to join on directly, so the
+    caller matches by symbol/exchange/product + this timestamp falling
+    inside a trade's [entry_time, exit_time] instead).
+    """
+    try:
+        from datetime import UTC, datetime
+
+        start_dt = datetime.fromtimestamp(start_epoch, tz=UTC).replace(tzinfo=None)
+        end_dt = datetime.fromtimestamp(end_epoch, tz=UTC).replace(tzinfo=None)
+        q = db_session.query(ScalpingOrderNote).filter(
+            ScalpingOrderNote.user_id == user_id,
+            ScalpingOrderNote.created_at >= start_dt,
+            ScalpingOrderNote.created_at <= end_dt,
+        )
+        if broker is not None:
+            q = q.filter(ScalpingOrderNote.broker == broker)
+        return [
+            {
+                "symbol": r.symbol,
+                "exchange": r.exchange,
+                "product": r.product,
+                "action": r.action,
+                "note_text": r.note_text,
+                "created_at_epoch": r.created_at.replace(tzinfo=UTC).timestamp(),
+            }
+            for r in q.all()
+        ]
+    except Exception as e:
+        logger.exception(f"Error fetching scalping order notes: {e}")
+        db_session.rollback()
+        return []
+
+
+def record_order_note(
+    user_id: str,
+    broker: str | None,
+    symbol: str,
+    exchange: str,
+    product: str,
+    action: str,
+    quantity: int,
+    note_text: str,
+) -> bool:
+    """Save a trader's thesis for one scalping order, alongside its facts.
+
+    Called once per order that fires with non-empty note text in the
+    terminal's persistent note box - never blocks or slows order placement
+    itself, so a failure here is logged and swallowed rather than surfaced.
+    """
+    try:
+        db_session.add(
+            ScalpingOrderNote(
+                user_id=user_id,
+                broker=broker,
+                symbol=symbol,
+                exchange=exchange,
+                product=product,
+                action=action,
+                quantity=quantity,
+                note_text=note_text[:500],
+            )
+        )
+        db_session.commit()
+        return True
+    except Exception as e:
+        logger.exception(f"Error recording scalping order note: {e}")
         db_session.rollback()
         return False

@@ -56,6 +56,7 @@ export const navItems: NavItem[] = [
   { href: '/optionchain', label: 'Option Chain', icon: Table2, collapseBelow: 'lg' },
   { href: '/instrument', label: 'Instrument', icon: LineChart, collapseBelow: 'lg' },
   { href: '/trading', label: 'Trading', icon: CandlestickChart, collapseBelow: 'lg' },
+  { href: '/scalping', label: 'Scalping', icon: Zap, collapseBelow: 'lg' },
 ]
 
 // Items shown in mobile bottom navigation
@@ -96,7 +97,6 @@ export const profileMenuItems: NavItem[] = [
   { href: '/whatsapp', label: 'WhatsApp Bot', icon: MessageCircle },
   { href: '/holdings', label: 'Holdings', icon: ClipboardList },
   { href: '/flow', label: 'Flow Editor', icon: Workflow },
-  { href: '/scalping', label: 'Scalping', icon: Zap },
   { href: '/python', label: 'Python Strategies', icon: Code2 },
   { href: '/pnl-tracker', label: 'PnL Tracker', icon: BarChart3 },
   { href: '/eod-reports', label: 'Daily Reports', icon: FileBarChart },

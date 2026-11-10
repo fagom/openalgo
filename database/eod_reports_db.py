@@ -606,6 +606,50 @@ def set_trade_reasoning(trade_id: int, result: dict) -> dict | None:
         return None
 
 
+def _attach_thesis_notes(trades: list[dict], user_id: str, broker: str) -> list[dict]:
+    """Matches each closed trade to any thesis note(s) typed in the scalping
+    terminal's note box while it was open (database.scalping_db.
+    ScalpingOrderNote) - there is no orderid anywhere in this system to join
+    on exactly, so a note counts as this trade's if its symbol/exchange/
+    product match and it was written between the trade's entry and exit
+    (plus a small buffer either side for order/ack latency).
+    """
+    times = [t["entryTime"] for t in trades if t["entryTime"]] + [
+        t["exitTime"] for t in trades if t["exitTime"]
+    ]
+    if not times:
+        return trades
+
+    try:
+        from database.scalping_db import get_order_notes_in_window
+    except Exception:
+        logger.exception("Could not load scalping order notes module")
+        return trades
+
+    buffer_seconds = 120
+    notes = get_order_notes_in_window(
+        user_id, broker, min(times) - buffer_seconds, max(times) + buffer_seconds
+    )
+
+    for trade in trades:
+        entry_time = trade["entryTime"]
+        exit_time = trade["exitTime"]
+        if entry_time is None or exit_time is None:
+            trade["thesisNotes"] = []
+            continue
+        window_start = entry_time - buffer_seconds
+        window_end = exit_time + buffer_seconds
+        trade["thesisNotes"] = [
+            n["note_text"]
+            for n in notes
+            if n["symbol"] == trade["symbol"]
+            and n["exchange"] == trade["exchange"]
+            and n["product"] == trade["product"]
+            and window_start <= n["created_at_epoch"] <= window_end
+        ]
+    return trades
+
+
 def get_closed_trades(user_id: str, broker: str, trade_date: date, market_class: str):
     try:
         rows = (
@@ -616,7 +660,7 @@ def get_closed_trades(user_id: str, broker: str, trade_date: date, market_class:
             .order_by(ClosedTrade.exit_time.asc())
             .all()
         )
-        return [row.to_dict() for row in rows]
+        return _attach_thesis_notes([row.to_dict() for row in rows], user_id, broker)
     except Exception:
         db_session.rollback()
         logger.exception("Could not read the day's closed trades")
