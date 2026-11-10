@@ -10,14 +10,25 @@
  * stale relative to the other.
  */
 
-import { RefreshCw } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { showToast } from '@/utils/toast'
 import BalanceProgressionTab from './eod-reports/BalanceProgressionTab'
 import DailyChargesTab from './eod-reports/DailyChargesTab'
 import TradeAnalysisTab from './eod-reports/TradeAnalysisTab'
+
+const MARKET_CLASS_LABEL: Record<string, string> = {
+  equity_fo: 'Equity/F&O',
+  commodity: 'Commodity',
+}
+
+interface ReportStatus {
+  due: boolean
+  generated: boolean
+}
 
 async function fetchCSRFToken(): Promise<string> {
   const response = await fetch('/auth/csrf-token', { credentials: 'include' })
@@ -33,6 +44,31 @@ export default function EodReports() {
   // services/eod_reports_service.py), so a manual refresh here and tonight's
   // automatic run never conflict - the later one just wins.
   const [refreshToken, setRefreshToken] = useState(0)
+  // Which market classes are past their scheduled run time with no report
+  // for today yet -- most likely nobody was logged in when the job ran.
+  const [missing, setMissing] = useState<string[]>([])
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshToken is an intentional re-fetch trigger after a manual refresh, not read in the body
+  useEffect(() => {
+    let cancelled = false
+    fetch('/eod-reports/api/status', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((res) => {
+        if (cancelled || res.status !== 'success') return
+        const data = res.data as Record<string, ReportStatus>
+        setMissing(
+          Object.entries(data)
+            .filter(([, s]) => s.due && !s.generated)
+            .map(([marketClass]) => marketClass)
+        )
+      })
+      .catch(() => {
+        // Silent: a missing-report banner is a convenience, not critical path.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [refreshToken])
 
   const refreshNow = useCallback(async () => {
     setIsRefreshing(true)
@@ -80,6 +116,17 @@ export default function EodReports() {
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
+
+      {missing.length > 0 && (
+        <Alert variant="default" className="mb-4 bg-warning/10 border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
+            No {missing.map((m) => MARKET_CLASS_LABEL[m] ?? m).join(' or ')} report for today yet
+            &mdash; you probably weren't logged in to your broker when it was due to run. Click
+            Refresh to generate it now.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>

@@ -59,6 +59,21 @@ def balance_progression():
     return jsonify({"status": "success", "data": get_balance_progression(user_id, broker, days)})
 
 
+@eod_reports_bp.route("/status")
+@check_session_validity
+def report_status():
+    """Whether today's report has been generated for each market class, for
+    the page's "no report yet" banner (see services.eod_reports_service.
+    report_status for what due/generated mean).
+    """
+    from services.eod_reports_service import report_status as compute_report_status
+
+    user_id, broker = _session_user_broker()
+    if not user_id or not broker:
+        return jsonify({"status": "error", "message": "Not logged in to a broker"}), 400
+    return jsonify({"status": "success", "data": compute_report_status(user_id, broker)})
+
+
 @eod_reports_bp.route("/pnl-calendar")
 @check_session_validity
 def pnl_calendar():

@@ -29,6 +29,7 @@ from sqlalchemy import desc
 from database.auth_db import Auth, get_auth_token
 from database.eod_reports_db import (
     get_brokerage_settings,
+    get_trade_analysis,
     replace_closed_trades,
     set_trade_reasoning,
     upsert_balance_snapshot,
@@ -52,6 +53,15 @@ IST = pytz.timezone("Asia/Kolkata")
 MARKET_CLASS_EXCHANGES = {
     "equity_fo": ("NSE", "BSE", "NFO", "BFO", "CDS", "BCD"),
     "commodity": ("MCX", "NCDEX"),
+}
+
+#: The scheduled run time for each market class (blueprints/python_strategy.py's
+#: CronTrigger hour/minute) - kept here too so the status check below can tell
+#: the trader whether today's run has simply not happened *yet* versus it ran
+#: and found nobody logged in.
+MARKET_CLASS_CUTOFF = {
+    "equity_fo": (15, 40),
+    "commodity": (23, 45),
 }
 
 
@@ -229,3 +239,24 @@ def run_eod_report_job(market_class: str = "equity_fo") -> dict:
         "trade_analysis": analysis,
         "closed_trades": len(trade_rows),
     }
+
+
+def report_status(user_id: str, broker: str) -> dict:
+    """Whether today's report has been generated for each market class, for
+    the Daily Reports page's "no report yet" banner.
+
+    ``due`` is true once that market class's scheduled run time
+    (MARKET_CLASS_CUTOFF) has passed for today IST; ``generated`` is true once
+    a trade_analysis row exists for today. due-and-not-generated is the
+    trader's actionable case - most likely they were logged out when the
+    scheduled job ran - everything else (not due yet, or already generated)
+    needs no banner.
+    """
+    now = datetime.now(IST)
+    today = now.date()
+    status = {}
+    for market_class, (hour, minute) in MARKET_CLASS_CUTOFF.items():
+        due = (now.hour, now.minute) >= (hour, minute)
+        generated = get_trade_analysis(user_id, broker, today, market_class) is not None
+        status[market_class] = {"due": due, "generated": generated}
+    return status
