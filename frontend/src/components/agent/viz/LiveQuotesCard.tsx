@@ -273,7 +273,7 @@ function Ladder({
                     aria-hidden
                     className={cn(
                       'absolute inset-y-0 left-0 rounded-sm',
-                      tone === 'up' ? 'bg-emerald-500/10' : 'bg-red-500/10'
+                      tone === 'up' ? 'bg-profit/10' : 'bg-loss/10'
                     )}
                     style={{ width: `${((row.quantity ?? 0) / largest) * 100}%` }}
                   />
@@ -407,11 +407,7 @@ export function LiveQuotesCard({ spec, title, source, className }: LiveQuotesCar
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[13px] font-semibold text-foreground">Live {parsed.mode}</span>
             <Chip>{`${rows.length} instrument${rows.length === 1 ? '' : 's'}`}</Chip>
-            {parsed.analyze && (
-              <Chip className="border-amber-500/40 text-amber-600 dark:text-amber-400">
-                Analyze
-              </Chip>
-            )}
+            {parsed.analyze && <Chip className="border-warning/40 text-warning">Analyze</Chip>}
           </div>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {statusLine(state, {

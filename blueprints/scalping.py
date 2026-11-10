@@ -650,6 +650,12 @@ def order():
     # server-side. SL auto-exits omit it (they close a raw position quantity).
     lots = data.get("lots")
 
+    # The terminal's persistent "current note" box - whatever the trader has
+    # typed is attached to whichever order fires next, so they can type their
+    # thesis once and fire several legs under it. Empty/missing is normal
+    # (most orders fire with no note) and never blocks placement.
+    note_text = (data.get("note") or "").strip()
+
     if not symbol:
         return jsonify({"status": "error", "message": "symbol is required"}), 400
     if exchange not in VALID_ORDER_EXCHANGES:
@@ -718,9 +724,20 @@ def order():
     # Record this instrument in the scalping list so Close-All / the position book
     # stay scoped to the scalping strategy (broker positions carry no strategy tag).
     if success:
-        from database.scalping_db import track_symbol
+        from database.scalping_db import record_order_note, track_symbol
 
         track_symbol(symbol, exchange, product, mode=_current_mode())
+        if note_text:
+            record_order_note(
+                user_id=session.get("user"),
+                broker=session.get("broker"),
+                symbol=symbol,
+                exchange=exchange,
+                product=product,
+                action=action,
+                quantity=quantity,
+                note_text=note_text,
+            )
     return jsonify(response), status_code
 
 

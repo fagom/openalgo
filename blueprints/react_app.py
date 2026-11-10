@@ -308,6 +308,12 @@ def react_pnltracker():
     return serve_react_app()
 
 
+# Daily Reports: balance progression, daily charges, trade analysis
+@react_bp.route("/eod-reports")
+def react_eod_reports():
+    return serve_react_app()
+
+
 # Tools overview (Option Chain, IV Chart, etc.)
 @react_bp.route("/tools")
 def react_tools():
@@ -372,6 +378,12 @@ def react_ivsmile():
 # OI Profile - Open Interest Profile with futures candles
 @react_bp.route("/oiprofile")
 def react_oiprofile():
+    return serve_react_app()
+
+
+# Instrument - option chain, price action and IV analytics for one instrument
+@react_bp.route("/instrument", strict_slashes=False)
+def react_instrument():
     return serve_react_app()
 
 
@@ -847,6 +859,11 @@ def serve_assets(filename):
             content_type = mimetypes.guess_type(filename)[0]
             if content_type:
                 response.headers["Content-Type"] = content_type
+            # send_from_directory labels this "filename=<asset>.gz". Safari types
+            # a module script by that name and refuses it as application/x-gzip,
+            # which left every iPhone browser on a blank page. An inline asset
+            # needs no filename at all.
+            response.headers.pop("Content-Disposition", None)
             response.headers["Accept-Ranges"] = "none"
             break
     if response is None:

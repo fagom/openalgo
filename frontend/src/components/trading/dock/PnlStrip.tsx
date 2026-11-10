@@ -107,7 +107,7 @@ export function PnlStrip({
           <Button
             variant="outline"
             size="sm"
-            className="h-6 px-2 text-[11px] text-rose-600 hover:text-rose-600 dark:text-rose-400"
+            className="h-6 px-2 text-[11px] text-destructive hover:text-destructive"
             disabled={openCount === 0}
           >
             Close all

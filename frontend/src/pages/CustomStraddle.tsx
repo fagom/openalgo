@@ -755,7 +755,7 @@ export default function CustomStraddle() {
               <div>
                 <span className="text-muted-foreground">P&L </span>
                 <span
-                  className={`font-semibold ${summary.total_pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                  className={`font-semibold ${summary.total_pnl >= 0 ? 'text-profit' : 'text-loss'}`}
                 >
                   {formatINR(summary.total_pnl)}
                 </span>
@@ -766,11 +766,11 @@ export default function CustomStraddle() {
               </div>
               <div>
                 <span className="text-muted-foreground">Max </span>
-                <span className="font-medium text-green-500">{formatINR(summary.max_pnl)}</span>
+                <span className="font-medium text-profit">{formatINR(summary.max_pnl)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Min </span>
-                <span className="font-medium text-red-500">{formatINR(summary.min_pnl)}</span>
+                <span className="font-medium text-loss">{formatINR(summary.min_pnl)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Spot </span>
@@ -888,14 +888,14 @@ function TradeRow({ trade }: { trade: TradeEntry }) {
   const { date, time } = formatIST(trade.time)
   const typeColor =
     trade.type === 'ENTRY'
-      ? 'text-blue-500'
+      ? 'text-primary'
       : trade.type === 'ADJUSTMENT'
-        ? 'text-amber-500'
-        : 'text-purple-500'
+        ? 'text-warning'
+        : 'text-chart-4'
 
-  const pnlColor = trade.leg_pnl > 0 ? 'text-green-500' : trade.leg_pnl < 0 ? 'text-red-500' : ''
+  const pnlColor = trade.leg_pnl > 0 ? 'text-profit' : trade.leg_pnl < 0 ? 'text-loss' : ''
   const cumColor =
-    trade.cumulative_pnl > 0 ? 'text-green-500' : trade.cumulative_pnl < 0 ? 'text-red-500' : ''
+    trade.cumulative_pnl > 0 ? 'text-profit' : trade.cumulative_pnl < 0 ? 'text-loss' : ''
 
   const strikeDisplay =
     trade.type === 'ADJUSTMENT' && trade.old_strike

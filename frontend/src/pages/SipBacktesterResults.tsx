@@ -58,8 +58,8 @@ function Stat({
       <div
         className={cn(
           'text-xl font-semibold tabular-nums',
-          tone === 'good' && 'text-emerald-600 dark:text-emerald-500',
-          tone === 'bad' && 'text-rose-600 dark:text-rose-500'
+          tone === 'good' && 'text-success',
+          tone === 'bad' && 'text-destructive'
         )}
       >
         {value}
@@ -140,14 +140,7 @@ export default function SipBacktesterResults() {
           <p className="text-lg leading-relaxed">
             You invested <span className="font-semibold">{inr(h.invested)}</span> across{' '}
             <span className="font-semibold">{h.installments}</span> installments. It became{' '}
-            <span
-              className={cn(
-                'font-semibold',
-                gainPositive
-                  ? 'text-emerald-600 dark:text-emerald-500'
-                  : 'text-rose-600 dark:text-rose-500'
-              )}
-            >
+            <span className={cn('font-semibold', gainPositive ? 'text-profit' : 'text-loss')}>
               {inr(h.final_value)}
             </span>{' '}
             — {h.multiple ? `${h.multiple.toFixed(2)}×` : '—'} your money. That is{' '}
@@ -158,7 +151,7 @@ export default function SipBacktesterResults() {
           {h.cost_advantage !== null && h.cost_advantage < 0 && (
             <p className="mt-2 text-sm text-muted-foreground">
               Buying a fixed amount each time got your shares{' '}
-              <span className="font-medium text-emerald-600 dark:text-emerald-500">
+              <span className="font-medium text-profit">
                 {Math.abs(h.cost_advantage * 100).toFixed(2)}% cheaper
               </span>{' '}
               than the average price over the same dates — {inr(h.average_cost, 2)} against{' '}
@@ -222,7 +215,7 @@ export default function SipBacktesterResults() {
       </Card>
 
       {result.warnings.length > 0 && (
-        <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+        <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
           <span className="font-medium">Check this data.</span> {result.warnings.join(' ')}
         </div>
       )}
@@ -293,9 +286,7 @@ export default function SipBacktesterResults() {
                         <td
                           className={cn(
                             'py-1 text-right',
-                            (y.gain ?? 0) >= 0
-                              ? 'text-emerald-600 dark:text-emerald-500'
-                              : 'text-rose-600 dark:text-rose-500'
+                            (y.gain ?? 0) >= 0 ? 'text-profit' : 'text-loss'
                           )}
                         >
                           {inr(y.gain)}
@@ -377,7 +368,7 @@ export default function SipBacktesterResults() {
                           <td
                             className={cn(
                               'py-1 text-right',
-                              (c.market_move ?? 0) < 0 && 'text-rose-600 dark:text-rose-500'
+                              (c.market_move ?? 0) < 0 && 'text-loss'
                             )}
                           >
                             {signedPct(c.market_move, 1)}
@@ -397,9 +388,7 @@ export default function SipBacktesterResults() {
                           <td
                             className={cn(
                               'py-1 text-right font-medium',
-                              c.starting_early_won
-                                ? 'text-emerald-600 dark:text-emerald-500'
-                                : 'text-muted-foreground'
+                              c.starting_early_won ? 'text-success' : 'text-muted-foreground'
                             )}
                           >
                             {signedPct(c.xirr_advantage)}
@@ -467,13 +456,9 @@ export default function SipBacktesterResults() {
                           {r.years} year{r.years === 1 ? '' : 's'}
                         </td>
                         <td className="py-1 text-right">{r.windows}</td>
-                        <td className="py-1 text-right text-rose-600 dark:text-rose-500">
-                          {pct(r.worst)}
-                        </td>
+                        <td className="py-1 text-right text-destructive">{pct(r.worst)}</td>
                         <td className="py-1 text-right font-medium">{pct(r.median)}</td>
-                        <td className="py-1 text-right text-emerald-600 dark:text-emerald-500">
-                          {pct(r.best)}
-                        </td>
+                        <td className="py-1 text-right text-success">{pct(r.best)}</td>
                         <td className="py-1 text-right">{pct(r.positive_share, 0)}</td>
                       </tr>
                     ))}
@@ -502,7 +487,7 @@ export default function SipBacktesterResults() {
                         key={day}
                         className={cn(
                           'w-16 rounded border px-1 py-1 text-center text-xs tabular-nums',
-                          best && 'border-emerald-500 bg-emerald-500/10'
+                          best && 'border-success/60 bg-success/10'
                         )}
                       >
                         <div className="text-muted-foreground">{day}</div>
@@ -684,12 +669,7 @@ export default function SipBacktesterResults() {
                   <tr key={`${i.executed}-${n}`} className="border-b last:border-0">
                     <td className="py-1">{n + 1}</td>
                     <td className="py-1">{i.requested}</td>
-                    <td
-                      className={cn(
-                        'py-1',
-                        i.requested !== i.executed && 'text-amber-600 dark:text-amber-500'
-                      )}
-                    >
+                    <td className={cn('py-1', i.requested !== i.executed && 'text-warning')}>
                       {i.executed}
                     </td>
                     <td className="py-1 text-right">{inr(i.amount)}</td>

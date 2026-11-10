@@ -1,0 +1,1 @@
+import{i as e}from"./client-CNFJUO8D.js";var t={getStraddleData:async t=>(await e.post(`/straddle/api/straddle-data`,t)).data,getIntervals:async()=>(await e.get(`/straddle/api/intervals`)).data};export{t};

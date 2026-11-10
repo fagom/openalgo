@@ -11,12 +11,19 @@ export interface CandleData {
   oi?: number
 }
 
+/** One of the four OI-buildup quadrants, or null when either leg's move is flat. */
+export type BuildupTag = 'Long Buildup' | 'Short Buildup' | 'Short Covering' | 'Long Unwinding'
+
 export interface OIProfileChainItem {
   strike: number
   ce_oi: number
   pe_oi: number
   ce_oi_change: number
   pe_oi_change: number
+  ce_price_change?: number
+  pe_price_change?: number
+  ce_buildup?: BuildupTag | null
+  pe_buildup?: BuildupTag | null
 }
 
 export interface OIProfileDataResponse {

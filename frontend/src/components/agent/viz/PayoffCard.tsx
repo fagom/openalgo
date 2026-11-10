@@ -144,8 +144,8 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: 'go
       <div
         className={cn(
           'mt-1 truncate font-mono text-sm tabular-nums',
-          tone === 'good' && 'text-emerald-600 dark:text-emerald-400',
-          tone === 'bad' && 'text-red-600 dark:text-red-400'
+          tone === 'good' && 'text-success',
+          tone === 'bad' && 'text-destructive'
         )}
       >
         {value}
@@ -237,14 +237,7 @@ export function PayoffCard({ spec, title }: PayoffCardProps) {
             key={leg.id || leg.symbol}
             className="flex flex-wrap items-baseline gap-x-2 px-3 py-1.5 text-[12px]"
           >
-            <span
-              className={cn(
-                'font-medium',
-                leg.side === 'SELL'
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-emerald-600 dark:text-emerald-400'
-              )}
-            >
+            <span className={cn('font-medium', leg.side === 'SELL' ? 'text-sell' : 'text-success')}>
               {leg.side}
             </span>
             <span className="font-mono text-muted-foreground">

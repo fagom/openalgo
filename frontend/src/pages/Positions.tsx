@@ -10,12 +10,11 @@ import {
   Radio,
   RefreshCw,
   Settings2,
-  TrendingDown,
-  TrendingUp,
   X,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { tradingApi } from '@/api/trading'
+import { CategorySection } from '@/components/trading/CategorySection'
 import { ChartSymbolLink } from '@/components/trading/ChartSymbolLink'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -56,6 +55,7 @@ import { useLivePrice } from '@/hooks/useLivePrice'
 import { useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
 import { usePageVisibility } from '@/hooks/usePageVisibility'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { groupByInstrumentCategory, sortCategoryKeys } from '@/lib/instrumentCategory'
 import { cn, makeFormatCurrency, sanitizeCSV } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
@@ -127,22 +127,22 @@ function calculatePnlPercent(position: Position): number {
 }
 
 const EXCHANGE_COLORS: Record<string, string> = {
-  NSE: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  BSE: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
-  NFO: 'bg-purple-500/20 text-purple-600 border-purple-500/30',
-  BFO: 'bg-amber-500/20 text-amber-600 border-amber-500/30',
-  MCX: 'bg-blue-500/20 text-blue-600 border-blue-500/30',
-  NCO: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30',
-  CDS: 'bg-teal-500/20 text-teal-600 border-teal-500/30',
-  NSE_INDEX: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  BSE_INDEX: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
-  GLOBAL_INDEX: 'bg-indigo-500/20 text-indigo-600 border-indigo-500/30',
+  NSE: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  BSE: 'bg-muted-foreground/20 text-muted-foreground border-border',
+  NFO: 'bg-chart-4/20 text-chart-4 border-chart-4/30',
+  BFO: 'bg-warning/20 text-warning border-warning/30',
+  MCX: 'bg-primary/20 text-primary border-primary/30',
+  NCO: 'bg-success/20 text-success border-success/30',
+  CDS: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  NSE_INDEX: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  BSE_INDEX: 'bg-muted-foreground/20 text-muted-foreground border-border',
+  GLOBAL_INDEX: 'bg-info/20 text-info border-info/30',
 }
 
 const PRODUCT_COLORS: Record<string, string> = {
-  CNC: 'bg-purple-500/20 text-purple-600 border-purple-500/30',
-  MIS: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/30',
-  NRML: 'bg-slate-500/20 text-slate-600 border-slate-500/30',
+  CNC: 'bg-chart-4/20 text-chart-4 border-chart-4/30',
+  MIS: 'bg-chart-3/20 text-chart-3 border-chart-3/30',
+  NRML: 'bg-muted-foreground/20 text-muted-foreground border-border',
 }
 
 export default function Positions() {
@@ -371,21 +371,39 @@ export default function Positions() {
     })
   }, [filteredPositions, sortColumn, sortDirection])
 
-  // Group positions
-  const groupedPositions = useMemo(() => {
-    if (grouping === 'none') {
-      return { _all: sortedPositions }
-    }
+  // Split into instrument-category sections (Equity / MTF / F&O / Commodity / Currency)
+  const positionsByCategory = useMemo(
+    () =>
+      groupByInstrumentCategory(
+        sortedPositions,
+        (p) => p.exchange,
+        (p) => p.product
+      ),
+    [sortedPositions]
+  )
+  const categoryKeys = useMemo(
+    () => sortCategoryKeys(Object.keys(positionsByCategory)),
+    [positionsByCategory]
+  )
 
-    const groups: Record<string, Position[]> = {}
-    sortedPositions.forEach((pos) => {
-      const groupKey = getGroupKey(pos)
-      if (!groups[groupKey]) groups[groupKey] = []
-      groups[groupKey].push(pos)
-    })
+  // Group positions within a category (by underlying / underlying & expiry, per Settings)
+  const buildGroups = useCallback(
+    (categoryPositions: Position[]) => {
+      if (grouping === 'none') {
+        return { _all: categoryPositions }
+      }
 
-    return groups
-  }, [sortedPositions, grouping, getGroupKey])
+      const groups: Record<string, Position[]> = {}
+      categoryPositions.forEach((pos) => {
+        const groupKey = getGroupKey(pos)
+        if (!groups[groupKey]) groups[groupKey] = []
+        groups[groupKey].push(pos)
+      })
+
+      return groups
+    },
+    [grouping, getGroupKey]
+  )
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -533,7 +551,7 @@ export default function Positions() {
       size="sm"
       className={cn(
         'rounded-full',
-        filters[type].includes(value) && 'bg-pink-500 hover:bg-pink-600'
+        filters[type].includes(value) && 'bg-primary hover:bg-primary/90'
       )}
       onClick={() => toggleFilter(type, value)}
     >
@@ -561,7 +579,7 @@ export default function Positions() {
         )}
       >
         {label}
-        <ArrowUpDown className="h-3 w-3 opacity-50" />
+        <ArrowUpDown className="size-4 opacity-50" />
       </div>
     </TableHead>
   )
@@ -582,20 +600,21 @@ export default function Positions() {
     return { totalPnl, pnlPercent, count: positions.length }
   }
 
-  // Sort group keys
-  const sortedGroupKeys = Object.keys(groupedPositions).sort((a, b) => {
-    if (a.startsWith('Equity') && !b.startsWith('Equity')) return -1
-    if (!a.startsWith('Equity') && b.startsWith('Equity')) return 1
-    return a.localeCompare(b)
-  })
+  // Sort group keys within a category (Equity (Delivery)/(Intraday) first)
+  const sortGroupKeys = (groups: Record<string, Position[]>) =>
+    Object.keys(groups).sort((a, b) => {
+      if (a.startsWith('Equity') && !b.startsWith('Equity')) return -1
+      if (!a.startsWith('Equity') && b.startsWith('Equity')) return 1
+      return a.localeCompare(b)
+    })
 
   return (
     <div className="space-y-6">
       {/* Stale Data Warning */}
       {showStaleWarning && (
-        <Alert variant="default" className="bg-amber-500/10 border-amber-500/30">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-700 dark:text-amber-400">
+        <Alert variant="default" className="bg-warning/10 border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning">
             Data is being refreshed after tab was inactive...
           </AlertDescription>
         </Alert>
@@ -609,17 +628,17 @@ export default function Positions() {
             {isPaused ? (
               <Badge
                 variant="outline"
-                className="bg-amber-500/10 text-amber-600 border-amber-500/30 gap-1"
+                className="bg-warning/10 text-warning border-warning/30 gap-1"
               >
-                <Pause className="h-3 w-3" />
+                <Pause className="size-4" />
                 Paused
               </Badge>
             ) : isLive ? (
               <Badge
                 variant="outline"
-                className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1"
+                className="bg-success/10 text-success border-success/30 gap-1"
               >
-                <Radio className="h-3 w-3 animate-pulse" />
+                <Radio className="size-4 animate-pulse" />
                 Live
               </Badge>
             ) : null}
@@ -638,7 +657,7 @@ export default function Positions() {
                 <Settings2 className="h-4 w-4 mr-2" />
                 Settings
                 {hasActiveFilters && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                 )}
               </Button>
             </DialogTrigger>
@@ -664,7 +683,7 @@ export default function Positions() {
                         key={opt.value}
                         className={cn(
                           'flex items-center gap-3 cursor-pointer p-2 rounded hover:bg-muted',
-                          grouping === opt.value && 'bg-pink-500/10 border border-pink-500/30'
+                          grouping === opt.value && 'bg-primary/10 border border-primary/30'
                         )}
                       >
                         <input
@@ -675,10 +694,10 @@ export default function Positions() {
                             setGrouping(opt.value as GroupingType)
                             setCollapsedGroups(new Set())
                           }}
-                          className="accent-pink-500"
+                          className="accent-primary"
                         />
                         <span
-                          className={cn(grouping === opt.value && 'text-pink-500 font-semibold')}
+                          className={cn(grouping === opt.value && 'text-primary font-semibold')}
                         >
                           {opt.label}
                         </span>
@@ -783,7 +802,7 @@ export default function Positions() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-muted-foreground">Active Filters:</span>
           {grouping !== 'none' && (
-            <Badge variant="secondary" className="bg-pink-500/10 text-pink-600 border-pink-500/30">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/30">
               Grouped: {grouping === 'underlying' ? 'Underlying' : 'Underlying & Expiry'}
             </Badge>
           )}
@@ -792,7 +811,7 @@ export default function Positions() {
               <Badge
                 key={v}
                 variant="secondary"
-                className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+                className="bg-primary/10 text-primary border-primary/30"
               >
                 {v}
               </Badge>
@@ -801,7 +820,7 @@ export default function Positions() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -810,7 +829,7 @@ export default function Positions() {
             <Badge
               key={v}
               variant="secondary"
-              className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+              className="bg-primary/10 text-primary border-primary/30"
             >
               {v}
             </Badge>
@@ -818,7 +837,7 @@ export default function Positions() {
           <Button
             variant="outline"
             size="sm"
-            className="text-red-500 border-red-500/50 hover:bg-red-500/10"
+            className="text-destructive border-destructive/50 hover:bg-destructive/10"
             onClick={clearFilters}
           >
             Clear All
@@ -837,23 +856,20 @@ export default function Positions() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Long</CardDescription>
-            <CardTitle className="text-2xl text-green-600">{stats.long}</CardTitle>
+            <CardTitle className="text-2xl text-buy">{stats.long}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Short</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{stats.short}</CardTitle>
+            <CardTitle className="text-2xl text-sell">{stats.short}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total P&L</CardDescription>
             <CardTitle
-              className={cn(
-                'text-2xl',
-                isProfit(stats.totalPnl) ? 'text-green-600' : 'text-red-600'
-              )}
+              className={cn('text-2xl', isProfit(stats.totalPnl) ? 'text-profit' : 'text-loss')}
             >
               {formatCurrency(stats.totalPnl)}
             </CardTitle>
@@ -861,16 +877,20 @@ export default function Positions() {
         </Card>
       </div>
 
-      {/* Positions Table */}
-      <Card>
-        <CardContent className="py-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-12 text-muted-foreground">{error}</div>
-          ) : filteredPositions.length === 0 ? (
+      {/* Positions, split into instrument-category sections */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-12 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </CardContent>
+        </Card>
+      ) : error ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">{error}</CardContent>
+        </Card>
+      ) : filteredPositions.length === 0 ? (
+        <Card>
+          <CardContent className="py-0">
             <EmptyState
               icon={ChartCandlestick}
               title="No positions match your filters"
@@ -883,203 +903,247 @@ export default function Positions() {
                 ) : undefined
               }
             />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <SortableHeader column={0} label="Symbol" className="w-[140px]" />
-                    <TableHead className="w-[80px]">Exchange</TableHead>
-                    {!isCrypto && <TableHead className="w-[80px]">Product</TableHead>}
-                    <SortableHeader column={3} label="Qty" className="w-[80px] text-right" />
-                    <SortableHeader column={4} label="Avg Price" className="w-[120px] text-right" />
-                    <TableHead className="w-[120px] text-right">LTP</TableHead>
-                    <SortableHeader column={6} label="P&L" className="w-[120px] text-right" />
-                    <SortableHeader column={7} label="P&L %" className="w-[100px] text-right" />
-                    <TableHead className="w-[60px] text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedGroupKeys.map((groupKey) => {
-                    const groupPositions = groupedPositions[groupKey]
-                    const isCollapsed = collapsedGroups.has(groupKey)
-                    const groupStats = calculateGroupStats(groupPositions)
+          </CardContent>
+        </Card>
+      ) : (
+        categoryKeys.map((categoryKey) => {
+          const categoryPositions =
+            positionsByCategory[categoryKey as keyof typeof positionsByCategory]
+          const categoryStats = calculateGroupStats(categoryPositions)
+          const groupedPositions = buildGroups(categoryPositions)
+          const sortedGroupKeys = sortGroupKeys(groupedPositions)
 
-                    return (
-                      <React.Fragment key={groupKey}>
-                        {/* Group Header Row */}
-                        {grouping !== 'none' && (
-                          <TableRow
-                            className="bg-muted/50 cursor-pointer hover:bg-muted"
-                            onClick={() => toggleGroup(groupKey)}
-                          >
-                            <TableCell colSpan={6}>
-                              <div className="flex items-center gap-3 py-1 font-semibold">
-                                {isCollapsed ? (
-                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                )}
-                                <span>{groupKey}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  {groupStats.count}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell
-                              className={cn(
-                                'text-right font-bold',
-                                isProfit(groupStats.totalPnl) ? 'text-green-600' : 'text-red-600'
-                              )}
+          return (
+            <CategorySection
+              key={categoryKey}
+              title={categoryKey}
+              count={categoryStats.count}
+              summary={
+                <>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">Overall P&L</div>
+                    <div
+                      className={cn(
+                        'font-semibold',
+                        isProfit(categoryStats.totalPnl) ? 'text-profit' : 'text-loss'
+                      )}
+                    >
+                      {categoryStats.totalPnl >= 0 ? '+' : ''}
+                      {formatCurrency(categoryStats.totalPnl)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">Returns</div>
+                    <div
+                      className={cn(
+                        'font-semibold',
+                        isProfit(categoryStats.pnlPercent) ? 'text-profit' : 'text-loss'
+                      )}
+                    >
+                      {categoryStats.pnlPercent >= 0 ? '+' : ''}
+                      {categoryStats.pnlPercent.toFixed(2)}%
+                    </div>
+                  </div>
+                </>
+              }
+            >
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <SortableHeader column={0} label="Symbol" className="w-[140px]" />
+                      <TableHead className="w-[80px]">Exchange</TableHead>
+                      {!isCrypto && <TableHead className="w-[80px]">Product</TableHead>}
+                      <SortableHeader column={3} label="Qty" className="w-[80px] text-right" />
+                      <SortableHeader
+                        column={4}
+                        label="Avg Price"
+                        className="w-[120px] text-right"
+                      />
+                      <TableHead className="w-[120px] text-right">LTP</TableHead>
+                      <SortableHeader column={6} label="P&L" className="w-[120px] text-right" />
+                      <SortableHeader column={7} label="P&L %" className="w-[100px] text-right" />
+                      <TableHead className="w-[60px] text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedGroupKeys.map((groupKey) => {
+                      const groupPositions = groupedPositions[groupKey]
+                      const isCollapsed = collapsedGroups.has(`${categoryKey}:${groupKey}`)
+                      const groupStats = calculateGroupStats(groupPositions)
+
+                      return (
+                        <React.Fragment key={groupKey}>
+                          {/* Group Header Row */}
+                          {grouping !== 'none' && (
+                            <TableRow
+                              className="bg-muted/50 cursor-pointer hover:bg-muted"
+                              onClick={() => toggleGroup(`${categoryKey}:${groupKey}`)}
                             >
-                              {groupStats.totalPnl >= 0 ? '+' : ''}
-                              {formatCurrency(groupStats.totalPnl)}
-                            </TableCell>
-                            <TableCell
-                              className={cn(
-                                'text-right font-semibold',
-                                isProfit(groupStats.pnlPercent) ? 'text-green-600' : 'text-red-600'
-                              )}
-                            >
-                              {groupStats.pnlPercent >= 0 ? '+' : ''}
-                              {groupStats.pnlPercent.toFixed(2)}%
-                            </TableCell>
-                            <TableCell />
-                          </TableRow>
-                        )}
-
-                        {/* Position Rows */}
-                        {!isCollapsed &&
-                          groupPositions.map((position, index) => {
-                            // A broker keeps reporting a position it has
-                            // squared off, with quantity 0 and its realised
-                            // P&L. Those rows stay - the figure is the point -
-                            // but there is nothing left to close on them.
-                            //
-                            // Coerced, not compared directly: the quantity is
-                            // typed as a number but does not always arrive as
-                            // one. Zerodha's position mapping defaults it to
-                            // the string "0", and a strict `!== 0` reads that
-                            // as an open position, which is the exact row this
-                            // guard exists to catch. calculatePnlPercent above
-                            // coerces for the same reason.
-                            const quantity = Number(position.quantity) || 0
-                            const isOpen = quantity !== 0
-
-                            return (
-                              <TableRow key={`${position.symbol}-${position.exchange}-${index}`}>
-                                <TableCell className="w-[140px] font-medium">
-                                  <ChartSymbolLink
-                                    symbol={position.symbol}
-                                    exchange={position.exchange}
-                                  />
-                                </TableCell>
-                                <TableCell className="w-[80px]">
-                                  <Badge
-                                    variant="outline"
-                                    className={EXCHANGE_COLORS[position.exchange] || ''}
-                                  >
-                                    {position.exchange}
+                              <TableCell colSpan={6}>
+                                <div className="flex items-center gap-3 py-1 font-semibold">
+                                  {isCollapsed ? (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                  <span>{groupKey}</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {groupStats.count}
                                   </Badge>
-                                </TableCell>
-                                {!isCrypto && (
+                                </div>
+                              </TableCell>
+                              <TableCell
+                                className={cn(
+                                  'text-right font-bold',
+                                  isProfit(groupStats.totalPnl) ? 'text-profit' : 'text-loss'
+                                )}
+                              >
+                                {groupStats.totalPnl >= 0 ? '+' : ''}
+                                {formatCurrency(groupStats.totalPnl)}
+                              </TableCell>
+                              <TableCell
+                                className={cn(
+                                  'text-right font-semibold',
+                                  isProfit(groupStats.pnlPercent) ? 'text-profit' : 'text-loss'
+                                )}
+                              >
+                                {groupStats.pnlPercent >= 0 ? '+' : ''}
+                                {groupStats.pnlPercent.toFixed(2)}%
+                              </TableCell>
+                              <TableCell />
+                            </TableRow>
+                          )}
+
+                          {/* Position Rows */}
+                          {!isCollapsed &&
+                            groupPositions.map((position, index) => {
+                              // A broker keeps reporting a position it has
+                              // squared off, with quantity 0 and its realised
+                              // P&L. Those rows stay - the figure is the point -
+                              // but there is nothing left to close on them.
+                              //
+                              // Coerced, not compared directly: the quantity is
+                              // typed as a number but does not always arrive as
+                              // one. Zerodha's position mapping defaults it to
+                              // the string "0", and a strict `!== 0` reads that
+                              // as an open position, which is the exact row this
+                              // guard exists to catch. calculatePnlPercent above
+                              // coerces for the same reason.
+                              const quantity = Number(position.quantity) || 0
+                              const isOpen = quantity !== 0
+
+                              return (
+                                <TableRow key={`${position.symbol}-${position.exchange}-${index}`}>
+                                  <TableCell className="w-[140px] font-medium">
+                                    <ChartSymbolLink
+                                      symbol={position.symbol}
+                                      exchange={position.exchange}
+                                    />
+                                  </TableCell>
                                   <TableCell className="w-[80px]">
                                     <Badge
                                       variant="outline"
-                                      className={PRODUCT_COLORS[position.product] || ''}
+                                      className={EXCHANGE_COLORS[position.exchange] || ''}
                                     >
-                                      {position.product}
+                                      {position.exchange}
                                     </Badge>
                                   </TableCell>
-                                )}
-                                <TableCell
-                                  className={cn(
-                                    'w-[80px] text-right font-medium',
-                                    // A squared-off position is neither long nor
-                                    // short. Colouring its 0 red read as a short.
-                                    !isOpen
-                                      ? 'text-muted-foreground'
-                                      : quantity > 0
-                                        ? 'text-green-600'
-                                        : 'text-red-600'
+                                  {!isCrypto && (
+                                    <TableCell className="w-[80px]">
+                                      <Badge
+                                        variant="outline"
+                                        className={PRODUCT_COLORS[position.product] || ''}
+                                      >
+                                        {position.product}
+                                      </Badge>
+                                    </TableCell>
                                   )}
-                                >
-                                  {position.quantity}
-                                </TableCell>
-                                <TableCell className="w-[120px] text-right font-mono">
-                                  {formatCurrency(position.average_price)}
-                                </TableCell>
-                                <TableCell className="w-[120px] text-right font-mono">
-                                  {position.ltp !== undefined ? formatCurrency(position.ltp) : '-'}
-                                </TableCell>
-                                <TableCell
-                                  className={cn(
-                                    'w-[120px] text-right font-medium',
-                                    isProfit(position.pnl) ? 'text-green-600' : 'text-red-600'
-                                  )}
-                                >
-                                  <div className="flex items-center justify-end gap-1">
-                                    {isProfit(position.pnl) ? (
-                                      <TrendingUp className="h-4 w-4" />
-                                    ) : (
-                                      <TrendingDown className="h-4 w-4" />
+                                  <TableCell
+                                    className={cn(
+                                      'w-[80px] text-right font-medium',
+                                      // A squared-off position is neither long nor
+                                      // short. Colouring its 0 red read as a short.
+                                      !isOpen
+                                        ? 'text-muted-foreground'
+                                        : quantity > 0
+                                          ? 'text-buy'
+                                          : 'text-sell'
                                     )}
+                                  >
+                                    {position.quantity}
+                                  </TableCell>
+                                  <TableCell className="w-[120px] text-right font-mono">
+                                    {formatCurrency(position.average_price)}
+                                  </TableCell>
+                                  <TableCell className="w-[120px] text-right font-mono">
+                                    {position.ltp !== undefined
+                                      ? formatCurrency(position.ltp)
+                                      : '-'}
+                                  </TableCell>
+                                  <TableCell
+                                    className={cn(
+                                      'w-[120px] text-right font-medium',
+                                      isProfit(position.pnl) ? 'text-profit' : 'text-loss'
+                                    )}
+                                  >
+                                    {position.pnl >= 0 ? '+' : ''}
                                     {formatCurrency(position.pnl)}
-                                  </div>
-                                </TableCell>
-                                <TableCell
-                                  className={cn(
-                                    'w-[100px] text-right',
-                                    isProfit(calculatePnlPercent(position))
-                                      ? 'text-green-600'
-                                      : 'text-red-600'
-                                  )}
-                                >
-                                  {calculatePnlPercent(position) >= 0 ? '+' : ''}
-                                  {calculatePnlPercent(position).toFixed(2)}%
-                                </TableCell>
-                                <TableCell className="w-[60px] text-right">
-                                  {isOpen && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                      onClick={() => handleClosePosition(position)}
-                                      aria-label={`Close ${position.symbol} position`}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            )
-                          })}
-                      </React.Fragment>
-                    )
-                  })}
-                </TableBody>
-                <TableFooter>
-                  <TableRow className="bg-muted/50">
-                    <TableCell colSpan={6} className="text-right text-muted-foreground">
-                      Total P&L:
-                    </TableCell>
-                    <TableCell
-                      className={cn(
-                        'w-[120px] text-right font-bold',
-                        isProfit(stats.totalPnl) ? 'text-green-600' : 'text-red-600'
-                      )}
-                    >
-                      {stats.totalPnl >= 0 ? '+' : ''}
-                      {formatCurrency(stats.totalPnl)}
-                    </TableCell>
-                    <TableCell colSpan={2} />
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                                  </TableCell>
+                                  <TableCell
+                                    className={cn(
+                                      'w-[100px] text-right',
+                                      isProfit(calculatePnlPercent(position))
+                                        ? 'text-profit'
+                                        : 'text-loss'
+                                    )}
+                                  >
+                                    {calculatePnlPercent(position) >= 0 ? '+' : ''}
+                                    {calculatePnlPercent(position).toFixed(2)}%
+                                  </TableCell>
+                                  <TableCell className="w-[60px] text-right">
+                                    {isOpen && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => handleClosePosition(position)}
+                                        aria-label={`Close ${position.symbol} position`}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              )
+                            })}
+                        </React.Fragment>
+                      )
+                    })}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={6} className="text-right text-muted-foreground">
+                        Section P&L:
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          'w-[120px] text-right font-bold',
+                          isProfit(categoryStats.totalPnl) ? 'text-profit' : 'text-loss'
+                        )}
+                      >
+                        {categoryStats.totalPnl >= 0 ? '+' : ''}
+                        {formatCurrency(categoryStats.totalPnl)}
+                      </TableCell>
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </div>
+            </CategorySection>
+          )
+        })
+      )}
     </div>
   )
 }

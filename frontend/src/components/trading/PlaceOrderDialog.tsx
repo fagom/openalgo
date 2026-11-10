@@ -2,7 +2,7 @@
 // Reusable order placement dialog with real-time quotes and market depth
 // Uses WebSocket for real-time data with REST API fallback (like Holdings/Positions)
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { tradingApi } from '@/api/trading'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useLiveQuote } from '@/hooks/useLiveQuote'
-import { cn } from '@/lib/utils'
+import { cn, makeFormatCurrency } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { showToast } from '@/utils/toast'
 import { MarketDepthPanel } from './MarketDepthPanel'
@@ -35,6 +35,13 @@ const PRICE_TYPES = [
   { value: 'LIMIT', label: 'Limit' },
   { value: 'SL-M', label: 'SL-M' }, // Stop Loss Market (trigger only)
   { value: 'SL', label: 'SL-L' }, // Stop Loss Limit (trigger + price)
+] as const
+
+// GTT entry leg accepts only these two — a GTT's own SL/target legs already
+// carry their trigger, so there is no SL/SL-M entry type to pick from.
+const GTT_ENTRY_PRICE_TYPES = [
+  { value: 'LIMIT', label: 'Limit' },
+  { value: 'MARKET', label: 'Market' },
 ] as const
 
 // Product types based on exchange
@@ -131,6 +138,57 @@ function isFnOExchange(exchange: string): boolean {
   return ['NFO', 'BFO', 'MCX', 'CDS', 'BCD', 'NCDEX', 'NCO', 'CRYPTO'].includes(exchange)
 }
 
+/** A labeled price input with tick-size +/- steppers, used for every price and trigger field in this dialog. */
+function PriceStepper({
+  label,
+  value,
+  tickSize,
+  onChange,
+  hint,
+}: {
+  label: string
+  value: number
+  tickSize: number
+  onChange: (value: number) => void
+  hint?: string
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">{label}</Label>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="px-2"
+          onClick={() => onChange(adjustPrice(value, tickSize, 'down'))}
+        >
+          -
+        </Button>
+        <Input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+          onBlur={() => onChange(roundToTick(value, tickSize))}
+          className="flex-1 text-center"
+          step={tickSize}
+          min={0}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="px-2"
+          onClick={() => onChange(adjustPrice(value, tickSize, 'up'))}
+        >
+          +
+        </Button>
+      </div>
+      {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
+    </div>
+  )
+}
+
 export function PlaceOrderDialog({
   open,
   onOpenChange,
@@ -150,7 +208,13 @@ export function PlaceOrderDialog({
   onSuccess,
   onError,
 }: PlaceOrderDialogProps) {
-  const { apiKey } = useAuthStore()
+  const { apiKey, user } = useAuthStore()
+  const formatCurrency = useMemo(() => makeFormatCurrency(user?.broker), [user?.broker])
+
+  // Available cash, fetched fresh each time the dialog opens so the cost
+  // check below reflects the balance at the moment of placing this order,
+  // not a stale figure from whenever the page last loaded.
+  const [availableCash, setAvailableCash] = useState<number | null>(null)
 
   // Form state
   const [formAction, setFormAction] = useState<'BUY' | 'SELL'>(initialAction)
@@ -159,6 +223,14 @@ export function PlaceOrderDialog({
   const [formProduct, setFormProduct] = useState(initialProduct)
   const [formPrice, setFormPrice] = useState(0)
   const [formTriggerPrice, setFormTriggerPrice] = useState(0)
+  // Bracket (GTT OCO): one entry plus a stoploss leg and a target leg, placed
+  // as a broker-side conditional order rather than an immediate fill.
+  const [orderMode, setOrderMode] = useState<'regular' | 'bracket'>('regular')
+  const [bracketEntryType, setBracketEntryType] = useState<'LIMIT' | 'MARKET'>('LIMIT')
+  const [slTrigger, setSlTrigger] = useState(0)
+  const [slLimit, setSlLimit] = useState(0)
+  const [tgTrigger, setTgTrigger] = useState(0)
+  const [tgLimit, setTgLimit] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDepthExpanded, setIsDepthExpanded] = useState(false)
   const [quantityMode, setQuantityMode] = useState<'lots' | 'shares'>('lots')
@@ -171,8 +243,11 @@ export function PlaceOrderDialog({
   const exchange_ = formExchange || exchange
   const isEquityExchange = exchange_ === 'NSE' || exchange_ === 'BSE'
 
-  // Get available product types based on exchange
-  const productTypes = isFnOExchange(exchange_) ? FNO_PRODUCT_TYPES : EQUITY_PRODUCT_TYPES
+  // Get available product types based on exchange. GTT accepts only CNC or
+  // NRML — MIS is intraday-only and the backend schema rejects it outright.
+  const productTypes = (isFnOExchange(exchange_) ? FNO_PRODUCT_TYPES : EQUITY_PRODUCT_TYPES).filter(
+    (pt) => orderMode === 'regular' || pt.value !== 'MIS'
+  )
 
   // Lots are a derivatives concept. Cash equity has no lot size worth showing.
   const usesLots = isFnOExchange(exchange_) && lotSize > 1
@@ -218,6 +293,12 @@ export function PlaceOrderDialog({
       // an order of 150 is the mistake the ticket exists to prevent.
       setLotMultiplier(lotsFor(initialQuantity, lotSize))
       setFormExchange(exchange)
+      setOrderMode('regular')
+      setBracketEntryType('LIMIT')
+      setSlTrigger(0)
+      setSlLimit(0)
+      setTgTrigger(0)
+      setTgLimit(0)
     }
   }, [
     open,
@@ -230,6 +311,32 @@ export function PlaceOrderDialog({
     initialTriggerPrice,
     exchange,
   ])
+
+  // Available cash for the cost check below. Fetched once per open rather
+  // than on every keystroke -- it only needs to be fresh as of opening the
+  // ticket, and the funds endpoint is a broker round trip.
+  useEffect(() => {
+    if (!open || !apiKey) {
+      setAvailableCash(null)
+      return
+    }
+    let cancelled = false
+    tradingApi
+      .getFunds(apiKey)
+      .then((res) => {
+        if (!cancelled && res.status === 'success' && res.data) {
+          setAvailableCash(Number(res.data.availablecash) || 0)
+        }
+      })
+      .catch(() => {
+        // Silent: the cost estimate below just stays hidden without a
+        // balance to compare against, and placing the order still works --
+        // this is a convenience check, not something to block the ticket on.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, apiKey])
 
   // Use data from centralized hook
   const mergedData = {
@@ -254,6 +361,48 @@ export function PlaceOrderDialog({
     }
   }, [formPriceType, mergedData.ltp, formPrice, tickSize])
 
+  // GTT rejects MIS outright, so switching into bracket mode off a regular
+  // MIS ticket needs a product the schema will accept.
+  useEffect(() => {
+    if (orderMode === 'bracket' && formProduct === 'MIS') {
+      setFormProduct(isFnOExchange(exchange_) ? 'NRML' : 'CNC')
+    }
+  }, [orderMode, formProduct, exchange_])
+
+  // Seed the entry price and both legs from the live LTP once, so the ticket
+  // opens with sane numbers instead of zeros the trader must fill blind.
+  useEffect(() => {
+    if (orderMode !== 'bracket' || !mergedData.ltp) return
+    const ltp = roundToTick(mergedData.ltp, tickSize)
+    if (formPrice === 0) setFormPrice(ltp)
+    if (slTrigger === 0 && slLimit === 0) {
+      const sl = roundToTick(
+        formAction === 'BUY' ? ltp - tickSize * 20 : ltp + tickSize * 20,
+        tickSize
+      )
+      setSlTrigger(Math.max(0, sl))
+      setSlLimit(Math.max(0, sl))
+    }
+    if (tgTrigger === 0 && tgLimit === 0) {
+      const tg = roundToTick(
+        formAction === 'BUY' ? ltp + tickSize * 20 : ltp - tickSize * 20,
+        tickSize
+      )
+      setTgTrigger(Math.max(0, tg))
+      setTgLimit(Math.max(0, tg))
+    }
+  }, [
+    orderMode,
+    mergedData.ltp,
+    tickSize,
+    formPrice,
+    slTrigger,
+    slLimit,
+    tgTrigger,
+    tgLimit,
+    formAction,
+  ])
+
   // Validation - determine which price fields are needed:
   // LIMIT: price only
   // SL-M (Stop Loss Market): trigger price only
@@ -261,10 +410,35 @@ export function PlaceOrderDialog({
   const needsPrice = formPriceType === 'LIMIT' || formPriceType === 'SL'
   const needsTrigger = formPriceType === 'SL-M' || formPriceType === 'SL'
 
+  // The price this order is actually going to fill or trigger near: the
+  // entry price for a bracket, the typed price for LIMIT/SL, and the live
+  // LTP for MARKET/SL-M, which carry no price field of their own.
+  const referencePrice =
+    orderMode === 'bracket' ? formPrice : needsPrice ? formPrice : (mergedData.ltp ?? formPrice)
+
+  // Order value, not a margin figure: for CNC equity (cash settlement, no
+  // leverage) this IS the amount blocked, so the comparison below is a
+  // direct accept/reject check. For MIS/NRML -- leveraged -- the broker's
+  // actual margin requirement is a SPAN+exposure calculation this platform
+  // has no generic API to reproduce, and is usually well under this number,
+  // so leveraged tickets get the same figure labeled as an upper bound
+  // rather than a prediction.
+  const orderValue = referencePrice > 0 && formQuantity > 0 ? referencePrice * formQuantity : null
+  const isLeveraged = formProduct !== 'CNC'
+  const exceedsBalance =
+    !isLeveraged && orderValue !== null && availableCash !== null && orderValue > availableCash
+
   const isValid = useCallback(() => {
     if (!symbol || !exchange_) return false
     if (!apiKey) return false
     if (formQuantity <= 0) return false
+    if (orderMode === 'bracket') {
+      if (formPrice <= 0) return false
+      if (slTrigger <= 0 || slLimit <= 0) return false
+      if (tgTrigger <= 0 || tgLimit <= 0) return false
+      if (slTrigger >= tgTrigger) return false
+      return true
+    }
     if (needsPrice && formPrice <= 0) return false
     if (needsTrigger && formTriggerPrice <= 0) return false
     return true
@@ -273,8 +447,13 @@ export function PlaceOrderDialog({
     exchange_,
     apiKey,
     formQuantity,
-    needsPrice,
+    orderMode,
     formPrice,
+    slTrigger,
+    slLimit,
+    tgTrigger,
+    tgLimit,
+    needsPrice,
     needsTrigger,
     formTriggerPrice,
   ])
@@ -294,6 +473,38 @@ export function PlaceOrderDialog({
 
     setIsSubmitting(true)
     try {
+      // A bracket places a GTT OCO trigger — a broker-side conditional order,
+      // never the caller's own `place` route, which exists to check the
+      // live/analyze switch before an immediate fill. The GTT endpoint makes
+      // that same check itself.
+      if (orderMode === 'bracket') {
+        const response = await tradingApi.placeGttOrder({
+          apikey: apiKey,
+          strategy,
+          trigger_type: 'OCO',
+          exchange: exchange_,
+          symbol,
+          action: formAction,
+          product: formProduct as 'CNC' | 'NRML',
+          quantity: formQuantity,
+          pricetype: bracketEntryType,
+          price: formPrice,
+          triggerprice_sl: slTrigger,
+          triggerprice_tg: tgTrigger,
+          stoploss: slLimit,
+          target: tgLimit,
+        })
+        if (response.status === 'success') {
+          onSuccess?.(response.trigger_id ?? '')
+          onOpenChange(false)
+        } else {
+          const errorMsg = response.message || 'GTT order placement failed'
+          showToast.error(errorMsg, 'orders')
+          onError?.(errorMsg)
+        }
+        return
+      }
+
       // Price types are now directly mapped to API values
       // Backend accepts: MARKET, LIMIT, SL (Stop Loss Limit), SL-M (Stop Loss Market)
       const apiPriceType = formPriceType as 'MARKET' | 'LIMIT' | 'SL' | 'SL-M'
@@ -381,7 +592,7 @@ export function PlaceOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>Place Order -</span>
-            <span className={formAction === 'BUY' ? 'text-green-500' : 'text-red-500'}>
+            <span className={formAction === 'BUY' ? 'text-buy' : 'text-destructive'}>
               {formAction}
             </span>
             <span className="text-muted-foreground font-normal text-sm truncate">{symbol}</span>
@@ -418,7 +629,7 @@ export function PlaceOrderDialog({
               <Button
                 type="button"
                 variant={formAction === 'BUY' ? 'default' : 'outline'}
-                className={cn('flex-1', formAction === 'BUY' && 'bg-green-600 hover:bg-green-700')}
+                className={cn('flex-1', formAction === 'BUY' && 'bg-buy hover:bg-buy/90')}
                 onClick={() => setFormAction('BUY')}
               >
                 BUY
@@ -426,10 +637,34 @@ export function PlaceOrderDialog({
               <Button
                 type="button"
                 variant={formAction === 'SELL' ? 'default' : 'outline'}
-                className={cn('flex-1', formAction === 'SELL' && 'bg-red-600 hover:bg-red-700')}
+                className={cn('flex-1', formAction === 'SELL' && 'bg-sell hover:bg-sell/90')}
                 onClick={() => setFormAction('SELL')}
               >
                 SELL
+              </Button>
+            </div>
+          </div>
+
+          {/* Order Type: a regular immediate order, or a GTT bracket (SL +
+              target legs) placed as a broker-side conditional trigger. */}
+          <div className="space-y-2">
+            <Label className="text-xs">Order Type</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={orderMode === 'regular' ? 'default' : 'outline'}
+                className="flex-1"
+                onClick={() => setOrderMode('regular')}
+              >
+                Regular
+              </Button>
+              <Button
+                type="button"
+                variant={orderMode === 'bracket' ? 'default' : 'outline'}
+                className="flex-1"
+                onClick={() => setOrderMode('bracket')}
+              >
+                Bracket (SL + Target)
               </Button>
             </div>
           </div>
@@ -505,22 +740,42 @@ export function PlaceOrderDialog({
           {/* Price Type and Product in row */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-xs">Price Type</Label>
-              <Select
-                value={formPriceType}
-                onValueChange={(v) => setFormPriceType(v as typeof formPriceType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRICE_TYPES.map((pt) => (
-                    <SelectItem key={pt.value} value={pt.value}>
-                      {pt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-xs">
+                {orderMode === 'bracket' ? 'Entry Type' : 'Price Type'}
+              </Label>
+              {orderMode === 'bracket' ? (
+                <Select
+                  value={bracketEntryType}
+                  onValueChange={(v) => setBracketEntryType(v as typeof bracketEntryType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GTT_ENTRY_PRICE_TYPES.map((pt) => (
+                      <SelectItem key={pt.value} value={pt.value}>
+                        {pt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  value={formPriceType}
+                  onValueChange={(v) => setFormPriceType(v as typeof formPriceType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRICE_TYPES.map((pt) => (
+                      <SelectItem key={pt.value} value={pt.value}>
+                        {pt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs">Product</Label>
@@ -542,78 +797,103 @@ export function PlaceOrderDialog({
             </div>
           </div>
 
-          {/* Price Input (conditional) */}
-          {needsPrice && (
-            <div className="space-y-2">
-              <Label className="text-xs">Price</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-2"
-                  onClick={() => setFormPrice(adjustPrice(formPrice, tickSize, 'down'))}
-                >
-                  -
-                </Button>
-                <Input
-                  type="number"
-                  value={formPrice}
-                  onChange={(e) => setFormPrice(parseFloat(e.target.value) || 0)}
-                  onBlur={() => setFormPrice(roundToTick(formPrice, tickSize))}
-                  className="flex-1 text-center"
-                  step={tickSize}
-                  min={0}
+          {orderMode === 'bracket' ? (
+            <>
+              <PriceStepper
+                label="Entry Price"
+                value={formPrice}
+                tickSize={tickSize}
+                onChange={setFormPrice}
+                hint={`Tick size: ${tickSize}`}
+              />
+              <div className="grid grid-cols-2 gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-2">
+                <PriceStepper
+                  label="Stoploss Trigger"
+                  value={slTrigger}
+                  tickSize={tickSize}
+                  onChange={setSlTrigger}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-2"
-                  onClick={() => setFormPrice(adjustPrice(formPrice, tickSize, 'up'))}
-                >
-                  +
-                </Button>
+                <PriceStepper
+                  label="Stoploss Limit"
+                  value={slLimit}
+                  tickSize={tickSize}
+                  onChange={setSlLimit}
+                />
               </div>
-              <p className="text-[10px] text-muted-foreground">Tick size: {tickSize}</p>
-            </div>
+              <div className="grid grid-cols-2 gap-3 rounded-md border border-success/30 bg-success/5 p-2">
+                <PriceStepper
+                  label="Target Trigger"
+                  value={tgTrigger}
+                  tickSize={tickSize}
+                  onChange={setTgTrigger}
+                />
+                <PriceStepper
+                  label="Target Limit"
+                  value={tgLimit}
+                  tickSize={tickSize}
+                  onChange={setTgLimit}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Placed as a GTT: the broker holds it and fires whichever leg triggers first,
+                cancelling the other.
+              </p>
+            </>
+          ) : (
+            <>
+              {needsPrice && (
+                <PriceStepper
+                  label="Price"
+                  value={formPrice}
+                  tickSize={tickSize}
+                  onChange={setFormPrice}
+                  hint={`Tick size: ${tickSize}`}
+                />
+              )}
+              {needsTrigger && (
+                <PriceStepper
+                  label="Trigger Price"
+                  value={formTriggerPrice}
+                  tickSize={tickSize}
+                  onChange={setFormTriggerPrice}
+                />
+              )}
+            </>
           )}
 
-          {/* Trigger Price Input (conditional) */}
-          {needsTrigger && (
-            <div className="space-y-2">
-              <Label className="text-xs">Trigger Price</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-2"
-                  onClick={() =>
-                    setFormTriggerPrice(adjustPrice(formTriggerPrice, tickSize, 'down'))
-                  }
-                >
-                  -
-                </Button>
-                <Input
-                  type="number"
-                  value={formTriggerPrice}
-                  onChange={(e) => setFormTriggerPrice(parseFloat(e.target.value) || 0)}
-                  onBlur={() => setFormTriggerPrice(roundToTick(formTriggerPrice, tickSize))}
-                  className="flex-1 text-center"
-                  step={tickSize}
-                  min={0}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-2"
-                  onClick={() => setFormTriggerPrice(adjustPrice(formTriggerPrice, tickSize, 'up'))}
-                >
-                  +
-                </Button>
+          {/* Cost check: order value against available cash. Exact only for
+              CNC (no leverage); MIS/NRML show the same number as an upper
+              bound, since the broker's real margin requirement is usually
+              lower and this platform has no generic way to compute it. */}
+          {orderValue !== null && (
+            <div
+              className={cn(
+                'rounded-md border p-2 text-xs space-y-1',
+                exceedsBalance ? 'border-destructive/40 bg-destructive/5' : 'bg-muted/30'
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {isLeveraged ? 'Order value (before leverage)' : 'Order value'}
+                </span>
+                <span className="font-mono font-medium">{formatCurrency(orderValue)}</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Available balance</span>
+                <span className="font-mono">
+                  {availableCash !== null ? formatCurrency(availableCash) : '...'}
+                </span>
+              </div>
+              {exceedsBalance && (
+                <p className="text-destructive">
+                  Order value exceeds your available balance -- the broker is likely to reject this.
+                </p>
+              )}
+              {isLeveraged && (
+                <p className="text-muted-foreground">
+                  {formProduct} trades on margin -- the broker will likely block less than this.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -627,11 +907,15 @@ export function PlaceOrderDialog({
             disabled={!isValid() || isSubmitting}
             className={cn(
               formAction === 'BUY'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-red-600 hover:bg-red-700'
+                ? 'bg-buy hover:bg-buy/90'
+                : 'bg-destructive hover:bg-destructive/90'
             )}
           >
-            {isSubmitting ? 'Placing...' : `Place ${formAction} Order`}
+            {isSubmitting
+              ? 'Placing...'
+              : orderMode === 'bracket'
+                ? `Place ${formAction} Bracket (GTT)`
+                : `Place ${formAction} Order`}
           </Button>
         </DialogFooter>
       </DialogContent>

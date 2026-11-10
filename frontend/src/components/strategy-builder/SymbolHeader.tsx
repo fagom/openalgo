@@ -68,8 +68,8 @@ function MetricCell({ label, value, sub, tone = 'muted', accent = false }: Metri
           'font-semibold tabular-nums leading-none',
           accent ? 'text-2xl tracking-tight' : 'text-base',
           tone === 'primary' && 'text-foreground',
-          tone === 'profit' && 'text-emerald-600 dark:text-emerald-400',
-          tone === 'warn' && 'text-amber-600 dark:text-amber-400',
+          tone === 'profit' && 'text-profit',
+          tone === 'warn' && 'text-warning',
           tone === 'muted' && 'text-foreground'
         )}
       >
@@ -154,7 +154,7 @@ export function SymbolHeader({
                 className="h-9 w-full min-w-0 justify-between rounded-none border-0 bg-transparent px-3 text-xs font-bold tracking-wide hover:bg-muted/40"
               >
                 {selectedUnderlying || 'Select'}
-                <ChevronsUpDown className="ml-2 h-3.5 w-3.5 opacity-50" />
+                <ChevronsUpDown className="ml-2 size-4 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-56 p-0">
@@ -179,7 +179,7 @@ export function SymbolHeader({
                       >
                         <Check
                           className={cn(
-                            'mr-2 h-3.5 w-3.5',
+                            'mr-2 size-4',
                             selectedUnderlying === u ? 'opacity-100' : 'opacity-0'
                           )}
                         />
@@ -217,13 +217,13 @@ export function SymbolHeader({
               <span
                 className={cn(
                   'absolute inline-flex h-full w-full rounded-full opacity-75',
-                  isLive ? 'animate-ping bg-emerald-400' : 'bg-muted-foreground/40'
+                  isLive ? 'animate-ping bg-success' : 'bg-muted-foreground/40'
                 )}
               />
               <span
                 className={cn(
                   'relative inline-flex h-2 w-2 rounded-full',
-                  isLive ? 'bg-emerald-500' : 'bg-muted-foreground/60'
+                  isLive ? 'bg-success' : 'bg-muted-foreground/60'
                 )}
               />
             </span>
@@ -242,7 +242,7 @@ export function SymbolHeader({
             disabled={isRefreshing}
             className="h-8 gap-1.5 text-xs"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', isRefreshing && 'animate-spin')} />
+            <RefreshCw className={cn('size-4', isRefreshing && 'animate-spin')} />
             Refresh
           </Button>
         </div>

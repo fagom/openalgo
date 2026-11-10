@@ -62,12 +62,9 @@ export function CrisisChart({ periods }: Props) {
   // The timeline runs across the whole reported history, so each band's
   // position and width are comparable between rows.
   const first = new Date(`${ordered[0].start}T00:00:00Z`).getTime()
-  const last = Math.max(
-    ...ordered.map((p) => new Date(`${p.end}T00:00:00Z`).getTime())
-  )
+  const last = Math.max(...ordered.map((p) => new Date(`${p.end}T00:00:00Z`).getTime()))
   const total = Math.max(last - first, 1)
-  const at = (iso: string) =>
-    ((new Date(`${iso}T00:00:00Z`).getTime() - first) / total) * 100
+  const at = (iso: string) => ((new Date(`${iso}T00:00:00Z`).getTime() - first) / total) * 100
 
   return (
     <div className="space-y-3">
@@ -81,17 +78,14 @@ export function CrisisChart({ periods }: Props) {
         const port = p.portfolio ?? 0
         const bench = p.benchmark
         return (
-          <div
-            key={p.key}
-            className="grid grid-cols-[15rem_10rem_1fr] items-center gap-3"
-          >
+          <div key={p.key} className="grid grid-cols-[15rem_10rem_1fr] items-center gap-3">
             {/* What, and how long */}
             <div className="min-w-0">
               <div className="truncate text-sm" title={p.note || p.label}>
                 {p.label}
                 {p.partial && (
                   <span
-                    className="ml-1 text-[10px] text-amber-500"
+                    className="ml-1 text-[10px] text-warning"
                     title="the backtest covers only part of this window"
                   >
                     partial
@@ -109,7 +103,7 @@ export function CrisisChart({ periods }: Props) {
               <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
               <div
                 className={`absolute top-1/2 h-2.5 -translate-y-1/2 rounded-sm ${
-                  p.scope === 'india' ? 'bg-violet-500/70' : 'bg-sky-500/70'
+                  p.scope === 'india' ? 'bg-chart-4/70' : 'bg-info/70'
                 }`}
                 style={{
                   left: `${at(p.start)}%`,
@@ -137,7 +131,7 @@ export function CrisisChart({ periods }: Props) {
 
               <div
                 className={`absolute top-2.5 h-3 rounded-sm ${
-                  port >= 0 ? 'bg-blue-500' : 'bg-rose-500'
+                  port >= 0 ? 'bg-primary' : 'bg-loss'
                 }`}
                 style={{
                   left: `${port >= 0 ? half : half - span(port)}%`,
@@ -148,7 +142,7 @@ export function CrisisChart({ periods }: Props) {
 
               <span
                 className={`absolute top-1.5 whitespace-nowrap text-xs tabular-nums ${
-                  port >= 0 ? 'text-blue-500' : 'text-rose-500'
+                  port >= 0 ? 'text-primary' : 'text-loss'
                 }`}
                 style={
                   port >= 0
@@ -172,13 +166,13 @@ export function CrisisChart({ periods }: Props) {
 
       <div className="flex flex-wrap justify-end gap-4 border-t pt-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-4 rounded-sm bg-sky-500/70" /> Global
+          <span className="inline-block h-2 w-4 rounded-sm bg-info/70" /> Global
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-4 rounded-sm bg-violet-500/70" /> Domestic
+          <span className="inline-block h-2 w-4 rounded-sm bg-chart-4/70" /> Domestic
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-4 rounded-sm bg-blue-500" /> Portfolio
+          <span className="inline-block h-2 w-4 rounded-sm bg-primary" /> Portfolio
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-2 w-4 rounded-sm border border-dashed border-muted-foreground/50 bg-muted-foreground/10" />

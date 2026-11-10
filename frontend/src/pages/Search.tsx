@@ -503,7 +503,7 @@ export default function Search() {
                             title="Copy symbol"
                             aria-label="Copy symbol"
                           >
-                            <Copy className="h-3 w-3" />
+                            <Copy className="size-4" />
                           </Button>
                         </div>
                       </TableCell>

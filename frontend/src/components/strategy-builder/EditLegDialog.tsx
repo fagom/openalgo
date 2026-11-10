@@ -1,5 +1,6 @@
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ResolveLegContract } from '@/components/strategy-builder/ManualLegBuilder'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { ResolveLegContract } from '@/components/strategy-builder/ManualLegBuilder'
 import { parseFinitePrice, type ResolvedLegMarket } from '@/lib/strategyContracts'
 import type { StrategyLeg } from '@/lib/strategyMath'
 import { strikeMoneyness } from '@/lib/strategyMath'
@@ -279,8 +279,8 @@ export function EditLegDialog({
                       <span
                         className={cn(
                           'rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wider',
-                          m.kind === 'ATM' && 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                          m.kind === 'ITM' && 'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+                          m.kind === 'ATM' && 'bg-warning/15 text-warning',
+                          m.kind === 'ITM' && 'bg-info/15 text-info',
                           m.kind === 'OTM' && 'bg-muted text-muted-foreground'
                         )}
                       >
@@ -320,9 +320,9 @@ export function EditLegDialog({
                 name="side"
                 checked={side === 'BUY'}
                 onChange={() => setSide('BUY')}
-                className="h-4 w-4 accent-emerald-500"
+                className="h-4 w-4 accent-buy"
               />
-              <span className={cn(side === 'BUY' && 'font-semibold text-emerald-600')}>Buy</span>
+              <span className={cn(side === 'BUY' && 'font-semibold text-buy')}>Buy</span>
             </label>
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
@@ -330,9 +330,9 @@ export function EditLegDialog({
                 name="side"
                 checked={side === 'SELL'}
                 onChange={() => setSide('SELL')}
-                className="h-4 w-4 accent-rose-500"
+                className="h-4 w-4 accent-sell"
               />
-              <span className={cn(side === 'SELL' && 'font-semibold text-rose-600')}>Sell</span>
+              <span className={cn(side === 'SELL' && 'font-semibold text-sell')}>Sell</span>
             </label>
           </div>
 
@@ -411,7 +411,7 @@ export function EditLegDialog({
               placeholder="0"
               className={cn(
                 'h-10 text-base font-semibold',
-                isClosed && 'border-rose-400 text-rose-600 dark:text-rose-400'
+                isClosed && 'border-destructive/60 text-destructive'
               )}
             />
             {exitPriceError ? (
@@ -453,7 +453,7 @@ export function EditLegDialog({
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+              className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => {
                 onDelete(leg.id)
                 onOpenChange(false)

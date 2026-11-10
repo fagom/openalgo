@@ -351,11 +351,7 @@ export function LiveComboCard({ spec, title, source, className }: LiveComboCardP
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[13px] font-semibold text-foreground">{parsed.label}</span>
             <Chip>{parsed.structure.replace(/_/g, ' ')}</Chip>
-            {parsed.analyze && (
-              <Chip className="border-amber-500/40 text-amber-600 dark:text-amber-400">
-                Analyze
-              </Chip>
-            )}
+            {parsed.analyze && <Chip className="border-warning/40 text-warning">Analyze</Chip>}
           </div>
           {parsed.summary && (
             <p className="mt-0.5 text-[11px] text-muted-foreground">{parsed.summary}</p>
@@ -420,9 +416,7 @@ export function LiveComboCard({ spec, title, source, className }: LiveComboCardP
         <p
           className={cn(
             'border-t border-border px-3 py-1.5 text-[11px]',
-            parsed.atm.claimsAtm
-              ? 'bg-amber-500/5 text-amber-700 dark:text-amber-400'
-              : 'text-muted-foreground'
+            parsed.atm.claimsAtm ? 'bg-warning/5 text-warning' : 'text-muted-foreground'
           )}
         >
           {parsed.atm.claimsAtm

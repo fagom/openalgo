@@ -30,7 +30,7 @@ export const HistoryNode = memo(({ data, selected }: HistoryNodeProps) => {
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="flex h-5 w-5 items-center justify-center rounded bg-primary/20 text-primary">
-            <TrendingUp className="h-3 w-3" />
+            <TrendingUp className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">History</div>

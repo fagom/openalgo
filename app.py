@@ -65,12 +65,16 @@ from blueprints.core import core_bp
 from blueprints.custom_indicators import custom_indicators_bp  # User chart indicators
 from blueprints.custom_straddle import custom_straddle_bp  # Import custom straddle blueprint
 from blueprints.dashboard import dashboard_bp
+from blueprints.eod_reports import eod_reports_bp  # Daily Reports (balance/charges/trade analysis)
 from blueprints.flow import flow_bp  # Import the flow blueprint
 from blueprints.gamma_density import gamma_density_bp  # Import the Gamma Density blueprint
 from blueprints.gc_json import gc_json_bp
 from blueprints.gex import gex_bp  # Import the GEX blueprint
 from blueprints.health import health_bp  # Import the health monitoring blueprint
 from blueprints.historify import historify_bp  # Import the historify blueprint
+from blueprints.instrument_overview import (
+    instrument_overview_bp,  # Import the Instrument Overview blueprint
+)
 from blueprints.ivchart import ivchart_bp  # Import the IV chart blueprint
 from blueprints.ivsmile import ivsmile_bp  # Import the IV Smile blueprint
 from blueprints.latency import latency_bp  # Import the latency blueprint
@@ -127,8 +131,10 @@ from database.apscheduler_jobstore_db import ensure_jobstore_tables_exist
 from database.auth_db import init_db as ensure_auth_tables_exists
 from database.broker_keys_db import ensure_broker_keys_tables_exists
 from database.chartink_db import init_db as ensure_chartink_tables_exists
+from database.eod_reports_db import init_db as ensure_eod_reports_tables_exists
 from database.flow_db import init_db as ensure_flow_tables_exists
 from database.historify_db import init_database as ensure_historify_tables_exists
+from database.iv_history_db import init_db as ensure_iv_history_tables_exists
 from database.latency_db import init_latency_db as ensure_latency_tables_exists
 from database.leverage_db import init_db as ensure_leverage_tables_exists
 from database.sandbox_db import init_db as ensure_sandbox_tables_exists
@@ -325,6 +331,7 @@ def create_app():
     app.register_blueprint(openscript_bp)  # Register trader authored OpenScript sources
     app.register_blueprint(openscript_runner_bp)  # Register the OpenScript strategy runner
     app.register_blueprint(pnltracker_bp)  # Register PnL tracker blueprint
+    app.register_blueprint(eod_reports_bp)  # Register Daily Reports blueprint
     app.register_blueprint(python_strategy_bp)  # Register Python strategy blueprint
     app.register_blueprint(telegram_bp)  # Register Telegram blueprint
     app.register_blueprint(whatsapp_bp)  # Register WhatsApp blueprint
@@ -334,6 +341,7 @@ def create_app():
     app.register_blueprint(logging_bp)  # Register Logging blueprint
     app.register_blueprint(admin_bp)  # Register Admin blueprint
     app.register_blueprint(historify_bp)  # Register Historify blueprint
+    app.register_blueprint(instrument_overview_bp)  # Register Instrument Overview blueprint
     app.register_blueprint(ivchart_bp)  # Register IV chart blueprint
     app.register_blueprint(scalping_bp)  # Register Scalping terminal blueprint
     app.register_blueprint(watchlist_bp)  # Register charting watchlist blueprint
@@ -792,8 +800,10 @@ def setup_environment(app):
                 ("Watchlist DB", ensure_watchlist_tables_exists),
                 ("Alert Log DB", ensure_alert_log_tables_exists),
                 ("Leverage DB", ensure_leverage_tables_exists),
+                ("IV History DB", ensure_iv_history_tables_exists),
                 ("Strategy Portfolio DB", ensure_strategy_portfolio_tables_exists),
                 ("Agent DB", ensure_agent_tables_exists),
+                ("EOD Reports DB", ensure_eod_reports_tables_exists),
                 # Created here, not left to APScheduler's own CREATE TABLE in
                 # scheduler.start(). That DDL would otherwise run further down
                 # this function, after db_ready releases the rest of the boot,

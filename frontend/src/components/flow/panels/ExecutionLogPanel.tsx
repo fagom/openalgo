@@ -30,13 +30,13 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
   const getStatusIcon = () => {
     switch (status) {
       case 'running':
-        return <Clock className="h-4 w-4 animate-pulse text-amber-500" />
+        return <Clock className="h-4 w-4 animate-pulse text-warning" />
       case 'started':
-        return <Clock className="h-4 w-4 text-amber-500" />
+        return <Clock className="h-4 w-4 text-warning" />
       case 'success':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />
+        return <CheckCircle2 className="h-4 w-4 text-profit" />
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <XCircle className="h-4 w-4 text-loss" />
       default:
         return <Terminal className="h-4 w-4 text-muted-foreground" />
     }
@@ -74,11 +74,11 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
   const getLevelIcon = (level: string) => {
     switch (level) {
       case 'error':
-        return <XCircle className="h-3.5 w-3.5 text-red-500" />
+        return <XCircle className="size-4 text-loss" />
       case 'warning':
-        return <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+        return <AlertCircle className="size-4 text-warning" />
       default:
-        return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+        return <CheckCircle2 className="size-4 text-profit" />
     }
   }
 
@@ -94,9 +94,9 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
           <span
             className={cn(
               'text-xs px-2 py-0.5 rounded-full',
-              (status === 'running' || status === 'started') && 'bg-amber-500/10 text-amber-500',
-              status === 'success' && 'bg-green-500/10 text-green-500',
-              status === 'error' && 'bg-red-500/10 text-red-500',
+              (status === 'running' || status === 'started') && 'bg-warning/10 text-warning',
+              status === 'success' && 'bg-success/10 text-success',
+              status === 'error' && 'bg-destructive/10 text-destructive',
               status === 'idle' && 'bg-muted text-muted-foreground'
             )}
           >
@@ -129,8 +129,8 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
                 key={index}
                 className={cn(
                   'rounded-lg border p-2.5 text-sm',
-                  log.level === 'error' && 'border-red-500/30 bg-red-500/5',
-                  log.level === 'warning' && 'border-amber-500/30 bg-amber-500/5',
+                  log.level === 'error' && 'border-destructive/30 bg-destructive/5',
+                  log.level === 'warning' && 'border-warning/30 bg-warning/5',
                   log.level === 'info' && 'border-border bg-background'
                 )}
               >
@@ -145,8 +145,8 @@ export function ExecutionLogPanel({ logs, status, onClose }: ExecutionLogPanelPr
                     <p
                       className={cn(
                         'text-sm break-words',
-                        log.level === 'error' && 'text-red-500',
-                        log.level === 'warning' && 'text-amber-500'
+                        log.level === 'error' && 'text-destructive',
+                        log.level === 'warning' && 'text-warning'
                       )}
                     >
                       {log.message}

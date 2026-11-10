@@ -70,9 +70,9 @@ function StatusOrb({
         className={cn(
           sizeClasses,
           'rounded-full transition-all duration-500',
-          status === 'success' && 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
-          status === 'warning' && 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]',
-          status === 'error' && 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]',
+          status === 'success' && 'bg-success shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+          status === 'warning' && 'bg-warning shadow-[0_0_8px_rgba(251,191,36,0.8)]',
+          status === 'error' && 'bg-destructive shadow-[0_0_8px_rgba(251,113,133,0.8)]',
           status === 'idle' && 'bg-muted'
         )}
       />
@@ -80,9 +80,9 @@ function StatusOrb({
         <div
           className={cn(
             'absolute inset-0 rounded-full animate-ping opacity-40',
-            status === 'success' && 'bg-emerald-400',
-            status === 'warning' && 'bg-amber-400',
-            status === 'error' && 'bg-rose-400'
+            status === 'success' && 'bg-success',
+            status === 'warning' && 'bg-warning',
+            status === 'error' && 'bg-destructive'
           )}
         />
       )}
@@ -106,10 +106,10 @@ function StatCard({
 }) {
   return (
     <div className="relative group">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative px-4 py-3 rounded-lg bg-card border border-border hover:border-border/60 transition-colors">
         <div className="flex items-center justify-between mb-1.5">
-          <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+          <Icon className="size-4 text-muted-foreground" />
           {status && <StatusOrb status={status} size="sm" />}
         </div>
         <div className="text-lg font-bold font-mono text-foreground tracking-tight">{value}</div>
@@ -396,8 +396,8 @@ export default function WebSocketOrder() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 via-cyan-500/10 to-transparent border border-cyan-500/30 flex items-center justify-center">
-                    <Radio className="w-6 h-6 text-cyan-400" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-chart-3/20 via-chart-3/10 to-transparent border border-chart-3/30 flex items-center justify-center">
+                    <Radio className="w-6 h-6 text-chart-3" />
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5">
                     <StatusOrb status={connectionStatus} />
@@ -408,7 +408,7 @@ export default function WebSocketOrder() {
                     Order Stream
                     <Badge
                       variant="outline"
-                      className="text-[9px] border-cyan-500/30 text-cyan-400 font-mono"
+                      className="text-[9px] border-chart-3/30 text-chart-3 font-mono"
                     >
                       WS
                     </Badge>
@@ -431,7 +431,7 @@ export default function WebSocketOrder() {
                     <Button
                       onClick={connectWebSocket}
                       disabled={isConnecting}
-                      className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-cyan-500/20"
+                      className="gap-2 font-semibold"
                     >
                       {isConnecting ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
@@ -444,7 +444,7 @@ export default function WebSocketOrder() {
                     <Button
                       onClick={disconnectWebSocket}
                       variant="outline"
-                      className="gap-2 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
+                      className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
                     >
                       <Link2Off className="w-4 h-4" />
                       Disconnect
@@ -454,9 +454,9 @@ export default function WebSocketOrder() {
 
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
                   {isAuthenticated ? (
-                    <Wifi className="w-4 h-4 text-emerald-400" />
+                    <Wifi className="w-4 h-4 text-success" />
                   ) : isConnected ? (
-                    <Cable className="w-4 h-4 text-amber-400" />
+                    <Cable className="w-4 h-4 text-warning" />
                   ) : (
                     <WifiOff className="w-4 h-4 text-muted-foreground" />
                   )}
@@ -464,9 +464,9 @@ export default function WebSocketOrder() {
                     className={cn(
                       'text-sm font-medium',
                       isAuthenticated
-                        ? 'text-emerald-400'
+                        ? 'text-success'
                         : isConnected
-                          ? 'text-amber-400'
+                          ? 'text-warning'
                           : 'text-muted-foreground'
                     )}
                   >
@@ -510,7 +510,7 @@ export default function WebSocketOrder() {
           <div className="rounded-xl bg-card border border-border p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-cyan-400" />
+                <Radio className="w-4 h-4 text-chart-3" />
                 <h2 className="text-sm font-semibold text-foreground">Order Updates</h2>
                 {ordersSubscribed && <StatusOrb status="success" size="sm" />}
                 <span className="text-xs text-muted-foreground">
@@ -527,7 +527,7 @@ export default function WebSocketOrder() {
                     size="sm"
                     className="border-border/50 text-muted-foreground hover:bg-muted/50"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear
+                    <Trash2 className="size-4 mr-1.5" /> Clear
                   </Button>
                 )}
                 <Button
@@ -538,17 +538,17 @@ export default function WebSocketOrder() {
                   className={cn(
                     'disabled:opacity-30',
                     ordersSubscribed
-                      ? 'border-rose-500/30 text-rose-400 hover:bg-rose-500/10'
-                      : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+                      ? 'border-destructive/30 text-destructive hover:bg-destructive/10'
+                      : 'border-success/30 text-success hover:bg-success/10'
                   )}
                 >
                   {ordersSubscribed ? (
                     <>
-                      <ZapOff className="w-3.5 h-3.5 mr-1.5" /> Unsubscribe
+                      <ZapOff className="size-4 mr-1.5" /> Unsubscribe
                     </>
                   ) : (
                     <>
-                      <Zap className="w-3.5 h-3.5 mr-1.5" /> Subscribe
+                      <Zap className="size-4 mr-1.5" /> Subscribe
                     </>
                   )}
                 </Button>
@@ -598,8 +598,8 @@ export default function WebSocketOrder() {
                         <td
                           className={cn(
                             'py-2 pr-3 font-medium',
-                            u.action === 'BUY' && 'text-emerald-400',
-                            u.action === 'SELL' && 'text-rose-400'
+                            u.action === 'BUY' && 'text-buy',
+                            u.action === 'SELL' && 'text-sell'
                           )}
                         >
                           {u.action}
@@ -613,12 +613,11 @@ export default function WebSocketOrder() {
                             variant="outline"
                             className={cn(
                               'text-[10px] uppercase',
-                              u.order_status === 'complete' &&
-                                'border-emerald-500/30 text-emerald-400',
-                              u.order_status === 'rejected' && 'border-rose-500/30 text-rose-400',
-                              u.order_status === 'cancelled' &&
-                                'border-amber-500/30 text-amber-400',
-                              u.order_status === 'open' && 'border-cyan-500/30 text-cyan-400'
+                              u.order_status === 'complete' && 'border-success/30 text-success',
+                              u.order_status === 'rejected' &&
+                                'border-destructive/30 text-destructive',
+                              u.order_status === 'cancelled' && 'border-warning/30 text-warning',
+                              u.order_status === 'open' && 'border-chart-3/30 text-chart-3'
                             )}
                           >
                             {u.order_status}
@@ -657,7 +656,7 @@ export default function WebSocketOrder() {
                 onClick={() => setLogs([])}
                 className="h-7 px-2 text-muted-foreground hover:text-foreground"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="size-4" />
               </Button>
             </div>
 
@@ -673,10 +672,10 @@ export default function WebSocketOrder() {
                     key={i}
                     className={cn(
                       'py-0.5',
-                      log.type === 'success' && 'text-emerald-400',
-                      log.type === 'error' && 'text-rose-400',
-                      log.type === 'warn' && 'text-amber-400',
-                      log.type === 'data' && 'text-cyan-400',
+                      log.type === 'success' && 'text-success',
+                      log.type === 'error' && 'text-destructive',
+                      log.type === 'warn' && 'text-warning',
+                      log.type === 'data' && 'text-chart-3',
                       log.type === 'info' && 'text-muted-foreground'
                     )}
                   >

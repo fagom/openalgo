@@ -24,12 +24,12 @@ export const UnsubscribeNode = memo(({ data, selected }: UnsubscribeNodeProps) =
   }
 
   return (
-    <div className={cn('workflow-node min-w-[120px] border-l-red-500', selected && 'selected')}>
+    <div className={cn('workflow-node min-w-[120px] border-l-loss/60', selected && 'selected')}>
       <Handle type="target" position={Position.Top} />
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-red-500/20 text-red-500">
-            <WifiOff className="h-3 w-3" />
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-destructive/20 text-destructive">
+            <WifiOff className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Unsubscribe</div>
@@ -45,7 +45,9 @@ export const UnsubscribeNode = memo(({ data, selected }: UnsubscribeNodeProps) =
           )}
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Type:</span>
-            <span className="mono-data text-red-500">{streamLabels[data.streamType || 'all']}</span>
+            <span className="mono-data text-destructive">
+              {streamLabels[data.streamType || 'all']}
+            </span>
           </div>
         </div>
       </div>

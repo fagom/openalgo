@@ -186,19 +186,12 @@ function JsonBlock({ value, label }: { value: unknown; label: string }) {
 
 function StatusIcon({ tool }: { tool: ToolCall }) {
   if (tool.ok === undefined) {
-    return (
-      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
-    )
+    return <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
   }
   if (tool.ok) {
-    return (
-      <CheckCircle2
-        className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500"
-        aria-hidden
-      />
-    )
+    return <CheckCircle2 className="size-4 shrink-0 text-profit" aria-hidden />
   }
-  return <XCircle className="h-3.5 w-3.5 shrink-0 text-red-600 dark:text-red-500" aria-hidden />
+  return <XCircle className="size-4 shrink-0 text-loss" aria-hidden />
 }
 
 function ToolRow({ tool }: { tool: ToolCall }) {
@@ -216,16 +209,14 @@ function ToolRow({ tool }: { tool: ToolCall }) {
       <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-muted/60">
         <ChevronRight
           className={cn(
-            'h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform',
+            'size-4 shrink-0 text-muted-foreground transition-transform',
             open && 'rotate-90'
           )}
           aria-hidden
         />
         <StatusIcon tool={tool} />
         <span className="truncate font-medium text-foreground">{humanizeToolName(tool.name)}</span>
-        {tool.ok === false && (
-          <span className="shrink-0 text-[11px] text-red-600 dark:text-red-500">failed</span>
-        )}
+        {tool.ok === false && <span className="shrink-0 text-[11px] text-destructive">failed</span>}
         <span className="ml-auto shrink-0 tabular-nums text-[11px] text-muted-foreground">
           {duration}
         </span>
@@ -284,29 +275,21 @@ export function ToolTimeline({ tools, className }: ToolTimelineProps) {
       <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-muted/60">
         <ChevronRight
           className={cn(
-            'h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform',
+            'size-4 shrink-0 text-muted-foreground transition-transform',
             open && 'rotate-90'
           )}
           aria-hidden
         />
         {running ? (
-          <Loader2
-            className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground"
-            aria-hidden
-          />
+          <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />
         ) : failed > 0 ? (
-          <XCircle className="h-3.5 w-3.5 shrink-0 text-red-600 dark:text-red-500" aria-hidden />
+          <XCircle className="size-4 shrink-0 text-loss" aria-hidden />
         ) : (
-          <CheckCircle2
-            className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500"
-            aria-hidden
-          />
+          <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
         )}
         <span className="truncate text-muted-foreground">{label}</span>
         {!running && failed > 0 && (
-          <span className="shrink-0 text-[11px] text-red-600 dark:text-red-500">
-            {failed} failed
-          </span>
+          <span className="shrink-0 text-[11px] text-loss">{failed} failed</span>
         )}
         {!open && !running && tools.length > 1 && (
           <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">details</span>

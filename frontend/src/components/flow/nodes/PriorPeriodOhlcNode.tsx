@@ -29,7 +29,7 @@ export const PriorPeriodOhlcNode = memo(({ data, selected }: PriorPeriodOhlcNode
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="flex h-5 w-5 items-center justify-center rounded bg-primary/20 text-primary">
-            <CalendarClock className="h-3 w-3" />
+            <CalendarClock className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">

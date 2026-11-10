@@ -5,6 +5,7 @@ import { tags as t } from '@lezer/highlight'
 import { createTheme } from '@uiw/codemirror-themes'
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { type ChartPalette, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import { useThemeStore } from '@/stores/themeStore'
 
 interface LogViewerProps {
@@ -47,18 +48,18 @@ const logMode = StreamLanguage.define({
 })
 
 // Custom theme for log viewing
-const createLogTheme = (isDark: boolean): Extension => {
+const createLogTheme = (isDark: boolean, p: ChartPalette): Extension => {
   return createTheme({
     theme: isDark ? 'dark' : 'light',
     settings: {
-      background: isDark ? '#111827' : '#f8fafc',
-      foreground: isDark ? '#d1d5db' : '#334155',
-      caret: isDark ? '#38bdf8' : '#0284c7',
-      selection: isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(2, 132, 199, 0.2)',
-      selectionMatch: isDark ? 'rgba(56, 189, 248, 0.1)' : 'rgba(2, 132, 199, 0.1)',
+      background: p.muted,
+      foreground: p.text,
+      caret: p.primary,
+      selection: withAlpha(p.primary, 0.22),
+      selectionMatch: withAlpha(p.primary, 0.12),
       lineHighlight: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
       gutterBackground: 'transparent',
-      gutterForeground: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+      gutterForeground: p.textMuted,
       gutterBorder: 'transparent',
     },
     styles: [
@@ -79,8 +80,8 @@ const createLogTheme = (isDark: boolean): Extension => {
 }
 
 // Editor base styling
-const createBaseTheme = (isDark: boolean): Extension => {
-  const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+const createBaseTheme = (isDark: boolean, p: ChartPalette): Extension => {
+  const borderColor = p.border
   const gutterBg = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)'
 
   return EditorView.theme({
@@ -88,7 +89,7 @@ const createBaseTheme = (isDark: boolean): Extension => {
       fontSize: '12px',
       fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
       height: '100%',
-      backgroundColor: isDark ? '#111827' : '#f8fafc',
+      backgroundColor: p.muted,
     },
     '&.cm-editor': {
       height: '100%',
@@ -138,6 +139,7 @@ export function LogViewer({
   const { mode, appMode } = useThemeStore()
   // Dark mode when: explicit dark theme OR analyzer mode (always dark purple theme)
   const isDark = mode === 'dark' || appMode === 'analyzer'
+  const pal = getChartPalette(mode, appMode)
 
   const editorRef = useRef<ReactCodeMirrorRef>(null)
   const scrollPositionRef = useRef<number>(0)
@@ -154,12 +156,12 @@ export function LogViewer({
   const extensions = useMemo(() => {
     return [
       logMode,
-      createLogTheme(isDark),
-      createBaseTheme(isDark),
+      createLogTheme(isDark, pal),
+      createBaseTheme(isDark, pal),
       EditorView.lineWrapping,
       EditorView.editable.of(false),
     ]
-  }, [isDark])
+  }, [isDark, pal])
 
   // Track user scroll position
   const handleScroll = useCallback(() => {

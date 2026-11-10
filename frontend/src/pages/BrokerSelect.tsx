@@ -296,7 +296,7 @@ export default function BrokerSelect() {
                 </CardHeader>
                 <CardContent className="mt-auto space-y-3">
                   {note && (broker.configured || broker.active) && (
-                    <p className="flex gap-2 text-xs text-amber-700 dark:text-amber-400">
+                    <p className="flex gap-2 text-xs text-warning">
                       <Info className="h-4 w-4 shrink-0" />
                       {note}
                     </p>

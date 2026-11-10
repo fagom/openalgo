@@ -80,6 +80,7 @@ export interface ScalpingOrderRequest {
   product: ScalpingProduct
   lots?: number // sent on manual entry so the lot cap is enforced server-side
   ltp?: number // live WS LTP; used as a prefetched quote so sandbox skips its quote fetch
+  note?: string // the terminal's persistent "current note" box, if non-empty when this order fires
 }
 
 export interface ScalpingOrderResponse {

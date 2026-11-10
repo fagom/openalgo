@@ -1,0 +1,1 @@
+import{i as e}from"./client-CNFJUO8D.js";var t={getIVSmileData:async t=>(await e.post(`/ivsmile/api/iv-smile-data`,t)).data,getUnderlyings:async t=>(await e.get(`/search/api/underlyings?exchange=${t}`)).data,getExpiries:async(t,n)=>(await e.get(`/search/api/expiries?exchange=${t}&underlying=${n}&instrumenttype=options`)).data};export{t};

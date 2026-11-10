@@ -156,7 +156,7 @@ export function SetSLDialog({
           </div>
 
           {quantity <= 0 && (
-            <p className="text-xs text-red-600">
+            <p className="text-xs text-destructive">
               No quantity for this leg yet — open a position (or wait for chain data) before setting
               a stop-loss.
             </p>
@@ -172,7 +172,7 @@ export function SetSLDialog({
               onChange={(e) => setStoploss(e.target.value)}
               placeholder="e.g. 270"
             />
-            {directionError && <p className="text-xs text-red-600">{directionError}</p>}
+            {directionError && <p className="text-xs text-loss">{directionError}</p>}
           </div>
 
           <label className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export function SetSLDialog({
               <p className="text-xs text-muted-foreground">
                 Trailing starts only once price is ≥1 in profit; the stop only moves in your favor.
               </p>
-              {trailingError && <p className="text-xs text-red-600">{trailingError}</p>}
+              {trailingError && <p className="text-xs text-loss">{trailingError}</p>}
             </div>
           )}
 
@@ -211,7 +211,7 @@ export function SetSLDialog({
               onChange={(e) => setTargetPrice(e.target.value)}
               placeholder={side === 'BUY' ? 'above entry' : 'below entry'}
             />
-            {targetError && <p className="text-xs text-red-600">{targetError}</p>}
+            {targetError && <p className="text-xs text-loss">{targetError}</p>}
           </div>
         </div>
 

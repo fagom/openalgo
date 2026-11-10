@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { CHART_FONT, getChartPalette, withAlpha } from '@/lib/chartTheme'
 import Plot from '@/lib/Plot2D'
 import { serverSentence } from '@/lib/serverSentence'
 import { useThemeStore } from '@/stores/themeStore'
@@ -52,8 +53,6 @@ export default function OITracker() {
     defaultToolsFnoExchange: defaultFnoExchange,
     defaultUnderlyings,
   } = useSupportedExchanges()
-  const isAnalyzer = appMode === 'analyzer'
-  const isDark = mode === 'dark' || isAnalyzer
 
   const [selectedExchange, setSelectedExchange] = useState(defaultFnoExchange)
   const [underlyings, setUnderlyings] = useState<string[]>(
@@ -173,25 +172,21 @@ export default function OITracker() {
   }, [selectedExpiry])
 
   // Theme colors for Plotly
-  const themeColors = useMemo(
-    () => ({
+  const themeColors = useMemo(() => {
+    const p = getChartPalette(mode, appMode)
+    return {
       bg: 'rgba(0,0,0,0)',
       paper: 'rgba(0,0,0,0)',
-      text: isDark ? '#e0e0e0' : '#333333',
-      grid: isDark
-        ? isAnalyzer
-          ? 'rgba(180,160,255,0.1)'
-          : 'rgba(255,255,255,0.1)'
-        : 'rgba(0,0,0,0.08)',
-      ceBar: '#22c55e',
-      peBar: '#ef4444',
-      atmLine: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
-      hoverBg: isDark ? (isAnalyzer ? '#2d2545' : '#1e293b') : '#ffffff',
-      hoverFont: isDark ? '#e0e0e0' : '#333333',
-      hoverBorder: isDark ? (isAnalyzer ? '#7c3aed' : '#475569') : '#e2e8f0',
-    }),
-    [isDark, isAnalyzer]
-  )
+      text: p.text,
+      grid: p.grid,
+      ceBar: p.up,
+      peBar: p.down,
+      atmLine: withAlpha(p.text, 0.55),
+      hoverBg: p.tooltipBg,
+      hoverFont: p.tooltipText,
+      hoverBorder: p.tooltipBorder,
+    }
+  }, [mode, appMode])
 
   // Build Plotly data
   const plotData = useMemo(() => {
@@ -277,7 +272,7 @@ export default function OITracker() {
       },
       paper_bgcolor: themeColors.paper,
       plot_bgcolor: themeColors.bg,
-      font: { color: themeColors.text, family: 'system-ui, sans-serif' },
+      font: { color: themeColors.text, family: CHART_FONT },
       barmode: 'group' as const,
       bargap: 0.15,
       hovermode: 'x unified' as const,

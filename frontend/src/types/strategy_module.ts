@@ -1260,7 +1260,7 @@ export function formatDuration(minutes: number): string {
 /** Colour class for a signed number: green up, red down, inherited at zero. */
 export function pnlToneClass(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return ''
-  if (value > 0) return 'text-green-600'
-  if (value < 0) return 'text-red-600'
+  if (value > 0) return 'text-profit'
+  if (value < 0) return 'text-loss'
   return ''
 }

@@ -194,7 +194,7 @@ export function CustomLegsFields({
         disabled={legs.length >= MAX_CUSTOM_LEGS}
         onClick={addLeg}
       >
-        <Plus className="mr-1 h-3 w-3" />
+        <Plus className="mr-1 size-4" />
         Add Leg
       </Button>
 
@@ -346,9 +346,9 @@ function LegRow({
           className="flex min-w-0 flex-1 items-center gap-1 text-left"
         >
           {open ? (
-            <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
           ) : (
-            <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
           )}
           <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
             {index + 1}
@@ -356,7 +356,7 @@ function LegRow({
           <span
             className={cn(
               'truncate font-mono text-[10px]',
-              leg.action === 'BUY' ? 'text-green-600' : 'text-red-600'
+              leg.action === 'BUY' ? 'text-buy' : 'text-destructive'
             )}
           >
             {describeLeg(leg)}
@@ -370,7 +370,7 @@ function LegRow({
           onClick={onDuplicate}
           aria-label={`Duplicate leg ${index + 1}`}
         >
-          <Copy className="h-3 w-3" />
+          <Copy className="size-4" />
         </Button>
         <Button
           type="button"
@@ -380,7 +380,7 @@ function LegRow({
           onClick={onRemove}
           aria-label={`Remove leg ${index + 1}`}
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="size-4" />
         </Button>
       </div>
 
@@ -402,8 +402,8 @@ function LegRow({
                   'rounded-lg border py-1.5 text-xs font-semibold',
                   leg.action === side
                     ? side === 'BUY'
-                      ? 'border-green-500 bg-green-500/20 text-green-600'
-                      : 'border-red-500 bg-red-500/20 text-red-600'
+                      ? 'border-buy/60 bg-buy/20 text-buy'
+                      : 'border-destructive/60 bg-destructive/20 text-destructive'
                     : 'border-border bg-muted'
                 )}
               >
@@ -486,7 +486,7 @@ function LegRow({
                         <span
                           className={cn(
                             'text-[10px]',
-                            row.label === 'ATM' ? 'text-amber-500' : 'text-muted-foreground'
+                            row.label === 'ATM' ? 'text-warning' : 'text-muted-foreground'
                           )}
                         >
                           {row.label}

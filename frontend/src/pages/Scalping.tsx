@@ -254,7 +254,7 @@ function Ticker({
             {ltp != null ? ltp.toFixed(decimals) : '—'}
           </span>
           {(change != null || changePercent != null) && (
-            <span className={`font-mono text-sm ${isUp ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`font-mono text-sm ${isUp ? 'text-profit' : 'text-loss'}`}>
               {isUp ? '+' : ''}
               {change != null ? change.toFixed(decimals) : ''}
               {changePercent != null ? ` (${changePercent.toFixed(2)}%)` : ''}
@@ -302,6 +302,13 @@ export default function Scalping() {
   const [lots, setLots] = useState(1)
   const [product, setProduct] = useState<ScalpingProduct>('NRML')
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null)
+
+  // The terminal's persistent "current note" box: whatever is typed here is
+  // attached to whichever order fires next (by keypress), so a thesis can be
+  // typed once and cover several legs fired under it. Cleared manually, not
+  // automatically after a fire -- most scalps share one thesis across entry
+  // and exit legs.
+  const [noteText, setNoteText] = useState('')
 
   // Live charts are opt-in (default off) and heavy — when off, the ScalpChart
   // components don't mount, so they open no feed subscriptions. Both this toggle
@@ -765,6 +772,7 @@ export default function Scalping() {
     appMode,
     segment,
     equityShares,
+    noteText,
   })
   stateRef.current = {
     armed,
@@ -776,6 +784,7 @@ export default function Scalping() {
     appMode,
     segment,
     equityShares,
+    noteText,
   }
 
   // Min gap between two order fires. Bounds the rate (prevents accidental
@@ -868,6 +877,7 @@ export default function Scalping() {
           product: s.product,
           lots: sentLots,
           ltp: legLtp != null && legLtp > 0 ? legLtp : undefined,
+          note: s.noteText.trim() || undefined,
         })
         setLastLatencyMs(Math.round(performance.now() - t0))
         if (res.status === 'success') {
@@ -1063,7 +1073,7 @@ export default function Scalping() {
       {/* Feed-status banner — a stale/lost feed mid-position is dangerous. The
           shared WebSocket manager auto-resubscribes active legs on reconnect. */}
       {!isAuthenticated && (
-        <div className="rounded-md border border-red-500/50 bg-red-500/10 px-4 py-2 text-sm text-red-700 dark:text-red-400">
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           {isFallbackMode
             ? 'Live feed lost — using slower REST polling. Prices may lag; trade with caution.'
             : isConnected
@@ -1421,6 +1431,7 @@ export default function Scalping() {
                     variant="outline"
                     size="icon-sm"
                     onClick={() => setEquityShares((q) => Math.max(1, q - 1))}
+                    tooltip="Decrease quantity"
                   >
                     −
                   </Button>
@@ -1436,6 +1447,7 @@ export default function Scalping() {
                     variant="outline"
                     size="icon-sm"
                     onClick={() => setEquityShares((q) => q + 1)}
+                    tooltip="Increase quantity"
                   >
                     +
                   </Button>
@@ -1446,6 +1458,7 @@ export default function Scalping() {
                     variant="outline"
                     size="icon-sm"
                     onClick={() => setLots((n) => Math.max(1, n - 1))}
+                    tooltip="Decrease lots"
                   >
                     −
                   </Button>
@@ -1454,6 +1467,7 @@ export default function Scalping() {
                     variant="outline"
                     size="icon-sm"
                     onClick={() => setLots((n) => Math.min(MAX_LOTS, n + 1))}
+                    tooltip="Increase lots"
                   >
                     +
                   </Button>
@@ -1552,24 +1566,50 @@ export default function Scalping() {
               </span>
               <span>
                 MTM:{' '}
-                <span className={`font-semibold ${mtm >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-semibold ${mtm >= 0 ? 'text-profit' : 'text-loss'}`}>
                   {mtm.toFixed(2)}
                 </span>
               </span>
             </div>
           </div>
 
+          {/* Persistent thesis note -- whatever's typed here is attached to
+              whichever order fires next (by arrow-key/click), so a thesis can
+              be typed once and cover several legs under it. Typing here is
+              exempt from the keyboard-shortcut handler (it ignores keydowns
+              while an input/textarea has focus), so it never fires an order. */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground shrink-0">Thesis</span>
+            <Input
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Why this trade -- attached to the next order(s) you fire"
+              maxLength={500}
+              className="flex-1"
+            />
+            {noteText && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNoteText('')}
+                tooltip="Clear thesis note"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+
           {isSingle ? (
             <div className="grid grid-cols-2 gap-3">
               <Button
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-success hover:bg-success/90"
                 disabled={!singleLeg}
                 onClick={() => submitOrder(singleLeg, 'BUY')}
               >
                 ↑ Buy {segment === 'EQUITY' ? 'Stock' : ''}
               </Button>
               <Button
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90"
                 disabled={!singleLeg}
                 onClick={() => submitOrder(singleLeg, 'SELL')}
               >
@@ -1579,25 +1619,25 @@ export default function Scalping() {
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <Button
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-success hover:bg-success/90"
                 onClick={() => submitOrder(ceLeg, 'BUY')}
               >
                 ↑ Buy Call
               </Button>
               <Button
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90"
                 onClick={() => submitOrder(ceLeg, 'SELL')}
               >
                 ↓ Sell Call
               </Button>
               <Button
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-success hover:bg-success/90"
                 onClick={() => submitOrder(peLeg, 'BUY')}
               >
                 → Buy Put
               </Button>
               <Button
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90"
                 onClick={() => submitOrder(peLeg, 'SELL')}
               >
                 ← Sell Put
@@ -1686,9 +1726,9 @@ export default function Scalping() {
                       <TableCell
                         className={
                           r.side === 'BUY'
-                            ? 'text-green-600'
+                            ? 'text-buy'
                             : r.side === 'SELL'
-                              ? 'text-red-600'
+                              ? 'text-sell'
                               : 'text-muted-foreground'
                         }
                       >
@@ -1730,17 +1770,17 @@ export default function Scalping() {
                         )}
                       </TableCell>
                       <TableCell
-                        className={`text-right font-mono tabular-nums ${r.realizedPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                        className={`text-right font-mono tabular-nums ${r.realizedPnl >= 0 ? 'text-profit' : 'text-loss'}`}
                       >
                         {r.realizedPnl.toFixed(2)}
                       </TableCell>
                       <TableCell
-                        className={`text-right font-mono tabular-nums ${r.unrealizedPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                        className={`text-right font-mono tabular-nums ${r.unrealizedPnl >= 0 ? 'text-profit' : 'text-loss'}`}
                       >
                         {r.unrealizedPnl.toFixed(2)}
                       </TableCell>
                       <TableCell
-                        className={`text-right font-mono tabular-nums font-semibold ${r.totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                        className={`text-right font-mono tabular-nums font-semibold ${r.totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}
                       >
                         {r.totalPnl.toFixed(2)}
                       </TableCell>
@@ -1799,7 +1839,7 @@ export default function Scalping() {
               {scopedOrders.map((o) => (
                 <TableRow key={o.orderid}>
                   <TableCell className="font-mono text-sm">{o.symbol}</TableCell>
-                  <TableCell className={o.action === 'BUY' ? 'text-green-600' : 'text-red-600'}>
+                  <TableCell className={o.action === 'BUY' ? 'text-buy' : 'text-destructive'}>
                     {o.action}
                   </TableCell>
                   <TableCell className="text-right font-mono tabular-nums">{o.quantity}</TableCell>
@@ -1834,7 +1874,7 @@ export default function Scalping() {
               {scopedTrades.map((t) => (
                 <TableRow key={`${t.orderid}-${t.timestamp}`}>
                   <TableCell className="font-mono text-sm">{t.symbol}</TableCell>
-                  <TableCell className={t.action === 'BUY' ? 'text-green-600' : 'text-red-600'}>
+                  <TableCell className={t.action === 'BUY' ? 'text-buy' : 'text-destructive'}>
                     {t.action}
                   </TableCell>
                   <TableCell className="text-right font-mono tabular-nums">{t.quantity}</TableCell>

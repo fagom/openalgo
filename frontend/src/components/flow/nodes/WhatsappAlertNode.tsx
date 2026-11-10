@@ -32,7 +32,7 @@ export const WhatsappAlertNode = memo(({ data, selected }: WhatsappAlertNodeProp
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="flex h-5 w-5 items-center justify-center rounded bg-[#25D366]/20 text-[#25D366]">
-            <MessageCircle className="h-3 w-3" />
+            <MessageCircle className="size-4" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">WhatsApp</div>

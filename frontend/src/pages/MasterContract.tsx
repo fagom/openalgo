@@ -91,13 +91,13 @@ function formatDuration(seconds: number | null): string {
 function getStatusColor(status: string): string {
   switch (status) {
     case 'success':
-      return 'text-green-500'
+      return 'text-profit'
     case 'downloading':
-      return 'text-blue-500'
+      return 'text-primary'
     case 'error':
-      return 'text-red-500'
+      return 'text-loss'
     case 'pending':
-      return 'text-yellow-500'
+      return 'text-warning'
     default:
       return 'text-muted-foreground'
   }
@@ -106,13 +106,13 @@ function getStatusColor(status: string): string {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'success':
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />
+      return <CheckCircle2 className="h-5 w-5 text-profit" />
     case 'downloading':
-      return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+      return <Loader2 className="h-5 w-5 text-primary animate-spin" />
     case 'error':
-      return <AlertCircle className="h-5 w-5 text-red-500" />
+      return <AlertCircle className="h-5 w-5 text-loss" />
     case 'pending':
-      return <Clock className="h-5 w-5 text-yellow-500" />
+      return <Clock className="h-5 w-5 text-warning" />
     default:
       return <AlertCircle className="h-5 w-5 text-muted-foreground" />
   }

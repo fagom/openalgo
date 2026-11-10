@@ -35,12 +35,19 @@ Your saved strategies at a glance.
 
 ### 3. Option Chain (`/optionchain`)
 
-Real-time option chain with full order capability.
+Real-time option chain with full order capability, laid out the way chains are
+conventionally read: calls on the left, strikes in the middle, puts on the right.
 
-- Live Greeks per strike (Delta, Gamma, Theta, Vega, IV)
-- OI, OI change, Volume, LTP, bid/ask — all streaming
-- Quick order placement inline from the chain (click-to-trade)
+- A line marks where spot sits between two strikes, and the chain opens centred on it
+- In-the-money strikes are shaded: calls below spot, puts above spot
+- LTP shows its change from the previous close underneath
+- The highest call OI strike is marked R (resistance) and the highest put OI strike S (support), also summarised in the OI levels card
+- Live Greeks per strike (Delta, Gamma, Theta, Vega, IV), OI, volume, bid/ask and spread, all streaming
+- The column header stays in view while you scroll long chains
+- Buy (B) and Sell (S) buttons appear beside the strike on hover or keyboard focus
 - Supports the option expiries returned for the selected underlying and broker
+
+OI change is not shown: the chain data carries no previous-day OI to compare with.
 
 ### 4. Option Greeks (`/ivchart`)
 
@@ -202,6 +209,7 @@ Scan NFO and MCX futures calendar spreads using near/far expiry pairs.
 - Live analytics need the broker data each tool requests. Keep its WebSocket connected when the page streams prices; OI Range and history-based tools also use request/refresh workflows.
 - For missing data, check the page's server message, symbol/expiry, broker entitlement and feed status. For Historify, download the required daily histories first; it does not fetch missing local data automatically.
 - Use the **Strategy Builder** + **Strategy Portfolio** pair as your end-to-end workflow: design a strategy, save it to a watchlist, then execute the full basket with one click when conditions align.
+- All tools follow your light or dark preference, and switch to the violet palette in analyzer mode.
 - Portfolio and SIP backtests, and Sector Rotation with Historify, can use downloaded history without an active broker data session. Live order buttons still follow the instance's Live/Analyze and Auto/Semi-Auto settings. Check order, trade and position books after submission.
 
 ## Related Guides

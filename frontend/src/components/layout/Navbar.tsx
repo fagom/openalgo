@@ -16,10 +16,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { isActiveRoute, mobileSheetItems, navItems } from '@/config/navigation'
 import { useProfileMenuItems } from '@/hooks/useProfileMenuItems'
 import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/themeStore'
 import { AccountControls } from './AccountControls'
+import { IndexTicker } from './MarketTicker'
 
 // Desktop tab: full bar height so the current-page underline lands on the
 // navbar's bottom border. bg-primary is the foreground in Live and the violet
@@ -64,6 +67,7 @@ interface NavbarProps {
 export function Navbar({ fluid = false }: NavbarProps = {}) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { appMode } = useThemeStore()
 
   // Profile menu filtered by broker capabilities (shared hook, issue #1480)
   const filteredProfileMenuItems = useProfileMenuItems()
@@ -78,7 +82,14 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
   const moreActive = overflowItems.some((item) => isActive(item.href))
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav
+      className={cn(
+        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
+        // Analyzer mode carries a violet rule along the top so it can never be
+        // mistaken for live, even on a page with little chrome.
+        appMode === 'analyzer' && 'border-t-2 border-t-primary'
+      )}
+    >
       <div
         data-testid="navbar-row"
         className={cn('px-4 flex h-14 items-center', fluid ? 'w-full' : 'container mx-auto')}
@@ -86,9 +97,13 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         {/* Mobile Menu */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="mr-2 min-h-[44px] min-w-[44px]">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2 min-h-[44px] min-w-[44px]"
+              aria-label="Toggle menu"
+            >
+              <Menu className="size-6" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 overflow-y-auto">
@@ -104,7 +119,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                 onClick={() => setMobileOpen(false)}
               >
                 <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-                <span className="font-semibold">OpenAlgo</span>
+                <span className="font-heading text-lg font-bold tracking-tight">OpenAlgo</span>
               </Link>
 
               {/* Secondary nav items (not in bottom nav) */}
@@ -120,7 +135,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                   )
                   const inner = (
                     <>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="size-5" />
                       {item.label}
                     </>
                   )
@@ -163,12 +178,12 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors min-h-[44px] touch-manipulation',
                         active
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-primary/10 text-primary font-medium'
                           : 'hover:bg-muted active:bg-muted'
                       )}
                       aria-current={active ? 'page' : undefined}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="size-5" />
                       {item.label}
                     </Link>
                   )
@@ -180,7 +195,7 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
                   className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors min-h-[44px] touch-manipulation hover:bg-muted active:bg-muted"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="size-5" />
                   Docs
                 </a>
               </nav>
@@ -189,20 +204,25 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         </Sheet>
 
         {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 mr-6">
+        <Link to="/dashboard" className="flex items-center gap-2.5 mr-8">
           <img src="/logo.png" alt="OpenAlgo" className="h-8 w-8" />
-          <span className="hidden font-semibold sm:inline-block">OpenAlgo</span>
+          <span className="hidden font-heading text-lg font-bold tracking-tight sm:inline-block">
+            OpenAlgo
+          </span>
         </Link>
 
         {/* Desktop Navigation: text tabs, the current page underlined on the
             bar's bottom edge.
 
-            Labels only, no icons. Nine icon-and-label items were 986px and
-            overflowed twice (issues #1384 and #1507); before that the bar fell
-            back to bare icons below xl, which nobody could tell apart. Instead
-            each item names the breakpoint it needs (`collapseBelow` in
-            config/navigation.ts) and below that it moves under More: three
-            items from md, five from lg, all nine from xl, where More goes away.
+            Labels only, no icons. Nine icon-and-label items once overflowed
+            at 986px (issues #1384 and #1507); before that the bar fell back
+            to bare icons below xl, which nobody could tell apart. The fix was
+            each item naming the breakpoint it needs (`collapseBelow` in
+            config/navigation.ts) and moving under More below that. The bar
+            has since been trimmed to five core trading tabs (Platforms,
+            Strategies, Logs and Tools moved into the profile menu), so only
+            Tradebook and Trading still name a breakpoint (lg) and More now
+            renders only when something has actually collapsed into it.
 
             Inside Layout the bar shares the page `container`, which Tailwind
             caps at 1280px for every viewport from 1280px to 1535px, so xl is
@@ -214,6 +234,8 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
         <nav className="hidden md:flex self-stretch">
           {navItems.map((item) => {
             const active = isActive(item.href)
+            // Dropbox-style: active item is blue text with a blue rule at the
+            // bottom edge of the bar, not a filled pill.
             const className = cn(
               TAB,
               item.collapseBelow && COLLAPSE[item.collapseBelow],
@@ -221,10 +243,10 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
             )
             // Flask-served pages (e.g. /trading) need a full page load,
             // not client-side routing.
-            return item.external ? (
+            const link = item.external ? (
               <a
-                key={item.href}
                 href={item.href}
+                aria-label={item.label}
                 className={className}
                 aria-current={active ? 'page' : undefined}
               >
@@ -232,52 +254,65 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
               </a>
             ) : (
               <Link
-                key={item.href}
                 to={item.href}
+                aria-label={item.label}
                 className={className}
                 aria-current={active ? 'page' : undefined}
               >
                 {item.label}
               </Link>
             )
+            // Labels are hidden below xl, so the tooltip is what names the icon.
+            return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>{link}</TooltipTrigger>
+                <TooltipContent side="bottom" className="xl:hidden">
+                  {item.label}
+                </TooltipContent>
+              </Tooltip>
+            )
           })}
 
-          {/* Hidden by CSS from xl, where every item is in the bar. Its list is
-              worked out from the same breakpoints in script, so the menu never
-              holds an entry that is also showing in the bar. */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className={cn(TAB, 'gap-1 xl:hidden', moreActive ? TAB_CURRENT : TAB_IDLE)}
-              >
-                More
-                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
-              {overflowItems.map((item) => {
-                const active = isActive(item.href)
-                const className = cn(
-                  'cursor-pointer',
-                  active && 'bg-accent font-medium text-accent-foreground'
-                )
-                return (
-                  <DropdownMenuItem key={item.href} asChild className={className}>
-                    {item.external ? (
-                      <a href={item.href} aria-current={active ? 'page' : undefined}>
-                        {item.label}
-                      </a>
-                    ) : (
-                      <Link to={item.href} aria-current={active ? 'page' : undefined}>
-                        {item.label}
-                      </Link>
-                    )}
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Only two items (Tradebook, Trading) ever collapse below lg, and
+              nothing collapses at or above it, so there is nothing left to
+              hide at xl. Render the trigger only when there is something in
+              it -- an always-visible, always-empty "More" reads as broken
+              chrome, not as a tab. */}
+          {overflowItems.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(TAB, 'gap-1 xl:hidden', moreActive ? TAB_CURRENT : TAB_IDLE)}
+                >
+                  More
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                {overflowItems.map((item) => {
+                  const active = isActive(item.href)
+                  const className = cn(
+                    'cursor-pointer',
+                    active && 'bg-accent font-medium text-accent-foreground'
+                  )
+                  return (
+                    <DropdownMenuItem key={item.href} asChild className={className}>
+                      {item.external ? (
+                        <a href={item.href} aria-current={active ? 'page' : undefined}>
+                          {item.label}
+                        </a>
+                      ) : (
+                        <Link to={item.href} aria-current={active ? 'page' : undefined}>
+                          {item.label}
+                        </Link>
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
 
         {/* Right Side: shared with the charting terminal's toolbar row. */}
@@ -285,6 +320,10 @@ export function Navbar({ fluid = false }: NavbarProps = {}) {
           <AccountControls />
         </div>
       </div>
+
+      {/* A second row inside the sticky nav, so the indices stay in view while
+          the page scrolls, on desktop and phone alike. */}
+      <IndexTicker />
     </nav>
   )
 }

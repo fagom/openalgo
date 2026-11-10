@@ -25,7 +25,7 @@ export const WebhookTriggerNode = memo(({ data, selected }: WebhookTriggerNodePr
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded bg-node-trigger/20">
-            <Webhook className="h-3 w-3 text-node-trigger" />
+            <Webhook className="size-4 text-node-trigger" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">Webhook</div>

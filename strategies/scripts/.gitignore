@@ -7,6 +7,9 @@
 # Ignore log files if any
 *.log
 
+# Run records kept by scripts that schedule themselves (e.g. *.runs.json)
+*.runs.json
+
 # Ignore backup files
 *.bak
 *.backup

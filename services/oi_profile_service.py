@@ -47,6 +47,22 @@ def _oi_change_deadline() -> float | None:
     return time.monotonic() + GTHREAD_OI_CHANGE_BUDGET_SECONDS
 
 
+def _buildup_tag(price_change: float, oi_change: float) -> str | None:
+    """Classify one leg's buildup from its price move and OI move.
+
+    The four-quadrant read every options trader already uses: OI rising with
+    price means someone is adding a position (buildup); OI falling means an
+    existing position is being closed (covering/unwinding). `None` when
+    either leg is flat (no OI history loaded yet, or a genuinely unchanged
+    price) -- a flat input has no reading, not a default one.
+    """
+    if price_change == 0 or oi_change == 0:
+        return None
+    if price_change > 0:
+        return "Long Buildup" if oi_change > 0 else "Short Covering"
+    return "Short Buildup" if oi_change > 0 else "Long Unwinding"
+
+
 def _oi_change_note(loaded: int, requested: int) -> str:
     """The sentence shown when the daily OI change covers only some contracts."""
     return (
@@ -304,6 +320,11 @@ def get_oi_profile_data(
             pe_oi = 0
             ce_symbol = None
             pe_symbol = None
+            # The option chain already carries each leg's own ltp/prev_close
+            # (no extra request): only the previous day's OI is missing, which
+            # is what the daily-history fetch below is for.
+            ce_price_change = 0.0
+            pe_price_change = 0.0
 
             if ce:
                 ce_oi = ce.get("oi", 0) or 0
@@ -314,6 +335,9 @@ def get_oi_profile_data(
                     option_symbols_for_history.append(
                         {"symbol": ce_symbol, "type": "CE", "strike": strike, "oi": ce_oi}
                     )
+                ce_prev_close = ce.get("prev_close") or 0
+                if ce_prev_close > 0:
+                    ce_price_change = (ce.get("ltp") or 0) - ce_prev_close
 
             if pe:
                 pe_oi = pe.get("oi", 0) or 0
@@ -324,6 +348,9 @@ def get_oi_profile_data(
                     option_symbols_for_history.append(
                         {"symbol": pe_symbol, "type": "PE", "strike": strike, "oi": pe_oi}
                     )
+                pe_prev_close = pe.get("prev_close") or 0
+                if pe_prev_close > 0:
+                    pe_price_change = (pe.get("ltp") or 0) - pe_prev_close
 
             oi_chain.append(
                 {
@@ -334,6 +361,10 @@ def get_oi_profile_data(
                     "pe_symbol": pe_symbol,
                     "ce_oi_change": 0,
                     "pe_oi_change": 0,
+                    "ce_price_change": ce_price_change,
+                    "pe_price_change": pe_price_change,
+                    "ce_buildup": None,
+                    "pe_buildup": None,
                 }
             )
 
@@ -394,8 +425,10 @@ def get_oi_profile_data(
 
             if ce_sym and ce_sym in prev_oi_map:
                 item["ce_oi_change"] = item["ce_oi"] - prev_oi_map[ce_sym]
+                item["ce_buildup"] = _buildup_tag(item["ce_price_change"], item["ce_oi_change"])
             if pe_sym and pe_sym in prev_oi_map:
                 item["pe_oi_change"] = item["pe_oi"] - prev_oi_map[pe_sym]
+                item["pe_buildup"] = _buildup_tag(item["pe_price_change"], item["pe_oi_change"])
 
         # Remove internal symbol fields from response
         for item in oi_chain:

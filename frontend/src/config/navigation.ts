@@ -16,11 +16,13 @@ import {
   Key,
   Layers,
   LayoutDashboard,
+  LineChart,
   type LucideIcon,
   MessageCircle,
   MessageSquare,
   Search,
   Settings,
+  Table2,
   TrendingUp,
   User,
   Workflow,
@@ -41,17 +43,20 @@ export interface NavItem {
   collapseBelow?: 'lg' | 'xl'
 }
 
-// Main navigation items shown in desktop navbar
+// Main navigation items shown in desktop navbar.
+//
+// Trimmed to the core trading surfaces only (Groww's pattern: Stocks, F&O,
+// Mutual Funds -- a handful of primary tabs, nothing configuration-shaped).
+// Platforms, Strategies, Logs and Tools moved to profileMenuItems below.
 export const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orderbook', label: 'Orderbook', icon: ClipboardList },
   { href: '/tradebook', label: 'Tradebook', icon: FileText, collapseBelow: 'lg' },
   { href: '/positions', label: 'Positions', icon: TrendingUp },
+  { href: '/optionchain', label: 'Option Chain', icon: Table2, collapseBelow: 'lg' },
+  { href: '/instrument', label: 'Instrument', icon: LineChart, collapseBelow: 'lg' },
   { href: '/trading', label: 'Trading', icon: CandlestickChart, collapseBelow: 'lg' },
-  { href: '/platforms', label: 'Platforms', icon: Layers, collapseBelow: 'xl' },
-  { href: '/strategy', label: 'Strategies', icon: Boxes, collapseBelow: 'xl' },
-  { href: '/logs', label: 'Logs', icon: FileBarChart, collapseBelow: 'xl' },
-  { href: '/tools', label: 'Tools', icon: Wrench, collapseBelow: 'xl' },
+  { href: '/scalping', label: 'Scalping', icon: Zap, collapseBelow: 'lg' },
 ]
 
 // Items shown in mobile bottom navigation
@@ -81,14 +86,20 @@ export const profileMenuItems: NavItem[] = [
   // so a configured /agent still has a route back to its settings without this
   // menu holding one.
   { href: '/agent', label: 'Agent', icon: Bot },
+  // Platforms, Strategies, Logs and Tools: moved out of the top navbar (they
+  // read as configuration/secondary surfaces, not core trading tabs).
+  { href: '/platforms', label: 'Platforms', icon: Layers },
+  { href: '/strategy', label: 'Strategies', icon: Boxes },
+  { href: '/tools', label: 'Tools', icon: Wrench },
+  { href: '/logs', label: 'Logs', icon: FileBarChart },
   { href: '/master-contract', label: 'Master Contract', icon: FileStack },
   { href: '/telegram', label: 'Telegram Bot', icon: MessageSquare },
   { href: '/whatsapp', label: 'WhatsApp Bot', icon: MessageCircle },
   { href: '/holdings', label: 'Holdings', icon: ClipboardList },
   { href: '/flow', label: 'Flow Editor', icon: Workflow },
-  { href: '/scalping', label: 'Scalping', icon: Zap },
   { href: '/python', label: 'Python Strategies', icon: Code2 },
   { href: '/pnl-tracker', label: 'PnL Tracker', icon: BarChart3 },
+  { href: '/eod-reports', label: 'Daily Reports', icon: FileBarChart },
   { href: '/historify', label: 'Historify', icon: Database },
   { href: '/search/token', label: 'Search', icon: Search },
   { href: '/sandbox', label: 'Sandbox', icon: FlaskConical },

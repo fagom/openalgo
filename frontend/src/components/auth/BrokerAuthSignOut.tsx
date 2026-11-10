@@ -65,7 +65,7 @@ export function BrokerAuthSignOut() {
         disabled={isSigningOut}
         className="text-muted-foreground hover:text-foreground hover:underline inline-flex items-center gap-1 disabled:opacity-60"
       >
-        <LogOut className="h-3 w-3" />
+        <LogOut className="size-4" />
         {isSigningOut ? 'Signing out...' : 'Sign out'}
       </button>
       <LogoutConfirmDialog

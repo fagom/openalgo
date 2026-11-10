@@ -19,11 +19,11 @@ interface HttpRequestNodeProps {
 }
 
 const methodColors: Record<string, string> = {
-  GET: 'text-green-500',
-  POST: 'text-blue-500',
-  PUT: 'text-orange-500',
-  DELETE: 'text-red-500',
-  PATCH: 'text-purple-500',
+  GET: 'text-success',
+  POST: 'text-primary',
+  PUT: 'text-warning',
+  DELETE: 'text-destructive',
+  PATCH: 'text-chart-4',
 }
 
 export const HttpRequestNode = memo(({ data, selected }: HttpRequestNodeProps) => {
@@ -37,7 +37,7 @@ export const HttpRequestNode = memo(({ data, selected }: HttpRequestNodeProps) =
       <div className="p-2">
         <div className="mb-1.5 flex items-center gap-1.5">
           <div className="node-icon flex h-5 w-5 items-center justify-center rounded bg-primary/20">
-            <Globe className="h-3 w-3 text-primary" />
+            <Globe className="size-4 text-primary" />
           </div>
           <div>
             <div className="text-xs font-medium leading-tight">HTTP Request</div>

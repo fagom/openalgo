@@ -1,11 +1,16 @@
 import {
   Activity,
   ArrowRight,
+  BarChart3,
+  BookOpen,
   Bot,
   Calendar,
   Clock,
+  FileText,
   Gauge,
   Globe,
+  GraduationCap,
+  Search,
   Settings,
   Shield,
   Snowflake,
@@ -44,7 +49,7 @@ export default function AdminIndex() {
       href: '/admin/freeze',
       count: stats?.freeze_count,
       countLabel: 'entries',
-      color: 'bg-blue-500',
+      color: 'bg-primary',
     },
     {
       title: 'Market Holidays',
@@ -53,7 +58,7 @@ export default function AdminIndex() {
       href: '/admin/holidays',
       count: stats?.holiday_count,
       countLabel: 'holidays',
-      color: 'bg-green-500',
+      color: 'bg-success',
     },
     {
       title: 'Market Timings',
@@ -62,7 +67,7 @@ export default function AdminIndex() {
       href: '/admin/timings',
       count: 7,
       countLabel: 'exchanges',
-      color: 'bg-purple-500',
+      color: 'bg-chart-4',
     },
     {
       title: 'Security Dashboard',
@@ -70,7 +75,7 @@ export default function AdminIndex() {
       icon: Shield,
       href: '/logs/security',
       countLabel: 'monitoring',
-      color: 'bg-red-500',
+      color: 'bg-destructive',
     },
     {
       title: 'Traffic Dashboard',
@@ -78,7 +83,7 @@ export default function AdminIndex() {
       icon: Activity,
       href: '/logs/traffic',
       countLabel: 'monitoring',
-      color: 'bg-cyan-500',
+      color: 'bg-chart-3',
     },
     {
       title: 'Latency Dashboard',
@@ -86,7 +91,7 @@ export default function AdminIndex() {
       icon: Zap,
       href: '/logs/latency',
       countLabel: 'monitoring',
-      color: 'bg-orange-500',
+      color: 'bg-warning',
     },
     {
       title: 'Diagnostics',
@@ -94,7 +99,7 @@ export default function AdminIndex() {
       icon: Gauge,
       href: '/admin/diagnostics',
       countLabel: 'troubleshoot',
-      color: 'bg-indigo-500',
+      color: 'bg-info',
     },
     {
       title: 'Agent Config',
@@ -102,7 +107,7 @@ export default function AdminIndex() {
       icon: Bot,
       href: '/agent/config',
       countLabel: 'models and keys',
-      color: 'bg-violet-500',
+      color: 'bg-chart-4',
     },
     {
       title: 'Remote MCP',
@@ -110,7 +115,52 @@ export default function AdminIndex() {
       icon: Globe,
       href: '/admin/remote-mcp',
       countLabel: 'AI clients',
-      color: 'bg-teal-500',
+      color: 'bg-chart-3',
+    },
+  ]
+
+  // Quick-access links moved off the Dashboard, which now leads with live
+  // market cards instead. Not configuration in the strict sense, but every
+  // one of them is a "go somewhere else" link rather than trading surface,
+  // so it reads as a settings/utility page item just as much as the cards
+  // above it.
+  const quickAccessCards = [
+    {
+      title: 'OpenAlgo Symbols',
+      description: 'Universal symbology across brokers',
+      icon: Search,
+      href: '/search',
+      color: 'bg-primary',
+    },
+    {
+      title: 'Live Logs',
+      description: 'Real-time trading activity logs',
+      icon: FileText,
+      href: '/logs',
+      color: 'bg-chart-4',
+    },
+    {
+      title: 'P&L Tracker',
+      description: 'Live intraday MTM tracker',
+      icon: BarChart3,
+      href: '/pnl-tracker',
+      color: 'bg-success',
+    },
+    {
+      title: 'Documentation',
+      description: 'Tutorials, API docs & features',
+      icon: BookOpen,
+      href: 'https://docs.openalgo.in',
+      color: 'bg-chart-3',
+      external: true,
+    },
+    {
+      title: 'OpenVarsity',
+      description: 'Learn algo trading with OpenAlgo',
+      icon: GraduationCap,
+      href: 'https://www.openalgo.in/learn',
+      color: 'bg-primary',
+      external: true,
     },
   ]
 
@@ -167,6 +217,46 @@ export default function AdminIndex() {
             </Card>
           </Link>
         ))}
+      </div>
+
+      {/* Quick Access: non-configuration utility links, moved here off the
+          Dashboard. Same card shell as the admin grid above so the page
+          reads as one list, not two different components glued together. */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Quick Access</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {quickAccessCards.map((card) => {
+            const inner = (
+              <Card
+                key={card.href}
+                className="h-full hover:shadow-lg transition-shadow cursor-pointer group"
+              >
+                <CardHeader>
+                  <div
+                    className={`w-10 h-10 rounded-lg ${card.color} flex items-center justify-center`}
+                  >
+                    <card.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    {card.title}
+                    <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </CardTitle>
+                  <CardDescription>{card.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            )
+
+            return card.external ? (
+              <a key={card.href} href={card.href} target="_blank" rel="noopener noreferrer">
+                {inner}
+              </a>
+            ) : (
+              <Link key={card.href} to={card.href}>
+                {inner}
+              </Link>
+            )
+          })}
+        </div>
       </div>
 
       {/* Info Section */}

@@ -297,6 +297,7 @@ def _emit_gtt_event(event, name):
                 "exchange": getattr(event, "exchange", ""),
                 "trigger_id": getattr(event, "trigger_id", ""),
                 "triggered_order_id": getattr(event, "triggered_order_id", ""),
+                "error_message": getattr(event, "error_message", ""),
                 "mode": "live",
             },
         )

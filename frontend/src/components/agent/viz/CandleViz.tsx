@@ -40,6 +40,7 @@
 
 import type { Bar, Chart, SeriesStyle, SeriesType } from 'openalgo-charts'
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { getChartPalette } from '@/lib/chartTheme'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/themeStore'
 import { asNumber, asRecord, asText, parseBars } from './spec'
@@ -303,7 +304,7 @@ export function CandleViz({ spec, title, source, variant = 'figure', className }
           // Mark alone at rest; the wording unrolls to its right on hover, so
           // it names itself when looked at without occupying the corner always.
           label: 'OpenAlgo Charts',
-          labelColor: mode === 'dark' || appMode === 'analyzer' ? '#e4e8f4' : '#3c4354',
+          labelColor: getChartPalette(mode, appMode).text,
           href: 'https://openalgo.in',
         },
       })
@@ -316,7 +317,6 @@ export function CandleViz({ spec, title, source, variant = 'figure', className }
         instance = null
         return
       }
-
 
       const definition = types.CHART_TYPES[chartSpec.chartType] ?? types.CHART_TYPES.candlestick
       // Only Heikin Ashi is reachable from the backend's list and it ignores
@@ -486,9 +486,7 @@ export function CandleViz({ spec, title, source, variant = 'figure', className }
           <span
             className={cn(
               'ml-auto shrink-0 font-mono text-[11px] font-medium',
-              chartSpec.changePercent < 0
-                ? 'text-red-600 dark:text-red-400'
-                : 'text-emerald-600 dark:text-emerald-500'
+              chartSpec.changePercent < 0 ? 'text-loss' : 'text-profit'
             )}
           >
             {changeLabel(chartSpec.changePercent)}

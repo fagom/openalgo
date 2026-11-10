@@ -162,6 +162,12 @@ def get_iv_smile_data(
             {
                 "status": "success",
                 "underlying": chain_response.get("underlying", underlying),
+                # The exchange actually quoting the underlying (e.g. NSE_INDEX
+                # for a NIFTY chain requested on NFO), not the options
+                # exchange this function was called with -- callers that need
+                # the underlying's own history (realized vol) need this one.
+                "underlying_symbol": chain_response.get("underlying_symbol", underlying),
+                "underlying_exchange": chain_response.get("underlying_exchange", exchange),
                 "spot_price": spot_price,
                 "atm_strike": atm_strike,
                 "atm_iv": atm_iv,

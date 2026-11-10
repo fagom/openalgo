@@ -16,7 +16,7 @@ vi.mock('@/api/trading', async () => {
   const actual = await vi.importActual<typeof import('@/api/trading')>('@/api/trading')
   return {
     ...actual,
-    tradingApi: { ...actual.tradingApi, placeOrder: vi.fn() },
+    tradingApi: { ...actual.tradingApi, placeOrder: vi.fn(), getFunds: vi.fn() },
   }
 })
 
@@ -25,7 +25,7 @@ vi.mock('@/utils/toast', () => ({
 }))
 
 vi.mock('@/stores/authStore', () => ({
-  useAuthStore: () => ({ apiKey: 'test-api-key' }),
+  useAuthStore: () => ({ apiKey: 'test-api-key', user: { broker: null } }),
 }))
 
 vi.mock('@/hooks/useLiveQuote', () => ({
@@ -52,6 +52,7 @@ vi.mock('@/hooks/useLiveQuote', () => ({
 }))
 
 const placeOrder = vi.mocked(tradingApi.placeOrder)
+const getFunds = vi.mocked(tradingApi.getFunds)
 
 const nifty = {
   open: true,
@@ -83,6 +84,17 @@ describe('lotsFor', () => {
 describe('PlaceOrderDialog', () => {
   beforeEach(() => {
     placeOrder.mockReset()
+    getFunds.mockReset()
+    getFunds.mockResolvedValue({
+      status: 'success',
+      data: {
+        availablecash: 50000,
+        collateral: 0,
+        m2munrealized: 0,
+        m2mrealized: 0,
+        utiliseddebits: 0,
+      },
+    } as never)
   })
 
   it('shows the lots a units quantity stands for, over the same total', () => {
@@ -150,5 +162,45 @@ describe('PlaceOrderDialog', () => {
     } finally {
       host.remove()
     }
+  })
+
+  describe('cost check', () => {
+    const equityCnc = {
+      open: true,
+      onOpenChange: () => {},
+      symbol: 'RELIANCE',
+      exchange: 'NSE',
+      action: 'BUY' as const,
+      quantity: 1000,
+      lotSize: 1,
+      tickSize: 0.05,
+      product: 'CNC' as const,
+      priceType: 'MARKET' as const,
+      strategy: 'test',
+    }
+
+    it('shows order value against the fetched available balance', async () => {
+      render(<PlaceOrderDialog {...equityCnc} />)
+      // ltp 100 (mocked) x 1000 units
+      await waitFor(() => expect(screen.getByText('₹1,00,000.00')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText('₹50,000.00')).toBeInTheDocument())
+    })
+
+    it('warns when a CNC order value exceeds the available balance', async () => {
+      render(<PlaceOrderDialog {...equityCnc} />)
+      await waitFor(() =>
+        expect(screen.getByText(/exceeds your available balance/)).toBeInTheDocument()
+      )
+    })
+
+    it('does not warn on a leveraged (non-CNC) order over the same balance', async () => {
+      // NRML on 150 units @ ltp 100 = 15,000, well under the 50,000 mock
+      // balance -- but even scaled above it, leverage means the broker's
+      // real margin is usually far less, so no false "will be rejected".
+      render(<PlaceOrderDialog {...nifty} />)
+      await waitFor(() => expect(screen.getByText('₹15,000.00')).toBeInTheDocument())
+      expect(screen.getByText(/trades on margin/)).toBeInTheDocument()
+      expect(screen.queryByText(/exceeds your available balance/)).not.toBeInTheDocument()
+    })
   })
 })

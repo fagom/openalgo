@@ -1,9 +1,7 @@
 import {
   ArrowDown,
   ArrowUp,
-  CheckCircle2,
   ClipboardList,
-  Clock,
   Download,
   FilterX,
   Loader2,
@@ -11,12 +9,13 @@ import {
   RefreshCw,
   Settings2,
   X,
-  XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type QuotesData, tradingApi } from '@/api/trading'
+import { CategorySection } from '@/components/trading/CategorySection'
 import { ChartSymbolLink } from '@/components/trading/ChartSymbolLink'
 import GttTab from '@/components/trading/GttTab'
+import { StatusDot, type StatusDotColor } from '@/components/trading/StatusDot'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,18 +42,11 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type OrderEventType, useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
 // Note: AlertDialog still used for Cancel All Orders
 import { useSupportedExchanges } from '@/hooks/useSupportedExchanges'
+import { groupByInstrumentCategory, sortCategoryKeys } from '@/lib/instrumentCategory'
 import { cn, makeFormatCurrency, sanitizeCSV } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
@@ -122,11 +114,41 @@ function formatTime(timestamp: string): string {
   })
 }
 
-const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
-  complete: { icon: CheckCircle2, color: 'text-green-500', label: 'complete' },
-  rejected: { icon: XCircle, color: 'text-red-500', label: 'rejected' },
-  cancelled: { icon: XCircle, color: 'text-gray-500', label: 'cancelled' },
-  open: { icon: Clock, color: 'text-blue-500', label: 'open' },
+const statusConfig: Record<string, { color: StatusDotColor; label: string }> = {
+  complete: { color: 'success', label: 'complete' },
+  rejected: { color: 'destructive', label: 'rejected' },
+  cancelled: { color: 'muted', label: 'cancelled' },
+  open: { color: 'primary', label: 'open' },
+}
+
+function formatDateLabel(timestamp: string): string {
+  const timeValue = parseTimestamp(timestamp)
+  if (timeValue === 0) return 'Undated'
+  return new Date(timeValue).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
+ * Consecutive rows sharing a date are grouped under one heading -- Groww's
+ * order-list layout. Groups by adjacency rather than re-sorting, so whatever
+ * sort the trader picked (by symbol, price, status, ...) is respected; equal
+ * dates that land next to each other still get one heading.
+ */
+function groupByDate<T extends { timestamp: string }>(items: T[]): { label: string; items: T[] }[] {
+  const groups: { label: string; items: T[] }[] = []
+  for (const item of items) {
+    const label = formatDateLabel(item.timestamp)
+    const last = groups[groups.length - 1]
+    if (last && last.label === label) {
+      last.items.push(item)
+    } else {
+      groups.push({ label, items: [item] })
+    }
+  }
+  return groups
 }
 
 export default function OrderBook() {
@@ -200,6 +222,20 @@ export default function OrderBook() {
       return 0
     })
   }, [orders, statusFilter, sortConfig])
+
+  const ordersByCategory = useMemo(
+    () =>
+      groupByInstrumentCategory(
+        sortedAndFilteredOrders,
+        (o) => o.exchange,
+        (o) => o.product
+      ),
+    [sortedAndFilteredOrders]
+  )
+  const categoryKeys = useMemo(
+    () => sortCategoryKeys(Object.keys(ordersByCategory)),
+    [ordersByCategory]
+  )
 
   const requestSort = (key: SortKey) => {
     setSortConfig((prev) => ({
@@ -420,7 +456,7 @@ export default function OrderBook() {
       size="sm"
       className={cn(
         'rounded-full',
-        statusFilter.includes(status) && 'bg-pink-500 hover:bg-pink-600'
+        statusFilter.includes(status) && 'bg-primary hover:bg-primary/90'
       )}
       onClick={() => toggleStatusFilter(status)}
     >
@@ -460,7 +496,7 @@ export default function OrderBook() {
                   <Settings2 className="h-4 w-4 mr-2" />
                   Filters
                   {hasActiveFilters && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full" />
                   )}
                 </Button>
               </DialogTrigger>
@@ -538,7 +574,7 @@ export default function OrderBook() {
                 <Badge
                   key={status}
                   variant="secondary"
-                  className="bg-pink-500/10 text-pink-600 border-pink-500/30"
+                  className="bg-primary/10 text-primary border-primary/30"
                 >
                   {status}
                 </Badge>
@@ -546,7 +582,7 @@ export default function OrderBook() {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-500 border-red-500/50 hover:bg-red-500/10"
+                className="text-destructive border-destructive/50 hover:bg-destructive/10"
                 onClick={clearFilters}
               >
                 Clear All
@@ -559,15 +595,13 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Buy Orders</CardDescription>
-                <CardTitle className="text-2xl text-green-600">
-                  {stats?.total_buy_orders ?? 0}
-                </CardTitle>
+                <CardTitle className="text-2xl text-buy">{stats?.total_buy_orders ?? 0}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Sell Orders</CardDescription>
-                <CardTitle className="text-2xl text-red-600">
+                <CardTitle className="text-2xl text-sell">
                   {stats?.total_sell_orders ?? 0}
                 </CardTitle>
               </CardHeader>
@@ -581,7 +615,7 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Open</CardDescription>
-                <CardTitle className="text-2xl text-blue-600">
+                <CardTitle className="text-2xl text-primary">
                   {stats?.total_open_orders ?? 0}
                 </CardTitle>
               </CardHeader>
@@ -589,24 +623,28 @@ export default function OrderBook() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Rejected</CardDescription>
-                <CardTitle className="text-2xl text-red-600">
+                <CardTitle className="text-2xl text-destructive">
                   {stats?.total_rejected_orders ?? 0}
                 </CardTitle>
               </CardHeader>
             </Card>
           </div>
 
-          {/* Orders Table */}
-          <Card>
-            <CardContent className="py-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : error ? (
-                <div className="text-center py-12 text-muted-foreground">{error}</div>
-              ) : sortedAndFilteredOrders.length === 0 ? (
-                hasActiveFilters ? (
+          {/* Orders, split into instrument-category sections */}
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-12 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </CardContent>
+            </Card>
+          ) : error ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">{error}</CardContent>
+            </Card>
+          ) : sortedAndFilteredOrders.length === 0 ? (
+            <Card>
+              <CardContent className="py-0">
+                {hasActiveFilters ? (
                   <EmptyState
                     icon={FilterX}
                     title="No orders match your filters"
@@ -623,174 +661,160 @@ export default function OrderBook() {
                     title="No orders today"
                     description="Orders you place will display here."
                   />
-                )
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead
-                          className="w-[120px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('symbol')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Symbol
-                            {sortConfig.key === 'symbol' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : (
-                                <ArrowDown className="h-3 w-3" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[80px]">Exchange</TableHead>
-                        <TableHead
-                          className="w-[70px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('action')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Action
-                            {sortConfig.key === 'action' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : (
-                                <ArrowDown className="h-3 w-3" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[70px] text-right">Qty</TableHead>
-                        <TableHead
-                          className="w-[100px] text-right cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('price')}
-                        >
-                          <div className="flex items-center justify-end gap-1">
-                            Price
-                            {sortConfig.key === 'price' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : (
-                                <ArrowDown className="h-3 w-3" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[100px] text-right">Trigger</TableHead>
-                        <TableHead className="w-[80px]">Type</TableHead>
-                        {!isCrypto && <TableHead className="w-[70px]">Product</TableHead>}
-                        <TableHead className="w-[140px]">Order ID</TableHead>
-                        <TableHead
-                          className="w-[100px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('order_status')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Status
-                            {sortConfig.key === 'order_status' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : (
-                                <ArrowDown className="h-3 w-3" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead
-                          className="w-[100px] cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => requestSort('timestamp')}
-                        >
-                          <div className="flex items-center gap-1">
-                            Time
-                            {sortConfig.key === 'timestamp' &&
-                              (sortConfig.direction === 'asc' ? (
-                                <ArrowUp className="h-3 w-3" />
-                              ) : (
-                                <ArrowDown className="h-3 w-3" />
-                              ))}
-                          </div>
-                        </TableHead>
-                        <TableHead className="w-[60px]">Cancel</TableHead>
-                        <TableHead className="w-[60px]">Modify</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedAndFilteredOrders.map((order, index) => {
-                        const status = statusConfig[order.order_status] || statusConfig.open
-                        const StatusIcon = status.icon
-                        const canCancel = order.order_status === 'open'
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            categoryKeys.map((categoryKey) => {
+              const categoryOrders = ordersByCategory[categoryKey as keyof typeof ordersByCategory]
+              const categoryDateGroups = groupByDate(categoryOrders)
 
-                        return (
-                          <TableRow key={`${order.orderid}-${index}`}>
-                            <TableCell className="font-medium">
-                              <ChartSymbolLink symbol={order.symbol} exchange={order.exchange} />
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{order.exchange}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={order.action === 'BUY' ? 'default' : 'destructive'}
-                                className={order.action === 'BUY' ? 'bg-green-500' : ''}
+              return (
+                <CategorySection
+                  key={categoryKey}
+                  title={categoryKey}
+                  count={categoryOrders.length}
+                >
+                  <div>
+                    {/* Column labels -- plain text, not a table header; sort toggles stay but
+                        lose the grid-cell look Groww's own order list doesn't have. */}
+                    <div className="hidden sm:flex items-center gap-4 px-1 pb-2 text-xs font-medium text-muted-foreground border-b">
+                      <button
+                        type="button"
+                        className="flex-1 flex items-center gap-1 text-left hover:text-foreground"
+                        onClick={() => requestSort('symbol')}
+                      >
+                        Symbol
+                        {sortConfig.key === 'symbol' &&
+                          (sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="size-3" />
+                          ) : (
+                            <ArrowDown className="size-3" />
+                          ))}
+                      </button>
+                      <button
+                        type="button"
+                        className="w-24 flex items-center justify-end gap-1 text-right hover:text-foreground"
+                        onClick={() => requestSort('price')}
+                      >
+                        Qty / Price
+                        {sortConfig.key === 'price' &&
+                          (sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="size-3" />
+                          ) : (
+                            <ArrowDown className="size-3" />
+                          ))}
+                      </button>
+                      <button
+                        type="button"
+                        className="w-32 flex items-center justify-end gap-1 text-right hover:text-foreground"
+                        onClick={() => requestSort('order_status')}
+                      >
+                        Status / Time
+                        {(sortConfig.key === 'order_status' || sortConfig.key === 'timestamp') &&
+                          (sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="size-3" />
+                          ) : (
+                            <ArrowDown className="size-3" />
+                          ))}
+                      </button>
+                      <div className="w-16" />
+                    </div>
+
+                    {categoryDateGroups.map((group) => (
+                      <div key={group.label}>
+                        <div className="px-1 pt-4 pb-1 text-xs font-medium text-muted-foreground">
+                          {group.label}
+                        </div>
+                        <div className="divide-y divide-border">
+                          {group.items.map((order, index) => {
+                            const status = statusConfig[order.order_status] || statusConfig.open
+                            const canCancel = order.order_status === 'open'
+                            const meta = [
+                              order.pricetype,
+                              !isCrypto ? order.product : null,
+                              order.exchange,
+                              order.trigger_price
+                                ? `Trigger ${formatCurrency(order.trigger_price)}`
+                                : null,
+                              order.orderid,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')
+
+                            return (
+                              <div
+                                key={`${order.orderid}-${index}`}
+                                className="flex items-center gap-4 py-3 px-1 hover:bg-muted/30 transition-colors"
                               >
-                                {order.action}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right font-mono">{order.quantity}</TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(order.price)}
-                            </TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(order.trigger_price)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">{order.pricetype}</Badge>
-                            </TableCell>
-                            {!isCrypto && (
-                              <TableCell>
-                                <Badge variant="outline">{order.product}</Badge>
-                              </TableCell>
-                            )}
-                            <TableCell className="font-mono text-xs">{order.orderid}</TableCell>
-                            <TableCell>
-                              <div className={cn('flex items-center gap-1', status.color)}>
-                                <StatusIcon className="h-4 w-4" />
-                                <span className="text-sm">{status.label}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium truncate">
+                                    <ChartSymbolLink
+                                      symbol={order.symbol}
+                                      exchange={order.exchange}
+                                    />
+                                  </div>
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    <span
+                                      className={cn(
+                                        'font-medium',
+                                        order.action === 'BUY' ? 'text-buy' : 'text-sell'
+                                      )}
+                                    >
+                                      {order.action === 'BUY' ? 'Buy' : 'Sell'}
+                                    </span>{' '}
+                                    &middot; {meta}
+                                  </div>
+                                </div>
+                                <div className="w-24 text-right shrink-0">
+                                  <div className="font-mono text-sm">{order.quantity}</div>
+                                  <div className="font-mono text-xs text-muted-foreground">
+                                    {formatCurrency(order.price)}
+                                  </div>
+                                </div>
+                                <div className="w-32 shrink-0 text-right space-y-0.5">
+                                  <div className="flex items-center justify-end">
+                                    <StatusDot color={status.color} label={status.label} />
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {formatTime(order.timestamp)}
+                                  </div>
+                                </div>
+                                <div className="w-16 flex items-center justify-end gap-0.5 shrink-0">
+                                  {canCancel && (
+                                    <>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-primary hover:text-primary"
+                                        onClick={() => openModifyDialog(order)}
+                                        aria-label={`Modify order for ${order.symbol}`}
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => handleCancelOrder(order.orderid)}
+                                        aria-label={`Cancel order ${order.orderid}`}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {formatTime(order.timestamp)}
-                            </TableCell>
-                            <TableCell>
-                              {canCancel && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => handleCancelOrder(order.orderid)}
-                                  aria-label={`Cancel order ${order.orderid}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {canCancel && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-blue-500 hover:text-blue-600"
-                                  onClick={() => openModifyDialog(order)}
-                                  aria-label={`Modify order for ${order.symbol}`}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CategorySection>
+              )
+            })
+          )}
         </TabsContent>
 
         <TabsContent value="gtt" className="space-y-6">
@@ -806,7 +830,7 @@ export default function OrderBook() {
               <span>Modify Order</span>
               <Badge
                 variant={modifyingOrder?.action === 'BUY' ? 'default' : 'destructive'}
-                className={modifyingOrder?.action === 'BUY' ? 'bg-green-500' : ''}
+                className={modifyingOrder?.action === 'BUY' ? 'bg-buy' : ''}
               >
                 {modifyingOrder?.action}
               </Badge>
@@ -862,11 +886,11 @@ export default function OrderBook() {
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Bid</div>
-                  <div className="font-mono text-green-600">{formatCurrency(quotes.bid)}</div>
+                  <div className="font-mono text-buy">{formatCurrency(quotes.bid)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Ask</div>
-                  <div className="font-mono text-red-600">{formatCurrency(quotes.ask)}</div>
+                  <div className="font-mono text-sell">{formatCurrency(quotes.ask)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Prev Close</div>
@@ -878,11 +902,11 @@ export default function OrderBook() {
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">High</div>
-                  <div className="font-mono text-green-600">{formatCurrency(quotes.high)}</div>
+                  <div className="font-mono text-success">{formatCurrency(quotes.high)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Low</div>
-                  <div className="font-mono text-red-600">{formatCurrency(quotes.low)}</div>
+                  <div className="font-mono text-destructive">{formatCurrency(quotes.low)}</div>
                 </div>
                 <div>
                   <div className="text-muted-foreground text-xs">Volume</div>

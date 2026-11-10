@@ -116,10 +116,10 @@ export default function LatencyDashboard() {
     color: string
     variant: 'default' | 'secondary' | 'destructive' | 'outline'
   } => {
-    if (latency < 150) return { label: 'Excellent', color: 'text-green-500', variant: 'secondary' }
-    if (latency < 250) return { label: 'Good', color: 'text-yellow-500', variant: 'outline' }
-    if (latency < 400) return { label: 'Acceptable', color: 'text-orange-500', variant: 'outline' }
-    return { label: 'Slow', color: 'text-red-500', variant: 'destructive' }
+    if (latency < 150) return { label: 'Excellent', color: 'text-profit', variant: 'secondary' }
+    if (latency < 250) return { label: 'Good', color: 'text-warning', variant: 'outline' }
+    if (latency < 400) return { label: 'Acceptable', color: 'text-warning', variant: 'outline' }
+    return { label: 'Slow', color: 'text-loss', variant: 'destructive' }
   }
 
   const formatTimestamp = (timestamp: string) => {
@@ -212,12 +212,12 @@ export default function LatencyDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold text-green-500">
+                <p className="text-2xl font-bold text-success">
                   {(stats?.success_rate || 0).toFixed(1)}%
                 </p>
                 <p className="text-xs text-muted-foreground">{stats?.failed_orders || 0} failed</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500 opacity-20" />
+              <CheckCircle className="h-8 w-8 text-success opacity-20" />
             </div>
           </CardContent>
         </Card>
@@ -247,10 +247,10 @@ export default function LatencyDashboard() {
                 <p
                   className={`text-2xl font-bold ${
                     (stats?.sla_150ms || 0) >= 95
-                      ? 'text-green-500'
+                      ? 'text-success'
                       : (stats?.sla_150ms || 0) >= 85
-                        ? 'text-yellow-500'
-                        : 'text-red-500'
+                        ? 'text-warning'
+                        : 'text-destructive'
                   }`}
                 >
                   {(stats?.sla_150ms || 0).toFixed(1)}%
@@ -279,15 +279,15 @@ export default function LatencyDashboard() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
-              <Badge className="bg-green-500">Excellent</Badge>
+              <Badge className="bg-success">Excellent</Badge>
               <span className="text-sm text-muted-foreground">Under 150ms</span>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className="bg-yellow-500">Good</Badge>
+              <Badge className="bg-warning">Good</Badge>
               <span className="text-sm text-muted-foreground">150-250ms</span>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className="bg-orange-500">Acceptable</Badge>
+              <Badge className="bg-warning">Acceptable</Badge>
               <span className="text-sm text-muted-foreground">250-400ms</span>
             </div>
             <div className="flex items-center gap-3">
@@ -313,7 +313,7 @@ export default function LatencyDashboard() {
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-500"
+                  className="h-full bg-success"
                   style={{ width: `${(distribution.excellent / distribution.total) * 100}%` }}
                 />
               </div>
@@ -328,7 +328,7 @@ export default function LatencyDashboard() {
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-yellow-500"
+                  className="h-full bg-warning"
                   style={{ width: `${(distribution.good / distribution.total) * 100}%` }}
                 />
               </div>
@@ -343,7 +343,7 @@ export default function LatencyDashboard() {
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-orange-500"
+                  className="h-full bg-warning"
                   style={{ width: `${(distribution.acceptable / distribution.total) * 100}%` }}
                 />
               </div>
@@ -358,7 +358,7 @@ export default function LatencyDashboard() {
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-red-500"
+                  className="h-full bg-destructive"
                   style={{ width: `${(distribution.slow / distribution.total) * 100}%` }}
                 />
               </div>
@@ -409,10 +409,10 @@ export default function LatencyDashboard() {
                           <div
                             className={`h-full ${
                               data.avg_total < 150
-                                ? 'bg-green-500'
+                                ? 'bg-success'
                                 : data.avg_total < 250
-                                  ? 'bg-yellow-500'
-                                  : 'bg-red-500'
+                                  ? 'bg-warning'
+                                  : 'bg-destructive'
                             }`}
                             style={{
                               width: `${Math.max(0, Math.min(100, ((400 - data.avg_total) / 400) * 100))}%`,
@@ -476,7 +476,7 @@ export default function LatencyDashboard() {
                         </TableCell>
                         <TableCell>
                           {log.status === 'SUCCESS' ? (
-                            <Badge className="bg-green-500">SUCCESS</Badge>
+                            <Badge className="bg-success">SUCCESS</Badge>
                           ) : (
                             <Badge variant="destructive">{log.status}</Badge>
                           )}

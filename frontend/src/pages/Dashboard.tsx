@@ -1,11 +1,23 @@
-import { BarChart3, BookOpen, FileText, GraduationCap, Search, Zap } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { TopInstrumentCard } from '@/components/dashboard/TopInstrumentCard'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { COMMODITY_TICKER_SYMBOLS, INDEX_TICKER_SYMBOLS } from '@/config/tickerSymbols'
 import { useOrderEventRefresh } from '@/hooks/useOrderEventRefresh'
-import { cn } from '@/lib/utils'
+import { cn, makeFormatCurrency } from '@/lib/utils'
+import { useAuthStore } from '@/stores/authStore'
 import { onModeChange } from '@/stores/themeStore'
+
+// "Top traded" asset classes, Groww's Equity/Commodities toggle. Every index
+// the ticker already streams for Equity, so the dashboard cards can never
+// name a symbol/exchange pair the ticker disagrees with.
+const TOP_TRADED_TABS = {
+  equity: { label: 'Equity', instruments: INDEX_TICKER_SYMBOLS },
+  commodities: { label: 'Commodities', instruments: COMMODITY_TICKER_SYMBOLS },
+} as const
+type TopTradedTab = keyof typeof TOP_TRADED_TABS
 
 interface MarginData {
   availablecash: string
@@ -21,34 +33,11 @@ interface MasterContractStatus {
   total_symbols?: number
 }
 
-// Format number in Indian format with Cr/L suffixes
-function formatIndianNumber(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  if (Number.isNaN(num)) return '0.00'
-
-  const isNegative = num < 0
-  const absNum = Math.abs(num)
-
-  let formatted: string
-  if (absNum >= 10000000) {
-    // 1 Crore or more
-    formatted = `${(absNum / 10000000).toFixed(2)}Cr`
-  } else if (absNum >= 100000) {
-    // 1 Lakh or more
-    formatted = `${(absNum / 100000).toFixed(2)}L`
-  } else {
-    // Less than 1 Lakh - just decimal format
-    formatted = absNum.toFixed(2)
-  }
-
-  return isNegative ? `-${formatted}` : formatted
-}
-
 // Get color class based on P&L value
 function getPnLColor(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value
-  if (num > 0) return 'text-green-600 dark:text-green-400'
-  if (num < 0) return 'text-red-600 dark:text-red-400'
+  if (num > 0) return 'text-profit'
+  if (num < 0) return 'text-loss'
   return 'text-foreground'
 }
 
@@ -60,6 +49,8 @@ function getPnLBadgeVariant(value: string | number): 'default' | 'destructive' |
 }
 
 export default function Dashboard() {
+  const { user } = useAuthStore()
+  const formatCurrency = useMemo(() => makeFormatCurrency(user?.broker), [user?.broker])
   const [marginData, setMarginData] = useState<MarginData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +61,7 @@ export default function Dashboard() {
   // Broker token revoked/expired while the app session is still valid
   // (daily token rollover). Routes the user to /broker, not /login (#1400).
   const [brokerExpired, setBrokerExpired] = useState(false)
+  const [topTradedTab, setTopTradedTab] = useState<TopTradedTab>('equity')
 
   // Fetch dashboard funds data
   const fetchFundsData = useCallback(async () => {
@@ -163,13 +155,13 @@ export default function Dashboard() {
   const getMasterContractLedColor = () => {
     switch (masterContract.status) {
       case 'success':
-        return 'bg-green-500'
+        return 'bg-profit'
       case 'downloading':
-        return 'bg-yellow-500 animate-pulse'
+        return 'bg-warning animate-pulse'
       case 'error':
-        return 'bg-red-500'
+        return 'bg-loss'
       default:
-        return 'bg-gray-400 animate-pulse'
+        return 'bg-muted-foreground animate-pulse'
     }
   }
 
@@ -191,82 +183,15 @@ export default function Dashboard() {
   const getMasterContractTextColor = () => {
     switch (masterContract.status) {
       case 'success':
-        return 'text-green-600 dark:text-green-400'
+        return 'text-profit'
       case 'downloading':
-        return 'text-yellow-600 dark:text-yellow-400'
+        return 'text-warning'
       case 'error':
-        return 'text-red-600 dark:text-red-400'
+        return 'text-loss'
       default:
         return 'text-muted-foreground'
     }
   }
-
-  const quickAccessCards = [
-    {
-      href: '/search',
-      label: 'OpenAlgo Symbols',
-      description: 'Universal symbology across brokers',
-      icon: Search,
-      gradient: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10',
-      iconBg: 'bg-primary/20',
-      iconColor: 'text-primary',
-      borderColor: 'border-primary/20 hover:border-primary/40',
-    },
-    {
-      href: '/logs',
-      label: 'Live Logs',
-      description: 'Real-time trading activity logs',
-      icon: FileText,
-      gradient:
-        'from-violet-500/10 to-violet-500/5 hover:from-violet-500/20 hover:to-violet-500/10',
-      iconBg: 'bg-violet-500/20',
-      iconColor: 'text-violet-500',
-      borderColor: 'border-violet-500/20 hover:border-violet-500/40',
-    },
-    {
-      href: 'https://docs.openalgo.in',
-      label: 'Documentation',
-      description: 'Tutorials, API docs & features',
-      icon: BookOpen,
-      gradient: 'from-cyan-500/10 to-cyan-500/5 hover:from-cyan-500/20 hover:to-cyan-500/10',
-      iconBg: 'bg-cyan-500/20',
-      iconColor: 'text-cyan-500',
-      borderColor: 'border-cyan-500/20 hover:border-cyan-500/40',
-      external: true,
-    },
-    {
-      href: '/pnl-tracker',
-      label: 'P&L Tracker',
-      description: 'Live intraday MTM tracker',
-      icon: BarChart3,
-      gradient: 'from-green-500/10 to-green-500/5 hover:from-green-500/20 hover:to-green-500/10',
-      iconBg: 'bg-green-500/20',
-      iconColor: 'text-green-500',
-      borderColor: 'border-green-500/20 hover:border-green-500/40',
-    },
-    {
-      href: 'https://www.openalgo.in/learn',
-      label: 'OpenVarsity',
-      description: 'Learn algo trading with OpenAlgo',
-      icon: GraduationCap,
-      gradient: 'from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10',
-      iconBg: 'bg-blue-500/20',
-      iconColor: 'text-blue-500',
-      borderColor: 'border-blue-500/20 hover:border-blue-500/40',
-      external: true,
-    },
-    {
-      href: '/logs/latency',
-      label: 'Latency Monitor',
-      description: 'Monitor order & API latency',
-      icon: Zap,
-      gradient:
-        'from-orange-500/10 to-orange-500/5 hover:from-orange-500/20 hover:to-orange-500/10',
-      iconBg: 'bg-orange-500/20',
-      iconColor: 'text-orange-500',
-      borderColor: 'border-orange-500/20 hover:border-orange-500/40',
-    },
-  ]
 
   // Broker token expired but the app session is fine: send the user to the
   // broker reconnect flow, not /login (which would bounce back) — #1400.
@@ -327,123 +252,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {/* Available Balance */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Available Balance</p>
-              <p className="text-2xl font-bold text-primary">
-                {isLoading
-                  ? '...'
-                  : marginData
-                    ? formatIndianNumber(marginData.availablecash)
-                    : '0.00'}
-              </p>
-              <Badge variant="secondary" className="mt-2">
-                Cash Balance
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Collateral */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Collateral</p>
-              <p className="text-2xl font-bold text-violet-500 dark:text-violet-400">
-                {isLoading
-                  ? '...'
-                  : marginData
-                    ? formatIndianNumber(marginData.collateral)
-                    : '0.00'}
-              </p>
-              <Badge variant="secondary" className="mt-2">
-                Total Collateral
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Unrealized P&L */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Unrealized P&L</p>
-              <p
-                className={cn(
-                  'text-2xl font-bold',
-                  marginData ? getPnLColor(marginData.m2munrealized) : ''
-                )}
-              >
-                {isLoading
-                  ? '...'
-                  : marginData
-                    ? formatIndianNumber(marginData.m2munrealized)
-                    : '0.00'}
-              </p>
-              <Badge
-                variant={marginData ? getPnLBadgeVariant(marginData.m2munrealized) : 'secondary'}
-                className="mt-2"
-              >
-                Mark to Market
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Realized P&L */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Realized P&L</p>
-              <p
-                className={cn(
-                  'text-2xl font-bold',
-                  marginData ? getPnLColor(marginData.m2mrealized) : ''
-                )}
-              >
-                {isLoading
-                  ? '...'
-                  : marginData
-                    ? formatIndianNumber(marginData.m2mrealized)
-                    : '0.00'}
-              </p>
-              <Badge
-                variant={marginData ? getPnLBadgeVariant(marginData.m2mrealized) : 'secondary'}
-                className="mt-2"
-              >
-                Booked P&L
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Utilised Margin */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Utilised Margin</p>
-              <p className="text-2xl font-bold text-cyan-500 dark:text-cyan-400">
-                {isLoading
-                  ? '...'
-                  : marginData
-                    ? formatIndianNumber(marginData.utiliseddebits)
-                    : '0.00'}
-              </p>
-              <Badge
-                variant="outline"
-                className="mt-2 border-cyan-500/50 text-cyan-600 dark:text-cyan-400"
-              >
-                Used Margin
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Error Alert */}
       {error && (
         <Card className="border-destructive bg-destructive/5">
@@ -453,52 +261,135 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Quick Access Tools */}
-      <div>
-        <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6">Quick Access</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-          {quickAccessCards.map((card) => {
-            const cardClasses = cn(
-              'block rounded-lg border transition-all duration-300 hover:shadow-lg',
-              `bg-gradient-to-br ${card.gradient}`,
-              card.borderColor
-            )
-
-            const cardContent = (
-              <div className="p-4 md:p-5">
-                <div className="flex items-start gap-3 md:gap-4">
-                  <div className={cn('p-2.5 md:p-3 rounded-lg flex-shrink-0', card.iconBg)}>
-                    <card.icon className={cn('h-5 w-5 md:h-6 md:w-6', card.iconColor)} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold mb-1 text-base md:text-lg">{card.label}</h3>
-                    <p className="text-sm text-muted-foreground">{card.description}</p>
-                  </div>
-                </div>
-              </div>
-            )
-
-            if (card.external) {
-              return (
-                <a
-                  key={card.href}
-                  href={card.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cardClasses}
+      {/* Main content: candle cards lead (left, widest column), account
+          balances follow in a narrow sidebar (right) -- the Groww dashboard's
+          "Top traded" + "Positions" split. Stacks on narrow screens, sidebar
+          below the cards. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 md:gap-8 items-start">
+        {/* Top Traded: the day's candles for every index or commodity the
+            selected tab covers. Settings and utility links (Search, Logs,
+            Docs, PnL Tracker, OpenVarsity, Latency) moved to /admin, which
+            the profile menu already reaches. */}
+        <div>
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h2 className="text-xl md:text-2xl font-semibold">Top Traded</h2>
+            <div className="flex gap-2">
+              {(Object.keys(TOP_TRADED_TABS) as TopTradedTab[]).map((tab) => (
+                <Button
+                  key={tab}
+                  type="button"
+                  size="sm"
+                  variant={topTradedTab === tab ? 'default' : 'outline'}
+                  className="rounded-full"
+                  onClick={() => setTopTradedTab(tab)}
                 >
-                  {cardContent}
-                </a>
-              )
-            }
-
-            return (
-              <Link key={card.href} to={card.href} className={cardClasses}>
-                {cardContent}
-              </Link>
-            )
-          })}
+                  {TOP_TRADED_TABS[tab].label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            {TOP_TRADED_TABS[topTradedTab].instruments.map((item) => (
+              <TopInstrumentCard
+                key={`${item.exchange}:${item.symbol}`}
+                symbol={item.symbol}
+                exchange={item.exchange}
+                label={item.label ?? item.symbol}
+              />
+            ))}
+          </div>
         </div>
+
+        {/* Account balances sidebar */}
+        <Card className="lg:sticky lg:top-20">
+          <CardContent className="p-0 divide-y">
+            <div className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">Available Balance</p>
+              <p className="text-xl font-bold text-primary">
+                {isLoading
+                  ? '...'
+                  : marginData
+                    ? formatCurrency(Number(marginData.availablecash))
+                    : '0.00'}
+              </p>
+              <Badge variant="secondary" className="mt-1.5">
+                Cash Balance
+              </Badge>
+            </div>
+
+            <div className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">Collateral</p>
+              <p className="text-xl font-bold text-chart-4">
+                {isLoading
+                  ? '...'
+                  : marginData
+                    ? formatCurrency(Number(marginData.collateral))
+                    : '0.00'}
+              </p>
+              <Badge variant="secondary" className="mt-1.5">
+                Total Collateral
+              </Badge>
+            </div>
+
+            <div className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">Unrealized P&L</p>
+              <p
+                className={cn(
+                  'text-xl font-bold',
+                  marginData ? getPnLColor(marginData.m2munrealized) : ''
+                )}
+              >
+                {isLoading
+                  ? '...'
+                  : marginData
+                    ? formatCurrency(Number(marginData.m2munrealized))
+                    : '0.00'}
+              </p>
+              <Badge
+                variant={marginData ? getPnLBadgeVariant(marginData.m2munrealized) : 'secondary'}
+                className="mt-1.5"
+              >
+                Mark to Market
+              </Badge>
+            </div>
+
+            <div className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">Realized P&L</p>
+              <p
+                className={cn(
+                  'text-xl font-bold',
+                  marginData ? getPnLColor(marginData.m2mrealized) : ''
+                )}
+              >
+                {isLoading
+                  ? '...'
+                  : marginData
+                    ? formatCurrency(Number(marginData.m2mrealized))
+                    : '0.00'}
+              </p>
+              <Badge
+                variant={marginData ? getPnLBadgeVariant(marginData.m2mrealized) : 'secondary'}
+                className="mt-1.5"
+              >
+                Booked P&L
+              </Badge>
+            </div>
+
+            <div className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">Utilised Margin</p>
+              <p className="text-xl font-bold text-chart-3">
+                {isLoading
+                  ? '...'
+                  : marginData
+                    ? formatCurrency(Number(marginData.utiliseddebits))
+                    : '0.00'}
+              </p>
+              <Badge variant="outline" className="mt-1.5 border-chart-3/50 text-chart-3">
+                Used Margin
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
