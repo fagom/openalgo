@@ -187,11 +187,17 @@ def run_eod_report_job(market_class: str = "equity_fo") -> dict:
     stats = compute_trade_analysis(closed_trades, total_charges)
     analysis = upsert_trade_analysis(user_id, broker, today, stats, market_class)
 
-    # Persist each closed trade, then reason about it. One trade's failure
-    # (caught inside analyze_trade, never raised) must never cost the rest of
-    # the day's trades their reasoning.
+    # Persist each closed trade, then reason about the ones that don't
+    # already have reasoning carried over from a prior run of this same day
+    # (replace_closed_trades matches by symbol/exchange/product/qty/entry/
+    # exit) - a mid-day manual Refresh followed by the scheduled run, or two
+    # scheduled runs, must not re-bill the AI model for a trade it already
+    # reasoned about. One trade's failure (caught inside analyze_trade, never
+    # raised) must never cost the rest of the day's trades their reasoning.
     trade_rows = replace_closed_trades(user_id, broker, today, market_class, closed_trades)
     for row in trade_rows:
+        if row.reasoning_text:
+            continue
         try:
             trade_for_reasoning = {
                 "symbol": row.symbol,

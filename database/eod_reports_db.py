@@ -234,9 +234,11 @@ class ClosedTrade(Base):
     Written by services/eod_reports_service.py's EOD run, which replaces the
     prior set for that user/broker/day/market_class on every run (a manual
     Refresh mid-day followed by the scheduled run just recomputes the same
-    trades and re-runs their reasoning), and updated in place by a trader's
-    on-demand "Analyze" click (blueprints/eod_reports.py's POST
-    .../trades/<id>/analyze).
+    trades) - but a trade that reappears unchanged keeps its previously
+    generated reasoning instead of being re-billed to the AI model for it
+    (database.eod_reports_db._closed_trade_key). Also updated in place by a
+    trader's on-demand "Analyze" click (blueprints/eod_reports.py's POST
+    .../trades/<id>/analyze), which always regenerates.
     """
 
     __tablename__ = "closed_trades"
@@ -492,18 +494,64 @@ def get_trade_analysis(
         return None
 
 
+def _closed_trade_key(row_like) -> tuple:
+    """Identifies "the same" closed trade across reruns of the EOD job.
+
+    A FIFO match on the same day's fills is deterministic, so a trade that
+    reappears with the same symbol/exchange/product/qty/entry/exit is the
+    same round trip, not a new one - its prior reasoning should survive a
+    re-run instead of being thrown away and re-billed to the AI model.
+    """
+    get = row_like.get if isinstance(row_like, dict) else lambda k: getattr(row_like, k)
+    return (
+        get("symbol"),
+        get("exchange"),
+        get("product"),
+        get("entry_time"),
+        get("exit_time"),
+        round(get("quantity") or 0, 4),
+    )
+
+
 def replace_closed_trades(
     user_id: str, broker: str, trade_date: date, market_class: str, trades: list[dict]
 ) -> list:
-    """Replace this day/market_class's closed trades with a freshly computed set.
+    """Replace this day/market_class's closed trades with a freshly computed set,
+    carrying over each trade's prior reasoning where it matches a trade from
+    before (see ``_closed_trade_key``) rather than discarding it.
 
-    Returns the newly inserted ORM rows (with their ids) so the caller can
-    immediately loop over them to generate reasoning without a second query.
+    Returns the ORM rows (with their ids) so the caller can loop over them and
+    generate reasoning only for the ones that don't already have it.
     """
     try:
+        existing = (
+            db_session.query(ClosedTrade)
+            .filter_by(
+                user_id=user_id, broker=broker, trade_date=trade_date, market_class=market_class
+            )
+            .all()
+        )
+        # Copied out as plain tuples, not kept as ORM objects: the delete
+        # below reuses these rows' primary keys for the new insert, and an
+        # ORM object still in the session's identity map under an id now
+        # given to a different row is exactly the kind of stale reference
+        # that silently serves another trade's reasoning to the wrong row.
+        existing_reasoning_by_key = {
+            _closed_trade_key(row): (
+                row.reasoning_text,
+                row.reasoning_verdict,
+                row.reasoning_model,
+                row.reasoning_generated_at,
+            )
+            for row in existing
+            if row.reasoning_text
+        }
+        db_session.expunge_all()
+
         db_session.query(ClosedTrade).filter_by(
             user_id=user_id, broker=broker, trade_date=trade_date, market_class=market_class
         ).delete(synchronize_session=False)
+
         rows = []
         for trade in trades:
             row = ClosedTrade(
@@ -522,6 +570,14 @@ def replace_closed_trades(
                 entry_time=trade.get("entry_time"),
                 exit_time=trade.get("exit_time"),
             )
+            prior = existing_reasoning_by_key.get(_closed_trade_key(trade))
+            if prior is not None:
+                (
+                    row.reasoning_text,
+                    row.reasoning_verdict,
+                    row.reasoning_model,
+                    row.reasoning_generated_at,
+                ) = prior
             db_session.add(row)
             rows.append(row)
         db_session.commit()
