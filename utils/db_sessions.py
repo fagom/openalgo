@@ -63,6 +63,7 @@ SCOPED_SESSION_MODULES = [
     ("database.oauth_db", "db_session"),
     ("database.whatsapp_db", "db_session"),
     ("database.agent_db", "db_session"),
+    ("database.eod_reports_db", "db_session"),
 ]
 
 

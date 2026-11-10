@@ -308,6 +308,12 @@ def react_pnltracker():
     return serve_react_app()
 
 
+# Daily Reports: balance progression, daily charges, trade analysis
+@react_bp.route("/eod-reports")
+def react_eod_reports():
+    return serve_react_app()
+
+
 # Tools overview (Option Chain, IV Chart, etc.)
 @react_bp.route("/tools")
 def react_tools():

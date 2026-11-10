@@ -52,6 +52,7 @@ const Platforms = lazy(() => import('@/pages/Platforms'))
 const TradingView = lazy(() => import('@/pages/TradingView'))
 const GoCharting = lazy(() => import('@/pages/GoCharting'))
 const PnLTracker = lazy(() => import('@/pages/PnLTracker'))
+const EodReports = lazy(() => import('@/pages/EodReports'))
 
 // Sandbox & Analyzer
 const Sandbox = lazy(() => import('@/pages/Sandbox'))
@@ -220,6 +221,7 @@ function App() {
                 <Route path="/sector-rotation" element={<SectorRotation />} />
                 <Route path="/gocharting" element={<GoCharting />} />
                 <Route path="/pnl-tracker" element={<PnLTracker />} />
+                <Route path="/eod-reports" element={<EodReports />} />
                 {/* Phase 4: Sandbox & Analyzer */}
                 <Route path="/sandbox" element={<Sandbox />} />
                 <Route path="/sandbox/mypnl" element={<SandboxPnL />} />

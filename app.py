@@ -65,6 +65,7 @@ from blueprints.core import core_bp
 from blueprints.custom_indicators import custom_indicators_bp  # User chart indicators
 from blueprints.custom_straddle import custom_straddle_bp  # Import custom straddle blueprint
 from blueprints.dashboard import dashboard_bp
+from blueprints.eod_reports import eod_reports_bp  # Daily Reports (balance/charges/trade analysis)
 from blueprints.flow import flow_bp  # Import the flow blueprint
 from blueprints.gamma_density import gamma_density_bp  # Import the Gamma Density blueprint
 from blueprints.gc_json import gc_json_bp
@@ -130,6 +131,7 @@ from database.apscheduler_jobstore_db import ensure_jobstore_tables_exist
 from database.auth_db import init_db as ensure_auth_tables_exists
 from database.broker_keys_db import ensure_broker_keys_tables_exists
 from database.chartink_db import init_db as ensure_chartink_tables_exists
+from database.eod_reports_db import init_db as ensure_eod_reports_tables_exists
 from database.flow_db import init_db as ensure_flow_tables_exists
 from database.historify_db import init_database as ensure_historify_tables_exists
 from database.iv_history_db import init_db as ensure_iv_history_tables_exists
@@ -329,6 +331,7 @@ def create_app():
     app.register_blueprint(openscript_bp)  # Register trader authored OpenScript sources
     app.register_blueprint(openscript_runner_bp)  # Register the OpenScript strategy runner
     app.register_blueprint(pnltracker_bp)  # Register PnL tracker blueprint
+    app.register_blueprint(eod_reports_bp)  # Register Daily Reports blueprint
     app.register_blueprint(python_strategy_bp)  # Register Python strategy blueprint
     app.register_blueprint(telegram_bp)  # Register Telegram blueprint
     app.register_blueprint(whatsapp_bp)  # Register WhatsApp blueprint
@@ -800,6 +803,7 @@ def setup_environment(app):
                 ("IV History DB", ensure_iv_history_tables_exists),
                 ("Strategy Portfolio DB", ensure_strategy_portfolio_tables_exists),
                 ("Agent DB", ensure_agent_tables_exists),
+                ("EOD Reports DB", ensure_eod_reports_tables_exists),
                 # Created here, not left to APScheduler's own CREATE TABLE in
                 # scheduler.start(). That DDL would otherwise run further down
                 # this function, after db_ready releases the rest of the boot,

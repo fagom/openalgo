@@ -299,6 +299,22 @@ def _run_dead_process_reaper():
 
 
 @releases_scoped_sessions
+def _run_eod_reports_job_equity_fo():
+    # Imported here, not at module level, so this blueprint has no
+    # import-time dependency on services/eod_reports_service.py.
+    from services.eod_reports_service import run_eod_report_job
+
+    run_eod_report_job("equity_fo")
+
+
+@releases_scoped_sessions
+def _run_eod_reports_job_commodity():
+    from services.eod_reports_service import run_eod_report_job
+
+    run_eod_report_job("commodity")
+
+
+@releases_scoped_sessions
 def _run_scheduled_start(strategy_id):
     scheduled_start_strategy(strategy_id)
 
@@ -351,6 +367,27 @@ def init_scheduler():
             replace_existing=True,
         )
         logger.debug("Dead-process reaper scheduled (runs every 60 seconds)")
+
+        # Daily Reports: balance snapshot, charges breakdown, trade analysis,
+        # per-trade AI reasoning. Two runs, because equity/F&O settle by
+        # market close while MCX commodities trade into the evening - each
+        # run only touches its own market_class's rows (services/
+        # eod_reports_service.py), so neither clobbers the other.
+        SCHEDULER.add_job(
+            func=_run_eod_reports_job_equity_fo,
+            trigger=CronTrigger(hour=15, minute=40, timezone=IST),
+            id="eod_reports_job_equity_fo",
+            replace_existing=True,
+        )
+        logger.debug("Daily Reports EOD job (equity/F&O) scheduled at 15:40 IST")
+
+        SCHEDULER.add_job(
+            func=_run_eod_reports_job_commodity,
+            trigger=CronTrigger(hour=23, minute=45, timezone=IST),
+            id="eod_reports_job_commodity",
+            replace_existing=True,
+        )
+        logger.debug("Daily Reports EOD job (commodity) scheduled at 23:45 IST")
 
 
 def load_configs():

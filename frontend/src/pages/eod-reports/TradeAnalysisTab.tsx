@@ -1,0 +1,360 @@
+/**
+ * A day's rule-based trade performance summary (win rate, best/worst trade,
+ * PnL, profit factor - plain arithmetic, no AI involved) plus, below it, an
+ * AI reasoning note per closed trade: whether the entry/exit looked
+ * well-timed given the price action around it. Split by market class
+ * (Equity & F&O vs Commodities) because they settle, and therefore get
+ * analyzed, at different times of day (services/eod_reports_service.py:
+ * 15:40 IST and 23:45 IST).
+ */
+
+import { Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { makeFormatCurrency } from '@/lib/utils'
+import { useAuthStore } from '@/stores/authStore'
+import { showToast } from '@/utils/toast'
+
+interface TradeAnalysis {
+  date: string
+  totalTrades: number
+  winningTrades: number
+  losingTrades: number
+  winRate: number
+  totalPnl: number
+  grossProfit: number
+  grossLoss: number
+  profitFactor: number | null
+  bestTradeSymbol: string | null
+  bestTradePnl: number | null
+  worstTradeSymbol: string | null
+  worstTradePnl: number | null
+  avgWin: number | null
+  avgLoss: number | null
+  segmentBreakdown: Record<string, { trade_count: number; pnl: number; win_rate: number }>
+}
+
+interface ClosedTrade {
+  id: number
+  marketClass: string
+  segment: string
+  symbol: string
+  exchange: string
+  product: string
+  entryPrice: number
+  exitPrice: number
+  quantity: number
+  pnl: number
+  entryTime: number | null
+  exitTime: number | null
+  reasoningText: string | null
+  reasoningVerdict: 'good' | 'neutral' | 'poor' | 'unrated'
+  reasoningModel: string | null
+  reasoningGeneratedAt: string | null
+}
+
+const SEGMENT_LABELS: Record<string, string> = {
+  equity_delivery: 'Equity Delivery',
+  equity_intraday: 'Equity Intraday',
+  fo_futures: 'F&O Futures',
+  fo_options: 'F&O Options',
+  commodity_futures: 'Commodity Futures',
+  commodity_options: 'Commodity Options',
+}
+
+const VERDICT_STYLE: Record<ClosedTrade['reasoningVerdict'], string> = {
+  good: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  neutral: 'bg-muted text-muted-foreground',
+  poor: 'bg-red-500/15 text-red-600 dark:text-red-400',
+  unrated: 'bg-muted text-muted-foreground',
+}
+
+const VERDICT_LABEL: Record<ClosedTrade['reasoningVerdict'], string> = {
+  good: 'Good setup',
+  neutral: 'Neutral',
+  poor: 'Poor setup',
+  unrated: 'Not analyzed',
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function formatTime(epoch: number | null): string {
+  if (epoch === null) return '--'
+  return new Date(epoch * 1000).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+async function fetchCSRFToken(): Promise<string> {
+  const response = await fetch('/auth/csrf-token', { credentials: 'include' })
+  const data = await response.json()
+  return data.csrf_token
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
+    </div>
+  )
+}
+
+interface Props {
+  /** Bumped by the page's Refresh button; triggers a reload when it changes. */
+  refreshToken?: number
+}
+
+export default function TradeAnalysisTab({ refreshToken = 0 }: Props) {
+  const { user } = useAuthStore()
+  const formatCurrency = makeFormatCurrency(user?.broker)
+
+  const [marketClass, setMarketClass] = useState<'equity_fo' | 'commodity'>('equity_fo')
+  const [date, setDate] = useState(todayIso())
+  const [data, setData] = useState<TradeAnalysis | null>(null)
+  const [trades, setTrades] = useState<ClosedTrade[]>([])
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+  const [analyzing, setAnalyzing] = useState<Set<number>>(new Set())
+  const [error, setError] = useState<string | null>(null)
+
+  const load = useCallback(async (forDate: string, forClass: string) => {
+    setError(null)
+    try {
+      const [analysisRes, tradesRes] = await Promise.all([
+        fetch(`/eod-reports/api/trade-analysis?date=${forDate}&market_class=${forClass}`, {
+          credentials: 'include',
+        }),
+        fetch(`/eod-reports/api/trades?date=${forDate}&market_class=${forClass}`, {
+          credentials: 'include',
+        }),
+      ])
+      const analysisResult = await analysisRes.json()
+      const tradesResult = await tradesRes.json()
+      if (analysisResult.status !== 'success' || tradesResult.status !== 'success') {
+        throw new Error(
+          analysisResult.message || tradesResult.message || 'Could not load trade analysis'
+        )
+      }
+      setData(analysisResult.data)
+      setTrades(tradesResult.data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load trade analysis')
+    }
+  }, [])
+
+  useEffect(() => {
+    load(date, marketClass)
+  }, [date, marketClass, load, refreshToken])
+
+  const toggleExpanded = (id: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const analyzeTrade = useCallback(async (id: number) => {
+    setAnalyzing((prev) => new Set(prev).add(id))
+    try {
+      const csrfToken = await fetchCSRFToken()
+      const response = await fetch(`/eod-reports/api/trades/${id}/analyze`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        credentials: 'include',
+      })
+      const result = await response.json()
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Could not analyze this trade')
+      }
+      setTrades((prev) => prev.map((t) => (t.id === id ? { ...t, ...result.data } : t)))
+      setExpanded((prev) => new Set(prev).add(id))
+    } catch (err) {
+      showToast.error(err instanceof Error ? err.message : 'Could not analyze this trade')
+    } finally {
+      setAnalyzing((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }, [])
+
+  return (
+    <div className="space-y-4">
+      <Tabs value={marketClass} onValueChange={(v) => setMarketClass(v as typeof marketClass)}>
+        <TabsList>
+          <TabsTrigger value="equity_fo">Equity & F&O</TabsTrigger>
+          <TabsTrigger value="commodity">Commodities</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Trade Analysis</CardTitle>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            max={todayIso()}
+            className="w-auto"
+          />
+        </CardHeader>
+        <CardContent>
+          {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+          {!data && !error && (
+            <p className="text-sm text-muted-foreground">
+              No trade analysis for this day yet. It is computed once, after market close, from that
+              day's executed trades.
+            </p>
+          )}
+          {data && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <StatCard label="Net PnL (after charges)" value={formatCurrency(data.totalPnl)} />
+                <StatCard label="Total Trades" value={String(data.totalTrades)} />
+                <StatCard label="Win Rate" value={`${(data.winRate * 100).toFixed(1)}%`} />
+                <StatCard
+                  label="Profit Factor"
+                  value={data.profitFactor === null ? 'n/a' : data.profitFactor.toFixed(2)}
+                />
+                <StatCard label="Winning Trades" value={String(data.winningTrades)} />
+                <StatCard label="Losing Trades" value={String(data.losingTrades)} />
+                <StatCard
+                  label="Best Trade"
+                  value={
+                    data.bestTradeSymbol
+                      ? `${data.bestTradeSymbol} (${formatCurrency(data.bestTradePnl ?? 0)})`
+                      : 'n/a'
+                  }
+                />
+                <StatCard
+                  label="Worst Trade"
+                  value={
+                    data.worstTradeSymbol
+                      ? `${data.worstTradeSymbol} (${formatCurrency(data.worstTradePnl ?? 0)})`
+                      : 'n/a'
+                  }
+                />
+              </div>
+
+              {Object.keys(data.segmentBreakdown || {}).length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-medium">By Segment</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-left text-muted-foreground">
+                          <th className="py-2">Segment</th>
+                          <th className="py-2 text-right">Trades</th>
+                          <th className="py-2 text-right">Win Rate</th>
+                          <th className="py-2 text-right">PnL</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(data.segmentBreakdown).map(([segment, stats]) => (
+                          <tr key={segment} className="border-b last:border-0">
+                            <td className="py-2">{SEGMENT_LABELS[segment] || segment}</td>
+                            <td className="py-2 text-right">{stats.trade_count}</td>
+                            <td className="py-2 text-right">
+                              {(stats.win_rate * 100).toFixed(1)}%
+                            </td>
+                            <td className="py-2 text-right">{formatCurrency(stats.pnl)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {trades.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Trades</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {trades.map((trade) => {
+              const isExpanded = expanded.has(trade.id)
+              const isAnalyzing = analyzing.has(trade.id)
+              const hasReasoning = trade.reasoningGeneratedAt !== null
+              return (
+                <div key={trade.id} className="rounded-lg border">
+                  <button
+                    type="button"
+                    onClick={() => hasReasoning && toggleExpanded(trade.id)}
+                    className="flex w-full items-center justify-between gap-3 p-3 text-left"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <span className="truncate font-medium">{trade.symbol}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTime(trade.entryTime)} &rarr; {formatTime(trade.exitTime)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {trade.quantity} @ {trade.entryPrice} &rarr; {trade.exitPrice}
+                      </span>
+                    </div>
+                    <span
+                      className={trade.pnl >= 0 ? 'text-emerald-600' : 'text-red-600'}
+                      style={{ fontWeight: 600 }}
+                    >
+                      {formatCurrency(trade.pnl)}
+                    </span>
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs font-medium ${VERDICT_STYLE[trade.reasoningVerdict]}`}
+                    >
+                      {VERDICT_LABEL[trade.reasoningVerdict]}
+                    </span>
+                    {!hasReasoning && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isAnalyzing}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          analyzeTrade(trade.id)
+                        }}
+                      >
+                        <Sparkles className={isAnalyzing ? 'animate-pulse' : ''} />
+                        {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+                      </Button>
+                    )}
+                  </button>
+                  {isExpanded && hasReasoning && (
+                    <div className="border-t p-3 text-sm text-muted-foreground">
+                      <p>{trade.reasoningText}</p>
+                      {trade.reasoningModel && (
+                        <p className="mt-1 text-xs italic">via {trade.reasoningModel}</p>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="mt-2"
+                        disabled={isAnalyzing}
+                        onClick={() => analyzeTrade(trade.id)}
+                      >
+                        <Sparkles className={isAnalyzing ? 'animate-pulse' : ''} />
+                        {isAnalyzing ? 'Re-analyzing...' : 'Re-analyze'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}

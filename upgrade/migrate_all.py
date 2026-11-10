@@ -96,6 +96,7 @@ MIGRATIONS = [
     ("migrate_muhurat_2026.py", "Diwali Muhurat 2026 Published Timings"),
     ("migrate_broker_keys.py", "Broker Keys, Session Sign-out and Broker Login State"),
     ("migrate_iv_history.py", "IV History (IV Rank/Percentile daily snapshots)"),
+    ("migrate_eod_reports.py", "Daily Reports (Balance/Charges/Trade Analysis)"),
 ]
 
 # Legacy migrations historically used non-zero exits for best-effort warnings,

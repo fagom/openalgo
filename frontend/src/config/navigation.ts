@@ -99,6 +99,7 @@ export const profileMenuItems: NavItem[] = [
   { href: '/scalping', label: 'Scalping', icon: Zap },
   { href: '/python', label: 'Python Strategies', icon: Code2 },
   { href: '/pnl-tracker', label: 'PnL Tracker', icon: BarChart3 },
+  { href: '/eod-reports', label: 'Daily Reports', icon: FileBarChart },
   { href: '/historify', label: 'Historify', icon: Database },
   { href: '/search/token', label: 'Search', icon: Search },
   { href: '/sandbox', label: 'Sandbox', icon: FlaskConical },
