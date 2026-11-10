@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { showToast } from '@/utils/toast'
 import BalanceProgressionTab from './eod-reports/BalanceProgressionTab'
 import DailyChargesTab from './eod-reports/DailyChargesTab'
+import PnlCalendar from './eod-reports/PnlCalendar'
 import TradeAnalysisTab from './eod-reports/TradeAnalysisTab'
 
 const MARKET_CLASS_LABEL: Record<string, string> = {
@@ -133,6 +134,7 @@ export default function EodReports() {
           <TabsTrigger value="balance">Balance Progression</TabsTrigger>
           <TabsTrigger value="charges">Daily Charges</TabsTrigger>
           <TabsTrigger value="analysis">Trade Analysis</TabsTrigger>
+          <TabsTrigger value="calendar">P&amp;L Calendar</TabsTrigger>
         </TabsList>
         <TabsContent value="balance">
           <BalanceProgressionTab refreshToken={refreshToken} />
@@ -142,6 +144,9 @@ export default function EodReports() {
         </TabsContent>
         <TabsContent value="analysis">
           <TradeAnalysisTab refreshToken={refreshToken} />
+        </TabsContent>
+        <TabsContent value="calendar">
+          <PnlCalendar refreshToken={refreshToken} />
         </TabsContent>
       </Tabs>
     </div>
