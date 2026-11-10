@@ -18,6 +18,7 @@ from database.eod_reports_db import (
     get_closed_trades,
     get_daily_charges,
     get_pnl_calendar,
+    get_thesis_outcome_stats,
     get_trade_analysis,
     set_brokerage_settings,
     set_trade_reasoning,
@@ -82,6 +83,19 @@ def pnl_calendar():
         return jsonify({"status": "error", "message": "Not logged in to a broker"}), 400
     days = request.args.get("days", 400)
     return jsonify({"status": "success", "data": get_pnl_calendar(user_id, broker, days)})
+
+
+@eod_reports_bp.route("/thesis-stats")
+@check_session_validity
+def thesis_stats():
+    user_id, broker = _session_user_broker()
+    if not user_id or not broker:
+        return jsonify({"status": "error", "message": "Not logged in to a broker"}), 400
+    try:
+        days = int(request.args.get("days", 30))
+    except (TypeError, ValueError):
+        days = 30
+    return jsonify({"status": "success", "data": get_thesis_outcome_stats(user_id, broker, days)})
 
 
 @eod_reports_bp.route("/daily-charges")

@@ -18,7 +18,7 @@ tables, though OpenAlgo is single-user per deployment.
 """
 
 import json
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import Column, Date, DateTime, Float, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
@@ -665,6 +665,72 @@ def get_closed_trades(user_id: str, broker: str, trade_date: date, market_class:
         db_session.rollback()
         logger.exception("Could not read the day's closed trades")
         return []
+
+
+def _verdict_breakdown(trades: list[dict]) -> dict:
+    counts = {"good": 0, "neutral": 0, "poor": 0, "unrated": 0}
+    for t in trades:
+        counts[t.get("reasoningVerdict") or "unrated"] = (
+            counts.get(t.get("reasoningVerdict") or "unrated", 0) + 1
+        )
+    return counts
+
+
+def _outcome_bucket(trades: list[dict]) -> dict:
+    count = len(trades)
+    if count == 0:
+        return {
+            "tradeCount": 0,
+            "winRate": 0.0,
+            "totalPnl": 0.0,
+            "avgPnl": 0.0,
+            "verdictBreakdown": _verdict_breakdown([]),
+        }
+    wins = sum(1 for t in trades if t["pnl"] > 0)
+    total_pnl = sum(t["pnl"] for t in trades)
+    return {
+        "tradeCount": count,
+        "winRate": round(wins / count * 100, 2),
+        "totalPnl": round(total_pnl, 2),
+        "avgPnl": round(total_pnl / count, 2),
+        "verdictBreakdown": _verdict_breakdown(trades),
+    }
+
+
+def get_thesis_outcome_stats(user_id: str, broker: str, days: int = 30) -> dict:
+    """Compares closed trades that carry the trader's own thesis note (typed
+    live into the scalping terminal, see _attach_thesis_notes) against ones
+    fired with none, across both market classes over the last `days` days -
+    answers the trader's own question of whether stating a thesis before
+    firing correlates with a better outcome for them, not an AI judgment.
+    """
+    cutoff = datetime.now(UTC).date() - timedelta(days=days)
+    try:
+        rows = (
+            db_session.query(ClosedTrade)
+            .filter(
+                ClosedTrade.user_id == user_id,
+                ClosedTrade.broker == broker,
+                ClosedTrade.trade_date >= cutoff,
+            )
+            .all()
+        )
+        trades = _attach_thesis_notes([row.to_dict() for row in rows], user_id, broker)
+        with_thesis = [t for t in trades if t["thesisNotes"]]
+        without_thesis = [t for t in trades if not t["thesisNotes"]]
+        return {
+            "days": days,
+            "withThesis": _outcome_bucket(with_thesis),
+            "withoutThesis": _outcome_bucket(without_thesis),
+        }
+    except Exception:
+        db_session.rollback()
+        logger.exception("Could not compute thesis-vs-outcome stats")
+        return {
+            "days": days,
+            "withThesis": _outcome_bucket([]),
+            "withoutThesis": _outcome_bucket([]),
+        }
 
 
 def get_closed_trade(user_id: str, broker: str, trade_id: int):
