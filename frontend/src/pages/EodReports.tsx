@@ -21,6 +21,7 @@ import DailyChargesTab from './eod-reports/DailyChargesTab'
 import PnlCalendar from './eod-reports/PnlCalendar'
 import ThesisOutcomeTab from './eod-reports/ThesisOutcomeTab'
 import TradeAnalysisTab from './eod-reports/TradeAnalysisTab'
+import TrendTab from './eod-reports/TrendTab'
 
 const MARKET_CLASS_LABEL: Record<string, string> = {
   equity_fo: 'Equity/F&O',
@@ -137,6 +138,7 @@ export default function EodReports() {
           <TabsTrigger value="analysis">Trade Analysis</TabsTrigger>
           <TabsTrigger value="calendar">P&amp;L Calendar</TabsTrigger>
           <TabsTrigger value="thesis">Thesis vs Outcome</TabsTrigger>
+          <TabsTrigger value="trend">Trend</TabsTrigger>
         </TabsList>
         <TabsContent value="balance">
           <BalanceProgressionTab refreshToken={refreshToken} />
@@ -152,6 +154,9 @@ export default function EodReports() {
         </TabsContent>
         <TabsContent value="thesis">
           <ThesisOutcomeTab refreshToken={refreshToken} />
+        </TabsContent>
+        <TabsContent value="trend">
+          <TrendTab refreshToken={refreshToken} />
         </TabsContent>
       </Tabs>
     </div>

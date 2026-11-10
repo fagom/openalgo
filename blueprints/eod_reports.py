@@ -20,6 +20,7 @@ from database.eod_reports_db import (
     get_pnl_calendar,
     get_thesis_outcome_stats,
     get_trade_analysis,
+    get_trade_analysis_trend,
     set_brokerage_settings,
     set_trade_reasoning,
 )
@@ -96,6 +97,22 @@ def thesis_stats():
     except (TypeError, ValueError):
         days = 30
     return jsonify({"status": "success", "data": get_thesis_outcome_stats(user_id, broker, days)})
+
+
+@eod_reports_bp.route("/trend")
+@check_session_validity
+def trend():
+    user_id, broker = _session_user_broker()
+    if not user_id or not broker:
+        return jsonify({"status": "error", "message": "Not logged in to a broker"}), 400
+    period = request.args.get("period", "week")
+    try:
+        periods = int(request.args.get("periods", 12))
+    except (TypeError, ValueError):
+        periods = 12
+    return jsonify(
+        {"status": "success", "data": get_trade_analysis_trend(user_id, broker, period, periods)}
+    )
 
 
 @eod_reports_bp.route("/daily-charges")

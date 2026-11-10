@@ -776,3 +776,92 @@ def get_pnl_calendar(user_id: str, broker: str, days: int = 400):
         db_session.rollback()
         logger.exception("Could not read the P&L calendar")
         return []
+
+
+def _trend_period_key(d: date, period: str) -> tuple[date, str]:
+    """The bucket a day's trade_analysis row falls into, and its label."""
+    if period == "month":
+        start = d.replace(day=1)
+        return start, start.strftime("%b %Y")
+    start = d - timedelta(days=d.weekday())  # Monday of that ISO week
+    return start, start.strftime("%d %b")
+
+
+def get_trade_analysis_trend(
+    user_id: str, broker: str, period: str = "week", periods: int = 12
+) -> list[dict]:
+    """Week-over-week or month-over-month trend, one point per period, summed
+    across market classes like get_pnl_calendar (a period with both an
+    equity/F&O and a commodity day contributes one combined total).
+
+    Recomputed from each period's summed trade/win/loss counts rather than
+    averaging each day's own win_rate - averaging would weight a single-trade
+    day the same as a thirty-trade day.
+    """
+    period = period if period in ("week", "month") else "week"
+    periods = max(1, min(int(periods or 12), 104))
+    today = datetime.now(UTC).date()
+    cutoff = (
+        today.replace(day=1) - timedelta(days=31 * periods)
+        if period == "month"
+        else today - timedelta(weeks=periods)
+    )
+
+    try:
+        rows = (
+            db_session.query(TradeAnalysis)
+            .filter(
+                TradeAnalysis.user_id == user_id,
+                TradeAnalysis.broker == broker,
+                TradeAnalysis.trade_date >= cutoff,
+            )
+            .all()
+        )
+    except Exception:
+        db_session.rollback()
+        logger.exception("Could not read the trade analysis trend")
+        return []
+
+    buckets: dict[date, dict] = {}
+    labels: dict[date, str] = {}
+    for row in rows:
+        start, label = _trend_period_key(row.trade_date, period)
+        bucket = buckets.setdefault(
+            start,
+            {
+                "totalTrades": 0,
+                "winningTrades": 0,
+                "losingTrades": 0,
+                "totalPnl": 0.0,
+                "grossProfit": 0.0,
+                "grossLoss": 0.0,
+            },
+        )
+        bucket["totalTrades"] += row.total_trades
+        bucket["winningTrades"] += row.winning_trades
+        bucket["losingTrades"] += row.losing_trades
+        bucket["totalPnl"] += row.total_pnl
+        bucket["grossProfit"] += row.gross_profit
+        bucket["grossLoss"] += row.gross_loss
+        labels[start] = label
+
+    result = []
+    for start in sorted(buckets):
+        b = buckets[start]
+        win_rate = (
+            round(b["winningTrades"] / b["totalTrades"] * 100, 2) if b["totalTrades"] else 0.0
+        )
+        profit_factor = round(b["grossProfit"] / abs(b["grossLoss"]), 2) if b["grossLoss"] else None
+        result.append(
+            {
+                "periodStart": start.isoformat(),
+                "label": labels[start],
+                "totalTrades": b["totalTrades"],
+                "winningTrades": b["winningTrades"],
+                "losingTrades": b["losingTrades"],
+                "winRate": win_rate,
+                "totalPnl": round(b["totalPnl"], 2),
+                "profitFactor": profit_factor,
+            }
+        )
+    return result[-periods:]
